@@ -1,0 +1,20 @@
+proc saveDataVector(){localobj file_ref, temp_save_vec
+// 
+//	JIM NOTE: localobj must be on first line
+//
+//	saveDataVector("name","data/fileName",list_obj)
+//
+//
+// IMPROVEMENTS: prepend data to input instead of making input pass it in ...
+
+	file_ref      = new File()
+	temp_save_vec = new Vector()
+
+	//This print statement is for the Matlab parser
+	printf("#file#%s#%s#\n",$s1,$s2)
+	
+	file_ref.wopen($s2)
+	temp_save_vec = $o3
+	temp_save_vec.vwrite(file_ref,4)
+	file_ref.close()
+}

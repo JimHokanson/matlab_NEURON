@@ -1,0 +1,12 @@
+1) Document source of all of these files as well as what they are:
+Specifically something like fh vs fh2 and hh2, what are these?
+
+Neuron Implementations by JAH based on Rattay - Handbook of Neuroprosthetic Methods, 2003
+SRB   - Schwarz, Reid, Bostock
+SE    - Schwarz-Eikhof
+CRRSS - Chiu, Ritchie, Rogert, Stagg, Sweeney
+
+From Model DB
+FH - http://senselab.med.yale.edu/ModelDB/ShowModel.asp?model=3507
+
+CRRSS Grill - DOI: 10.1007/s004220050455 - Sensitivity analysis of a model of mammalian neural membrane

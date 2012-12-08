@@ -1,0 +1,152 @@
+// Brill, Waxman, Moore, and Joyner (1977) Conduction velocity and spike
+// configuration in myelinated fibres: Computed dependence on internode distance
+// J. Neurology, Neurosurgery, and Psychiatry. 40: 769-774
+
+create node[1], myelin[1]
+
+// topol(nnode) connects an alternating sequence of node/myelin pairs.
+// For internode lengths < 1000 microns more than 12 nodes were used
+// to eliminate end and stimulation effects. Dynamically re-constructing
+// the topology is easy but the stimulator and GUI depend on sections they
+// reference staying in existence. It's especially bad for a PointProcessManager
+// when it's entire cell disappears. Therefore, we use 50 nodes
+// throughout which, although overkill for long myelin lengths, is appropriate
+// for the shortest 25 um lengths used in fig 1.
+
+//proc - short for procedure
+
+proc topol() {local i
+//NOTES ON COMMENTING
+
+/*
+
+I would prefer to have comments like this in the function headers. 
+
+See library for better examples of commenting functions and procedures
+CALLING FORM
+================================================
+topol(nnode)
+
+
+*/
+
+//local i, the function can reference global variables. To keep things clean one can define local variables
+//in the workspace
+
+
+	nnode = $1  //$1 indicates use the first input as this variable, note it will be a double
+	//since it is $1 and not $o1 (object) $s1 - string, note # indicates position in input
+	create node[nnode], myelin[nnode-1]
+	access node[0]
+	for i=0, nnode-2 {
+		connect myelin[i](0), node[i](1)
+		connect node[i+1](0), myelin[i](1)
+	}
+	forsec "myelin" { nseg = 10 }
+}
+
+proc geom() {
+//An example of using a global variable
+
+/*
+	forsec "node" { // area = 100 um2
+		L    = node_length
+		diam = node_diameter
+	}
+*/
+	
+	forsec "node" { // area = 100 um2
+		L    = 3.183
+		diam = 10
+	}
+	//See also this on sections and their properties:
+	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/geometry.html#Section
+	
+	forsec "myelin" {
+		L    = $1
+		diam = 10
+	}
+}
+
+func l2a() { // convert per length (/cm) to per area (/cm2) based on diameter
+	return 1/(PI*diam) * 1e4
+}
+
+proc biophys() {local fac
+	// ohm/cm must be converted to ohm-cm by multiplying by
+	// cross sectional area
+	fac = PI*diam^2/4 * 1e-8
+	forall {
+		Ra = 1.26e8 * fac
+	}
+	// paper relative to rest=0 but following values relative to -65
+	
+	
+	//Normally this would be
+	
+	forsec "node" {
+		insert fh 
+		cm = node_myelin_capacitance //NOTE: Most dynamics models also include a capacitive term
+		//they might also include a leakage term which might need to be set
+	}
+	
+	
+	forsec "node" {
+		insert hh
+		//Don't need to support modification of channel dynamics
+		//We'll do this at a later point in time
+		//Most of the time we'll just use the defaults
+		
+		//NODE_TYPE = 1 enumeration on HH,FH,CRRSS,SE,
+		/*
+		if NODE_TYPE == 1
+			insert HH
+	    elseif NODE_TYPE == 2
+			insert FH
+		end
+		
+		ALTERNATIVELY: Could run a separate function for each dynamics type
+		Then you have:
+		1) create cell
+		2) Insert dynamics - you'd toggle which one you called based on the Matlab settings
+		%	insert_hh.hoc
+		%	insert_fh.hoc
+		%	might also call, modify hh params.hoc - DONT IMPLEMENT NOW :)
+		*/
+		
+		gnabar_hh = 1.2
+		gkbar_hh  = .09
+		gl_hh     = .02
+		ena       = 115 - 65
+		ek        = -12 - 65
+		el_hh     = -.05 - 65
+		cm        = 3.14e-9*l2a()*1e6 // end up as uF/cm2
+	}
+	forsec "myelin" {
+		insert pas
+		e_pas = -65
+		g_pas = 5.60e-9*l2a() // end up as S/cm2
+		cm    = 1.87e-11*l2a()*1e6 // end up as uF/cm2
+	}
+	//insert pas - inserts passive mechanism
+	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/mech.html#pas
+	//See also this on sections and their properties:
+	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/geometry.html#Section
+}
+
+celsius = 20
+
+proc make() {
+	topol($1)
+	geom($2)
+	biophys()
+}
+
+//Code execution
+//=====================================
+//Calls make code which creates segment links using topol
+//Calls geom to set their lengths and diam
+//Then applies the passive and dynamic properties (uses diam into to do so)
+
+
+make(50, 1000) // appropriate down to 25um internode length

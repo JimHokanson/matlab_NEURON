@@ -1,0 +1,23 @@
+/*
+
+Ideally this function would be called
+separately and would be a function instead of relying on a global variables
+
+For right now just put node_list in the create_generic_axon code
+
+
+*/
+
+//Ideally you would pass in a reference to a list 
+//instead of creating it here
+
+//Used for extracellular stimulation to determine threshold
+
+
+
+objref node_list
+node_list = new SectionList()
+
+forsec "node" {
+node_list.append()
+}

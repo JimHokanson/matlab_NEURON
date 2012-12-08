@@ -1,0 +1,5 @@
+To create an extracellular stim capabable cell:
+1) Create Matlab code for cell
+2) Make sure it inherits extracellular_stim_capable
+3) Create NEURON code that instantiate cell
+

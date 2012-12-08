@@ -1,0 +1,25 @@
+//NOTE: This should probably really be a class ...
+proc xstim__create_stim_sectionlist(){
+/*
+
+	xstim__create_stim_sectionlist
+	
+GLOBALS (see xstim__define_global_variables.hoc)
+-------------------------------------------------------
+xstim__all_secs
+
+*/
+
+//DEBUGGING
+//print "Creating the section list"
+
+//Right way: Each cell should have to be able to define this
+//so that the 3d position matches this ...
+
+//NOTE: I don't like this being here ...
+xstim__all_secs.wholetree()  //NOTE: might be faster to do this manually ...
+
+//NOTE: This will only do I want it to do for axons ...
+
+// http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/classes/seclist.html#SectionList
+}

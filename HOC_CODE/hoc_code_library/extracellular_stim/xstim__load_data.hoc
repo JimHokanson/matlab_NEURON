@@ -1,0 +1,41 @@
+proc xstim__load_data(){
+/* xstim__load_data
+
+Currently this is done via files saved to a specific directory of the model
+
+USAGE
+------------------------------------------------------------------
+xstim__load_data()
+
+POPULATES
+-----------------------------------------------------------------
+xstim__t_vec    : time at which to apply the stimulus changes ...
+xstim__v_ext_in : stimulus to deliver to each segment
+
+v_ext.bin format -----------------------------------------------
+NOTE: This should be linear, first by time, then by location
+NOT A MATRIX
+x(1),t(1) - index 0
+x(1),t(2) - 1
+x(1),t(3) - 2
+x(2),t(1) - 3
+etc
+
+
+*/
+
+//DEBUGGING
+//print "Loading Stim Data"
+
+	strdef final_t_path, final_v_path
+
+	//NOTE: sim_hash is global ...
+	sprint(final_t_path,"%s%s%s","inputs/",sim_hash,"t_vec.bin")
+	sprint(final_v_path,"%s%s%s","inputs/",sim_hash,"v_ext.bin")
+	
+	loadDataVector(final_t_path,xstim__t_vec)
+	loadDataVector(final_v_path,xstim__v_ext_in)
+}
+
+
+

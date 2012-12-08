@@ -1,0 +1,92 @@
+//create_AD_cell
+
+//MYELINATED SENSORY NEURON (different diam for DR and peripheral axon)
+//SOMA & INITIAL SEG have REDUCED Frankenhaueser-Huxley 64 conductance
+//node has Frankenhaueser-Huxley 64 conductance
+//MORPHOLOGICALLY BASED ON ITO & TAKAHASHI 60 (TOAD DRG)
+
+
+//OUTPUTS NEEDED
+//=====================================================
+//xstim__create_stim_sectionlist() - currently does whole_tree - for applying stimulus...
+//xstim__all_secs.wholetree()
+//Where is the recording done?
+//node_list = new SectionList()
+//node_list.append() - done in 
+
+objref node_list
+node_list = new SectionList()
+
+
+load_file("create_peripheral_process.hoc")
+load_file("create_dorsal_process.hoc")
+load_file("create_stem.hoc")
+
+
+//CONNECT STEM
+soma connect iseg(0),1       
+iseg connect node1m(0),1
+node1m connect myelin1m(0),1
+myelin1m connect node2m(0),1
+node2m connect myelin2m(0),1
+myelin2m connect node3m(0),1
+node3m connect myelin3m(0),1
+myelin3m connect node4m(0),1
+node4m connect myelin4m(0),1
+myelin4m connect node5m(0),1
+
+
+//CONNECT DORSAL ROOT ABNORMAL SEGMENTS
+node1d connect abmyelin1d(0),1
+abmyelin1d connect node2d(0),1
+node2d connect abmyelin2d(0),1
+abmyelin2d connect node3d(0),1
+node3d connect abmyelin3d(0),1
+abmyelin3d connect node4d(0),1
+
+
+//CONNECT PERIPHERAL NERVE ABNORMAL SEGMENTS
+node1p connect abmyelin1p(0),1
+abmyelin1p connect node2p(0),1
+node2p connect abmyelin2p(0),1
+abmyelin2p connect node3p(0),1
+node3p connect abmyelin3p(0),1
+abmyelin3p connect node4p(0),1
+
+
+//CONNECT ABNORMAL SEGMENTS TO T-STEM AXON
+node5m connect node1d(0),1
+//node1d connect node1p(0),0
+node5m connect node1p(0),1
+
+
+//CONNECT NORMAL TO ABNORMAL DORSAL ROOT
+node4d connect myelindr[0](0),1
+
+
+//CONNECT NORMAL TO ABNORMAL PERIPHERAL NERVE 
+node4p connect myelinpn[0](0),1
+
+
+//FINAL SPECIFICATIONS FOR NODE & ELSEWHERE
+//========================================================================================
+forsec "node" { L=1.5	    //1-1.5micron (THE AXON p. 34). independent of axon diam
+		nseg=1
+		cm=1
+
+		insert fh
+		nai=13.74  //the fh.mod file does not REALY install this param 
+		nao=114.5  //the fh.mod file does not REALY install this param
+		ki=120    //the fh.mod file does not REALY install this param
+		ko=2.5	   //the fh.mod file does not REALY install this param
+}
+
+forsec xstim__all_secs{
+	insert extracellular
+}
+
+forall {Ra=110}	//FROG NEUROBIOLOGY p.13 Table 1. Lenhossek (1886, cited in Ito 59)
+
+celsius=20		//moore et al. 78
+//===========================================================================================
+

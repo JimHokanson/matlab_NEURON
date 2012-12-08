@@ -1,0 +1,11 @@
+JAH TODO: Finish this file …
+
+Section, Default properties
+name (long definition) : units
+------------------------------------
+L 	(Length) 	: um
+diam 	(Diameter) 	: um
+Ra 	(Cytoplasmic resistivity): Ohm-cm
+cm 	(Specific Membrane capacitance) : uF/cm^2
+
+

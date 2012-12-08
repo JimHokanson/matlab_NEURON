@@ -1,0 +1,27 @@
+/*
+
+//See xstim__define_global_variables.hoc
+
+ALL GLOBAL VARIABLES:
+xstim__stim_vector_list - List
+xstim__all_secs 		- SectionList
+xstim__v_ext_in 		- Vector
+xstim__t_vec 			- Vector
+xstim__node_vm_hist 	- List - output of record_node_voltages
+							- in Matlab, record_node_voltages ...
+							- called by initSystem in extracelluar stim event manager
+
+
+
+xstim__load_data()  -------------------------------------
+xstim__v_ext_in  : stimulus data to apply
+xstim__t_vec     : time to apply stimulus at 
+
+xstim__setup_play_vectors() -----------------------------
+xstim__stim_vector_list : list that holds all stim vectors ...
+
+xstim__create_all_sectionlist() -------------------------
+xstim__all_secs : Section list of all sections - traverse to stim
+
+*/
+

@@ -1,0 +1,2 @@
+1) Move everything to GIT
+2) Fix threshold function

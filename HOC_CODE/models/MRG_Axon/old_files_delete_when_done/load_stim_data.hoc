@@ -1,0 +1,31 @@
+//load_stim_data.hoc
+
+/*
+By having this separate from the apply_extracellular_stim.hoc
+we could change the stim scaling without reloading this ...
+
+*/
+
+objref v_ext_vec_in, v_ext_vec
+v_ext_vec_in = new Vector()
+v_ext_vec = new Vector()
+loadDataVector("inputs/v_ext.bin", v_ext_vec_in)
+
+voltage_scale = 1
+
+v_ext_vec = v_ext_vec_in.c.mul(voltage_scale)
+
+print "i like razzy fresh"
+
+//NOTE: This should be linear, first by time, then by location
+//NOT A MATRIX
+//x(1),t(1) - index 0
+//x(1),t(2) - 1
+//x(1),t(3) - 2
+//x(2),t(1) - 3
+//etc
+
+
+objref t_vec
+t_vec = new Vector()
+loadDataVector("inputs/t_vec.bin",t_vec)

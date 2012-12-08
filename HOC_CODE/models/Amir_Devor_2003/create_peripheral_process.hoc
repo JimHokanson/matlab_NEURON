@@ -1,0 +1,109 @@
+//create_peripheral_process.hoc
+
+create node1p[1]		//"p"- Peripheral (Ito & Takahashi 60)
+create abmyelin1p 		
+create node2p[1]
+create abmyelin2p 			//133 myelin wraps
+create node3p[1]
+create abmyelin3p 
+create node4p[1]
+
+create  myelinpn[30], nodepn[30] 
+
+//NORMAL SEGMENTS (NODE+MYELIN) OF PERIPHERAL NERVE
+//=======================================================================
+proc create_PN(){
+	for i=$1,$2 {
+
+	   nodepn[i]{ 
+	   diam=12.5	   //IGNORE node diam/internode diam=0.4 (THE AXON Fig 2-12, Table 2-3)
+	   xstim__all_secs.append()
+}			   //Lambda=97micron	
+	
+  myelinpn[i]{
+		diam = 12.5  //0.7 (Spencer et al 73) of ex diam (based on Ito & Takahashi 60) 
+	    L    = 1567  	   //Ito & Takahashi 60.
+	    nseg = 6	   //Lambda=sqrt[(d/4)*(Rm/Ri)]~5781micron. Rm~118,000 Ri=110
+	    cm   = 0.007	   //147 myelin wraps
+
+	    insert pas
+	    g_pas=0.0000085
+		xstim__all_secs.append()
+	}
+
+
+ 
+	myelinpn[i] connect nodepn[i](0),1
+        if (i !=  $2) { 
+          nodepn[i] connect myelinpn[i+1](0),1
+ 	}
+ }
+}
+
+create_PN(0, 29)
+
+//ABNORMAL
+//===================================================================
+
+node4p  { 
+	diam=10.1
+	xstim__all_secs.append()
+}
+
+			
+abmyelin3p 	    {
+	diam = 10.1 //136 myelin wraps
+	L    = 1119
+	nseg = 5		//Lambda=4995micron		
+	cm   = 0.007
+
+	insert pas
+	g_pas=0.0000092
+	xstim__all_secs.append()
+} 
+
+node3p  { 
+	diam=8.7
+	xstim__all_secs.append()
+}					//Lambda=81micron	
+
+abmyelin2p 	    {
+	diam = 8.7
+	L    = 670
+	nseg = 3		//Lambda=4586micron		
+	cm   = 0.007
+
+	insert pas
+	g_pas=0.0000094
+	xstim__all_secs.append()
+} 
+
+node2p  {  	//Lambda=77micron	
+	diam=8  	      //No node constrict. in area of abnormal myelin (Spencer 73)
+	xstim__all_secs.append()
+}			      
+
+abmyelin1p 	    {  //136 myelin wraps
+	diam = 8
+	L    = 461
+	nseg = 3		//Lambda=4446micron	
+	cm   = 0.007
+
+	insert pas
+	g_pas=0.0000092
+	xstim__all_secs.append()
+}
+
+node1p { 
+	diam=2.6 		//Ha 1970 Fig.7 - X1.6 of node1d
+	xstim__all_secs.append()
+}				//Lambda=44micron				
+
+
+
+
+
+
+
+
+

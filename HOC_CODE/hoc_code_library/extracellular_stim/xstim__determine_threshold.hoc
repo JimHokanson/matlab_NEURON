@@ -1,0 +1,250 @@
+func xstim__determine_threshold() { local starting_guess, guess_increment, min_value, max_value, final_accuracy, next_guess, next_guess_temp, ap_fired, low_bound, high_bound, stim_sign, loop_count
+/*
+
+FORM   ============================================================
+xstim__determine_threshold(starting_guess,guess_increment,max_value,final_accuracy)
+
+
+INPUTS
+-------------------------------------------------------------------
+starting_guess  - 
+guess_increment -
+max_value       -
+final_accuracy  -  
+
+HELPER FUNCTIONS
+-------------------------------------------------------------------
+xstim__run_simulation.hoc
+
+
+*/
+
+
+starting_guess  = $1
+guess_increment = $2
+min_value       = 0.01 // :/ decided this wasn't going to vary too much ...
+max_value       = $3
+final_accuracy  = $4
+
+
+//tolerance
+//min
+//max
+//starting_guess
+//guess value
+
+//MAKE EVERYTHING POSITIVE ...
+if (starting_guess > 0) {
+	stim_sign = 1
+} else {
+	stim_sign = -1
+	starting_guess = -1*starting_guess
+}
+
+loop_count = 1 //Include this first guy
+
+//STEP 1 - determine bounds
+//====================================================================
+ap_fired = xstim__run_stimulation(stim_sign*starting_guess,0,1)
+
+if (ap_fired == 2){
+	starting_guess = xstim__handle_inhibition(min_value,starting_guess,&ap_fired,&loop_count,stim_sign)
+	if (ap_fired == 2){
+		return 40000
+	}
+}
+
+if (ap_fired){
+//Go lower
+	high_bound = starting_guess
+	next_guess = xstim__helper__goLower(starting_guess,guess_increment,min_value)
+	loop_count = loop_count + 1
+	ap_fired   = xstim__run_stimulation(stim_sign*next_guess,0)
+	if (ap_fired){
+		//Try min value if it wasn't tried before ...
+		if (next_guess == min_value){
+			return 20000 //FAILED
+		} else {
+			loop_count = loop_count + 1
+			ap_fired   = xstim__run_stimulation(stim_sign*min_value,0)
+			if (ap_fired){
+				return 20000 //FAILED
+			} else {
+				low_bound = min_value
+			}
+		}
+	} else {
+		low_bound = next_guess
+	}
+} else {
+//Go higher - want AP to fire
+	low_bound  = starting_guess
+	next_guess = xstim__helper__goHigher(starting_guess,guess_increment,max_value)
+	loop_count = loop_count + 1
+	ap_fired   = xstim__run_stimulation(stim_sign*next_guess,0,1) //Allow complicated response 
+	if (ap_fired == 2){
+		next_guess_temp = xstim__handle_inhibition(low_bound,next_guess,&ap_fired,&loop_count,stim_sign)
+		if (ap_fired == 2){
+			return next_guess_temp
+		} else if (ap_fired == 1) {
+			high_bound = next_guess_temp
+		} else {
+			//Happens if I don't wait long enough ...
+			//NOTE: technically we could treat this as threshold ... assuming that the guess_increment is strong ...
+			return 50000 //WTF
+		}
+	} else if (!ap_fired){
+		//Try max value if it wasn't tried before ...
+		if (next_guess == max_value){
+			return 10000 //FAILED
+		} else {
+			loop_count = loop_count + 1
+			ap_fired   = xstim__run_stimulation(stim_sign*max_value,0,1)
+			if (ap_fired == 2){
+				next_guess_temp = xstim__handle_inhibition(low_bound,max_value,&ap_fired,&loop_count,stim_sign)
+				if (ap_fired == 2){
+					return 80000
+				} else if (ap_fired == 1) {
+					high_bound = next_guess_temp
+				} else {
+					return 60000 //WTF
+				}
+			} else if (!ap_fired){
+				return 10000 //FAILED
+			} else {
+				high_bound = max_value
+			}
+		}
+	} else {
+		high_bound = next_guess
+	}
+}
+//--------------------------------------------
+//At this point we have a low and a high bound
+
+
+while (high_bound - low_bound > final_accuracy && loop_count < 100) {
+	loop_count = loop_count + 1
+	next_guess = low_bound + (high_bound - low_bound)*0.5
+	
+	//print "guess"
+	//print next_guess
+	
+	ap_fired   = xstim__run_stimulation(stim_sign*next_guess,0)
+	if (ap_fired){
+		high_bound = next_guess
+	} else {
+		low_bound = next_guess
+	}
+}
+
+//ap_fired   = xstim__run_stimulation(stim_sign*high_bound,1)
+
+io__print_variable("loop_count",loop_count)
+
+if (loop_count == 100) {
+	return 30000
+} else {
+	return stim_sign*(low_bound + (high_bound - low_bound)*0.5)
+}
+
+}
+
+/////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
+func xstim__handle_inhibition() {local min_value, starting_guess, stim_sign
+/*
+
+FORM
+	next_guess = xstim__handle_inhibition(min_value,starting_guess,&ap_fired,&loop_count,stim_sign)
+
+*/
+
+
+//Would be good to vectorize this ...
+//i.e make a vector of 2, or more ...
+
+	min_value      = $1
+	starting_guess = $2
+	//ap_fired       = $&3
+	//loop_count     = $&4
+	stim_sign  	   = $5
+
+	//print starting_guess
+	next_guess = 0.2*(starting_guess - min_value) + min_value
+	//print "WTF"
+	//print next_guess
+	$&4 = $&4 + 1
+	$&3   = xstim__run_stimulation(stim_sign*next_guess,0,1)
+	if ($&3 == 2){
+		next_guess = 0.2*(next_guess - min_value) + min_value
+		//print "WTF2"
+		//print next_guess
+		$&4 = $&4 + 1
+		$&3   = xstim__run_stimulation(stim_sign*next_guess,0,1)
+		if ($&3 == 2){
+			next_guess = 40000
+		}
+	}
+
+	//NOTE: Hopefully by this case we have one or the other ...
+	return next_guess
+
+
+}
+
+func xstim__helper__goLower() { local last_level, amount_lower, min_level, next_level
+/*
+
+next_level = xstim__helper__goLower(last_level,amount_lower,min_level)
+
+INPUTS
+=========================
+last_level
+amount_lower
+min_level
+
+*/
+
+last_level   = $1
+amount_lower = $2
+min_level    = $3
+
+
+next_level = last_level - amount_lower
+if (next_level < min_level) {
+	next_level = min_level
+}   
+return next_level
+
+
+}
+
+func xstim__helper__goHigher() { local last_level, amount_higher, max_level, next_level
+/*
+
+INPUTS
+=========================
+last_level
+amount_lower
+max_level
+
+*/
+
+last_level    = $1
+amount_higher = $2
+max_level     = $3
+
+next_level = last_level + amount_higher
+if (next_level > max_level) {
+	next_level = max_level
+}   
+return next_level
+
+
+}
+
+
+
+

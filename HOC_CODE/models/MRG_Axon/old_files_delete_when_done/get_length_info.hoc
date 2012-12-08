@@ -1,0 +1,60 @@
+//{load_file("init_data.hoc")}
+//xopen("axonMRG.hoc") // We don't want to load those agin^ just this?
+
+//filename: get_length_info
+
+//Compute length and save to file ...
+
+//NOTE: This function was originally designed to be run as a stand-alone
+// => we couldn't go back and forth with Neuron, setting things up, then running more commands
+
+
+//TODO
+//Crop above code, document code below, perhaps make this into a function with inputs
+//for faster calling on repeats and better code isolation
+//pass in variables that might change
+//Could have two functions
+//1) Function Definition   getLengthInfo()
+//	NOTE: This function can be initialized at the beginning, only needs to be parsed once!
+//
+//2) Neuron code that calls this function with variables that are already in memory
+//		runGetLengthInfo()
+//Alternatively Matlab could call it as well   N.getLengthInfo("axon_obj",etc)
+
+
+objref axonX, axonID
+
+//TODO: Could make this a function ...
+nSect = axontotal 	//Each section is made up of a number of segments
+nSegs = 0
+forsec axon{
+	//NOTE: Something funky is going on here with x & L, find documentation
+	for (x) {
+		nSegs = nSegs + 1
+	}
+}
+
+axonX  = new Vector(nSegs,-1)
+axonID = new Vector(nSegs,-1)
+
+cur_sect = 0 
+cur_seg  = 0
+zL   	 = 0	
+forsec axon{
+	//NOTE: Something funky is going on here with x & L, find documentation
+	//
+	for (x) {
+		axonX.x[cur_seg]  = x*L + zL
+		axonID.x[cur_seg] = cur_sect
+		cur_seg = cur_seg + 1
+	}
+	cur_sect = cur_sect + 1
+	zL = zL + L
+}
+
+
+
+saveDataVector("x","data/get_length_info_x.bin",axonX)
+saveDataVector("id","data/get_length_info_id.bin",axonID)
+
+print "No_Errors!"

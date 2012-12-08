@@ -1,0 +1,71 @@
+//This bit of code allows Neuron to be run from another directory from which it was called
+
+nrn_load_dll("mod_files/nrnmech.dll")
+
+{load_file("noload.hoc")}		//loads library files
+{load_file("variables.hoc")}
+{load_file("axonMRG.hoc")}		//loads neuron model
+
+//intracellular stimulus//
+objectvar stim
+objref tempRecVec, rec, current_matrix, savcurrent1, tempSaveVec
+tempRecVec = new Vector()
+rec = new List()
+current_matrix = new Matrix() 
+savcurrent1 = new File()
+
+objectvar OFFclamp
+
+vars_delI = 0.5
+vars_durI = 0.1
+vars_ampI = 0.041
+vars_ampI = vars_ampI*PI*vars_fiberD
+
+proc stimul() {
+	node[10]{					//Current clamp at center node - 21, 0 through 20
+		stim=new IClamp()
+		stim.loc(0.5)
+		stim.del=vars_delI
+		stim.dur=vars_durI
+		stim.amp=vars_ampI
+		}
+
+	//Recording
+	//tempRecVec.record(&node[0].v(0.5))	//Record potential across membrane
+	//rec.append(tempRecVec)
+}
+stimul()
+
+forsec axon{
+	//NOTE: Something funky is going on here with x & L, find documentation
+	for (x) {
+		tempRecVec = new Vector()
+		tempRecVec.record(&v(x))
+		rec.append(tempRecVec)
+		}
+}
+
+
+
+
+{run()}	
+
+objref file_ref
+file_ref  	= new File()
+	
+proc saveData(){
+	
+	
+	strdef fileName
+	fileName = "data/intracellular_stim_mrg.bin"
+	printf("#file#vm#%s#\n",fileName)
+	{file_ref.wopen(fileName)}
+	for ii = 0, rec.count()-1 {
+		tempSaveVec = rec.object(ii)
+		tempSaveVec.vwrite(file_ref,4)
+	} 
+	{file_ref.close()}
+}
+saveData()
+
+print "No_Errors!"

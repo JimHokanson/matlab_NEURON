@@ -1,0 +1,10 @@
+
+a = 1
+func wtf(){local b
+	$&1 = $&1 + 1
+	return 1
+}
+
+
+wtf(&a)
+print a

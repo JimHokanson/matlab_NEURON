@@ -1,0 +1,60 @@
+proc xstim__apply_stimulus() { local cur_stim_index, cur_sec_index, n_stim_changes, stim_scale localobj s
+/*  xstim__apply_stimulus
+
+USAGE
+------------------------------------------------------------------
+xstim__apply_stimulus(stim_scale)
+
+NOTE: Prior to this the following must occur:
+1) Define a cell model
+2) Create a stimulus section list : xstim__create_stim_sectionlist
+3) Load stim data : xstim__load_data
+4) Initialize Playback : xstim__setup_stim_playback
+
+GLOBALS 
+------------------------------------------------------------------
+xstim__all_secs         : see xstim__create_all_sectionlist in xstim__setup_stim_playback
+xstim__stim_vector_list : 
+xstim__t_vec 			:
+
+INPUTS
+--------------------------------------------------------------------
+stim_scale
+
+ 
+*/
+
+//Initialization --------------------------------------
+cur_stim_index = 0
+cur_sec_index  = 0
+n_stim_changes = xstim__t_vec.size
+stim_scale     = $1
+s = new Vector()
+
+//TODO - should check that xstim__setup_stim_playback length == xstim__all_secs length ~= 0
+
+//xstim__apply_stimulus_timer = startsw()
+
+//n = 0
+forsec xstim__all_secs {
+	for (x,0) {
+		s = xstim__stim_vector_list.o(cur_sec_index)
+		for (i = 0; i < n_stim_changes; i=i+1) {
+			//n = n + 1
+			s.x[i] = xstim__v_ext_in.x[cur_stim_index]*stim_scale
+			//if(i == 1){
+			//	print s.x[i]
+			//}
+			cur_stim_index  = cur_stim_index + 1
+		}
+
+	}
+	//print n
+	cur_sec_index = cur_sec_index + 1
+}
+
+//print "xstim__apply_stimulus_timer"
+//print startsw() - xstim__apply_stimulus_timer
+
+
+}

@@ -1,0 +1,45 @@
+//NOTE: This is generally needed for most models
+//but will be taken care of by the model
+
+//This code loads channel dynamics for a particular model
+//print "Loading Additional Mechanisms"
+//nrn_load_dll("mod_files/nrnmech.dll")
+
+//INIT STEPS
+//1) Change directory to directory that contains this file
+//2) Run this file
+
+//print "Loading Library Files"
+//load_file("noload.hoc")	  //loads library files, NOTE: We need load_file because this file is not in our directory
+{xopen("$(NEURONHOME)/lib/hoc/noload.hoc")}
+//Faster???
+//see http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/ocfunc.html#load_proc
+
+//NOTE: This needs to be before these other things ...
+strdef sim_hash
+
+//Load user library ...
+{load_file("hoc_code_library/file_manipulations/saveDataMatrix.hoc")}
+{load_file("hoc_code_library/file_manipulations/saveDataVector.hoc")}
+{load_file("hoc_code_library/file_manipulations/loadDataVector.hoc")}
+
+//IO
+{load_file("hoc_code_library/io__print_variable.hoc")}
+
+
+//Extracellular Stim Simulation --------------------------------------------------------
+{load_file("hoc_code_library/extracellular_stim/xstim__define_global_variables.hoc")}
+{load_file("hoc_code_library/extracellular_stim/xstim__load_data.hoc")}
+{load_file("hoc_code_library/extracellular_stim/xstim__setup_stim_playback.hoc")}
+{load_file("hoc_code_library/extracellular_stim/xstim__create_stim_sectionList.hoc")}
+{load_file("hoc_code_library/extracellular_stim/xstim__run_stimulation.hoc")}
+{load_file("hoc_code_library/extracellular_stim/xstim__apply_stimulus.hoc")}
+{load_file("hoc_code_library/extracellular_stim/xstim__did_ap_fire.hoc")}
+{load_file("hoc_code_library/extracellular_stim/xstim__determine_threshold.hoc")}
+
+//Simulation Logging --------------------------------------------------------------
+{load_file("hoc_code_library/sim_logging/sim_logging__record_node_voltages.hoc")}
+
+
+//sim_hash = "Test"
+//print sim_hash

@@ -1,0 +1,22 @@
+print "Loading Additional Mechanisms"
+nrn_load_dll("mod_files/nrnmech.dll")
+
+print "Loading Library Files"
+load_file("noload.hoc")	  //loads library files, NOTE: We need load_file because this file is not in our directory
+
+//This should be a function 
+load_file("../../generic_code/saveDataMatrix.hoc")
+load_file("../../generic_code/saveDataVector.hoc")
+load_file("../../generic_code/loadDataVector.hoc")
+
+//xopen is recommended for windows ???
+//load_file?????
+
+
+//print "Loading Variables"
+//Uncomment to run manually
+//Otherwise NEURON_runNeuron takes care of this ...
+//xopen("variables.hoc")  //loads variables with values
+
+print "Loading Axon Model"
+xopen("axonMRG.hoc")	//loads neuron model

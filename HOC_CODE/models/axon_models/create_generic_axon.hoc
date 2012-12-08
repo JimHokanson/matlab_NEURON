@@ -1,0 +1,90 @@
+// create_generic_axon
+
+//NODES
+//internodes - myelin
+// nodes - get dynamics - run separate function
+//afterwards to reassign
+//myelin is usually passive, 
+
+
+/*
+fiber diameter
+node diameter
+internode length
+# of internode segments
+myelin capacitance
+myelin conductance
+
+VARIABLES
+number_nodes
+node_length
+node_diamter
+myelin_n_segs
+myelin_length
+fiber_diameter
+myelin_conductance
+myelin_capacitance
+node_dynamics
+*/
+
+load_file("insert_node_dynamics.hoc")
+
+//number_nodes - specified in Matlab
+
+create node[number_internodes + 1], myelin[number_internodes]
+	for i=0, number_internodes-1 {
+		connect myelin[i](0), node[i](1)
+		connect node[i+1](0), myelin[i](1)
+	}
+
+forsec "myelin" { nseg = myelin_n_segs }
+
+
+
+	forsec "node" {
+		L    = node_length
+		diam = node_diameter
+		nseg = 1 //Leave hardcoded for now ...
+	}
+	//See also this on sections and their properties:
+	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/geometry.html#Section
+	
+	forsec "myelin" {
+		L    = myelin_length
+		diam = fiber_diameter
+	}
+
+//STILL MISSING - segment information nsegs -> 6 to 10?????, might need to be odd - yes, make odd!
+
+
+	forsec "myelin" {
+		insert pas
+		e_pas = v_init
+		g_pas = myelin_conductance
+		cm    = myelin_capacitance
+	}
+
+forsec "node"{
+insert_node_dynamics(node_dynamics)
+cm = node_capacitance
+}
+	
+	
+//TODO: Move this to a separate function
+//Jim will take care of this, eventually ...
+objref node_list
+node_list = new SectionList()
+
+forsec "node" {
+   node_list.append()
+}
+
+
+//Do we need to change the defaults???? - I don't think so, leave for now
+forsec "myelin" { 
+	insert extracellular
+}
+
+forsec "node"   { 
+	insert extracellular
+}

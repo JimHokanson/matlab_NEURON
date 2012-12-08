@@ -1,0 +1,17 @@
+proc connect_axon(){ 
+	
+	// connect_axon(n_sections,axon_sections)
+	//INPUTS
+	//============================================
+	//n_sections
+	//
+
+	//local n_sections localobj axon_sections
+	//n_sections    = $1
+	//axon_sections = $o2
+	//NOTE: minus 1 for 0 based indexing
+	//      minus 2 to account for pairings = n_sections - 1
+	for i=0, $1 - 2 {
+	connect $o2.sec[i+1](0), $o2.sec[i](1)
+	}
+}

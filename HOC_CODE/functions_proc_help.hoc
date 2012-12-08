@@ -1,0 +1,30 @@
+/*
+
+local --------------------------
+http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/keywords/ockeywor.html#local
+
+localobj ----------------------
+http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/keywords/ockeywor.html#localobj
+
+proc --------------------------
+http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/ocsyntax.html#proc
+
+func ---------------------------
+http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/ocsyntax.html#func
+
+obfunc --------------------------
+http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/ocsyntax.html#obfunc
+
+arguments -----------------------
+http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/ocsyntax.html#arguments
+
+$# - # refers to position in input
+$# - numeric
+$s# - string input
+$o# - object input
+
+NOTE: inputs use call by reference (for strings and objects)
+
+use commas between variables localobj tempRecVec, rec
+
+*/

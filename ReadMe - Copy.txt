@@ -1,0 +1,1 @@
+This class provides access to Neuron from Matlab. In addition it exposes some neural models for simulation. The goal of this folder is to implement the functionality of the models, and to leave the analysis folder to probe the models.

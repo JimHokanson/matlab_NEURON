@@ -1,0 +1,16 @@
+proc io__print_variable() {
+/* io__print_variable
+
+
+io__print_variable(variable_name,value)
+
+INPUTS
+----------------------------------------
+variable_name  : (string)
+value          : (numeric)
+
+*/
+
+printf("#var#%s#%g#\n",$s1,$2)
+
+}

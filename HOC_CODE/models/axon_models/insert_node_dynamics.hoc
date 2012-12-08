@@ -1,0 +1,34 @@
+/*
+
+Create a procedure which checks some variable
+node_dynamics_option and then inserts different dynamics accordingly
+
+
+
+
+OUTLINE: 
+1) In Matlab, create all properties and puke them into Neuron
+2) Run create_generic_axon
+3) Run insert_node_dynamics
+4) Run simulation
+
+*/
+
+
+//For now we can just insert the dynamics as default
+//Later on we can have specific methods which allow changing dynamics
+//- might do entirely in Matlab ...
+
+proc insert_node_dynamics() {
+node_dynamics = $1
+
+// for lookup table, see constant property MEMBRANE_DYNAMICS_OPTIONS in NEURON.cell.axon.generic.props, indexing starts at 1
+//1 = FH, 2 = HH
+// the keyword after insert corresponds to the SUFFIX of the mod file
+if (node_dynamics == 1) insert fh
+ else{ 
+	if (node_dynamics == 2) insert hh2
+}	
+
+
+}

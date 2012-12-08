@@ -1,0 +1,96 @@
+//ABNORMAL 
+//===========================================================================
+create node1d[1]			//"d"- Dorsal (Ito & Takahashi 60)
+create abmyelin1d	
+create node2d[1]
+create abmyelin2d	
+create node3d[1]
+create abmyelin3d		 	
+create node4d[1]
+create myelindr[30], nodedr[30] 
+
+node1d { 
+	diam=1.6 			//Ha 1970 Fig.7 - ~0.25 of abmyelin1d diam
+						//Lambda=35micron
+	xstim__all_secs.append()
+}								
+
+	 	
+
+abmyelin1d 	    {
+	diam = 6.5 	//100 myelin wraps
+	L    = 358
+	nseg = 3		//Lambda=3438micron	
+	cm   = 0.01
+
+	insert pas
+	g_pas=0.0000125
+	xstim__all_secs.append()
+}
+
+node2d  { 
+	diam=6.5    		//No node constrict. in area of abnormal myelin (Spencer 73)
+	xstim__all_secs.append()
+}
+
+abmyelin2d 	    { 	//95 myelin wraps
+	diam = 6.7
+	L    = 780
+	nseg = 5 		//Lambda=3409micron		
+	cm   = 0.01
+
+	insert pas
+	g_pas=0.0000131
+	xstim__all_secs.append()
+} 
+
+node3d  { 
+	diam=6.7 		//Lambda=71micron	
+	xstim__all_secs.append()
+}							
+
+abmyelin3d{
+	diam = 7.6 		//100 myelin wraps
+	L    = 1170
+	nseg = 7		//Lambda=3717micron	
+	cm   = 0.01
+
+	insert pas
+	g_pas=0.0000125
+	xstim__all_secs.append()
+} 
+
+node4d{ 
+	diam=7.6 //Lambda=75micron				
+	xstim__all_secs.append()
+}
+
+//NORMAL SEGMENTS (NODE+MYELIN) OF DORSAL ROOT
+//============================================================================
+proc create_DR(){
+	for i=$1,$2 {
+
+  myelindr[i]{diam=9.3	   //0.7 (Spencer et al 73) of ex diam (Ito & Takahashi 60) 
+	    L=1450  	   //Ito & Takahashi 60.
+	    nseg=7	   //Lambda=sqrt[(d/4)*(Rm/Ri)]~4344micron. Rm~89,000 Ri=110
+	    cm=0.009	   //111 myelin wraps
+
+	    insert pas
+	    g_pas=0.0000112
+		xstim__all_secs.append()
+ 	}
+
+   nodedr[i]{ 
+		diam=9.3	 //IGNORE node diam/internode diam=0.4 (THE AXON Fig 2-12, Table 2-3)
+		xstim__all_secs.append()
+		node_list.append()
+	}			 //Lambda=84micron	
+ 
+	myelindr[i] connect nodedr[i](0),1
+        if (i !=  $2) { 
+          nodedr[i] connect myelindr[i+1](0),1
+ 	}
+ }
+}
+
+create_DR(0, 29)
