@@ -1,18 +1,37 @@
 proc xstim__load_data(){
 /* xstim__load_data
 
-Currently this is done via files saved to a specific directory of the model
+This functions loads the stimulus data into variables. The data is transferred into NEURON
+at this time via writing binary files to disk. The stimulus data still needs to be applied
+to the neural model.
 
 USAGE
 ------------------------------------------------------------------
 xstim__load_data()
+
+GLOBALS:
+-------------------------------------------------------------------
+sim_hash 		: Class: string, this is defined by the simulation and is a unique string
+				  for parallel execution without file conflicts ...
+				  
+//xstim__define_global_variables
+xstim__t_vec    : Class: Vector (see definintions below)
+xstim__v_ext_in : Class: Vector
+
 
 POPULATES
 -----------------------------------------------------------------
 xstim__t_vec    : time at which to apply the stimulus changes ...
 xstim__v_ext_in : stimulus to deliver to each segment
 
-v_ext.bin format -----------------------------------------------
+FILE LOCATION
+------------------------------------------------------------------
+It is assumed that the file locaitons are in a subdirectory of the model:
+/inputs/[sim_hash]t_vec.bin
+/inputs/[sim_hash]v_ext.bin
+
+v_ext.bin format 
+------------------------------------------------------------------
 NOTE: This should be linear, first by time, then by location
 NOT A MATRIX
 x(1),t(1) - index 0

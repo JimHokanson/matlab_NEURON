@@ -1,13 +1,11 @@
 classdef event_manager < handle
+    %event_manager
     %
-    %
-    %   Goal is to have a place that clearly lays out and keeps 
+    %   The goal of this class is to have a place that clearly lays out and keeps 
     %   track of the things needed to run an extracellular stimulation
     %   and the required order of all processes ...
     %
-    %
     %   Class: NEURON.simulation.extracellular_stim.event_manager
-    %
     
     %STEPS
     %================================================================
@@ -23,13 +21,13 @@ classdef event_manager < handle
     %   - setup playing of stimulus into sections 
     %          n: xstim__setup_stim_playback
     
-    %create_mrg_axon
-    %xstim__apply_stimulus
-    
-    %NOT YET IMPLEMENTED ...
+
     
     properties
        parent %(Class NEURON.simulation.extracellular_stim)
+    end
+    
+    properties
        cell_definition_set = false
        stim_info_set       = false
        ran_init_once       = true
@@ -40,16 +38,6 @@ classdef event_manager < handle
        stim_electrodes_changed = false
        tissue_changed          = false
     end
-    
-% % %     properties (Dependent)
-% % %        
-% % %     end
-% % %     
-% % %     methods 
-% % %         function value = get.stim_info_changed(obj)
-% % %            value = obj.stim_electrodes_changed || obj.tissue_changed || obj.cell_location_changed || cell_definition_changed;
-% % %         end
-% % %     end
     
     methods
         function cellLocationChanged(obj)
@@ -68,7 +56,7 @@ classdef event_manager < handle
     
     methods
         function initSystem(obj)
-           %
+           %initSystem
            %
            %
            %    IMPORTANT METHODS
@@ -83,18 +71,30 @@ classdef event_manager < handle
            
            p = obj.parent;
            
+           %Verify that all objects are linked to the simulation ...
            if ~obj.ran_init_once
               init__verifyAssignedObjects(p)
               obj.ran_init_once = true;
            end
            
            if ~obj.cell_definition_set
+              %Create cell in NEURON
+              %Example: NEURON.cell.axon.MRG.createCellInNEURON
               p.cell_obj.createCellInNEURON;
-              NEURON.lib.sim_logging.record_node_voltages(p.cmd_obj,NODE_SECTION_LIST,NODE_MEMBRANE_VOLTAGE_RECORD_LIST)
+              
+              %TODO: Add on request for extracellular membrane voltage list
+              
+              %Make sure we can record whatever we want. Currently this is
+              %membrane voltage. We may later need to expand this ...
+              NEURON.lib.sim_logging.record_membrane_voltages(...
+                  p.cmd_obj,...
+                  NODE_SECTION_LIST,...
+                  NODE_MEMBRANE_VOLTAGE_RECORD_LIST)
               obj.cell_definition_set = true;
            end
            
            if ~obj.stim_info_set
+              %NEURON.
               init__create_stim_info(p)
               obj.stim_info_set = true;
            end

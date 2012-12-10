@@ -1,16 +1,15 @@
 classdef cmd
     %
-    %   NOT A HANDLE CLASS: I removed the handle class since we are
-    %   not modifying the class and this hides tab complete puke from the
-    %   handle classs 
     %
     %   CLASS: NEURON.cmd
+    %
+    %   NOTE: This is not a handle class ...
     %
     %   Class to house NEURON commands with better wrappers.
     %   Ideally most commands would go through here ...
     
     properties (Hidden)
-        comm_obj %(Class NEURON)
+        comm_obj    %Class: NEURON
     end
     
     properties (Constant)
@@ -19,22 +18,28 @@ classdef cmd
     end
     
     methods (Hidden)
-%         function methods(obj)
-%             dispMethodsObject(obj)
-%         end
         function obj = cmd(comm_obj)
             obj.comm_obj = comm_obj;
         end
     end
     
-    %Generic =============================================
+    %Generic ==============================================================
     methods
        function [flag,results] = run_command(obj,str)
+           %run_command
+           %
+           %    [flag,results] = run_command(obj,str)
+           %
+           %    Generic method to run command
+           %
+           %    INPUTS
+           %    =================================================
+           
            [flag,results] = obj.comm_obj.write(str);
        end
        function success = writeNumericProps(obj,props,values)
            %
-           %    
+           %    success = writeNumericProps(obj,props,values)
            %
            
            value_strings = cellfun(@(x) sprintf('%0g',x),values,'un',0); 

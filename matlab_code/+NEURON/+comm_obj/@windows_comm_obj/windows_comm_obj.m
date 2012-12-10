@@ -1,5 +1,17 @@
 classdef windows_comm_obj < NEURON.comm_obj
+    %   This class wraps a .NET process allowing back and forth
+    %   communication with NEURON. Specifically it makes use of
+    %   System.Diagnostics.Process to launch the NEURON executable as a
+    %   process. This gives this program access to NEURON's stdin and
+    %   stdout. The process window is subsequently hidden using a user32
+    %   process.
     %
+    %   Asynchronous reads are used to allow back and forth communication.
+    %   Alternatively the .NET lib would wait for the process to completely
+    %   finish, and I could get the results of the process having run. This
+    %   was essentially how I interacted with NEURON before hand. Now I can
+    %   send a command, get the result, and then send another command to
+    %   the same process.
     
     properties
         paths       %Class: NEURON.paths

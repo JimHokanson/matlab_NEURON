@@ -4,15 +4,18 @@
 
 objref xstim__stim_vector_list, xstim__all_secs, xstim__v_ext_in, xstim__t_vec, xstim__node_vm_hist
 
-xstim__stim_vector_list = new List() //See xstim__setup_stim_playback
-xstim__all_secs = new SectionList()
-xstim__v_ext_in = new Vector()
-xstim__t_vec    = new Vector()
-xstim__node_vm_hist = new List() //xstim__run_extracellular_stim && sim_logging__record_node_voltages
+xstim__stim_vector_list = new List() 		//xstim__setup_stim_playback
+xstim__all_secs 		= new SectionList()
+
+xstim__v_ext_in 		= new Vector() 		//xstim__load_data
+xstim__t_vec    		= new Vector()		//xstim__load_data
+
+xstim__node_vm_hist 	= new List() 		//xstim__run_extracellular_stim
+											//sim_logging__record_node_voltages
 
 //Non-object variables
 xstim__playback_initialized = 0 //See xstim__setup_stim_playback
-xstim__n_play_orig = 0 			//See xstim__setup_stim_playback
+xstim__n_play_orig 			= 0 //See xstim__setup_stim_playback
 
 
 

@@ -1,0 +1,21 @@
+proc create_stim_section_list() {
+/*
+
+
+
+This method is required for extracellular stimulation for 
+applying the stimulus
+
+FORM????
+create_stim_section_list(xstim_section_list)
+
+
+*/
+
+
+
+
+
+
+
+}

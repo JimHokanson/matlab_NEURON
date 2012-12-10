@@ -1,50 +1,32 @@
 classdef NEURON < handle_light
     %NEURON
     %
-    %   This class wraps a .NET process allowing back and forth
-    %   communication with NEURON. Specifically it makes use of
-    %   System.Diagnostics.Process to launch the NEURON executable as a
-    %   process. This gives this program access to NEURON's stdin and
-    %   stdout. The process window is subsequently hidden using a user32
-    %   process.
-    %
-    %   Asynchronous reads are used to allow back and forth communication.
-    %   Alternatively the .NET lib would wait for the process to completely
-    %   finish, and I could get the results of the process having run. This
-    %   was essentially how I interacted with NEURON before hand. Now I can
-    %   send a command, get the result, and then send another command to
-    %   the same process.
-    %
     %   REQUIRES
-    %   ====================================================================
-    %   1) Path initialization    - call NEURON.initDotNet (only needed once)
-    %   2) RNEL library functions - these are scattered throughout and not yet
-    %       well characterized
+    %   ===================================================================
+    %   1) Path initialization    - call NEURON.init_system (only needed once)
+    %   2) RNEL library functions - I am working on moving these to a
+    %   separate package which are optionally installed on startup if not
+    %   detected in the path already, see initialize.m function in root
+    %   code directory
+    %
+    %   NOTE: In my startup function I call NEURON.init_system
     %
     %   USAGE NOTES
-    %   ====================================================================
-    %   This class is meant to be run by a NEURON simulation class, however it
-    %   can be called instantiated directly.
+    %   ===================================================================
+    %   This class is meant to be run by a NEURON simulation class, however
+    %   it can be called instantiated directly, as in the example below.
+    %
+    %   N = NEURON;
+    %   N.opt__interactive_mode = true;
+    %   N.write('a = 5')
+    %   N.write('a')
     %
     %   KNOWN SIMULATION CLASSES
     %   ===================================================================
     %   NEURON.simualtion.extracellular_stim
     %
-    %
-    %   IMPROVEMENTS:
-    %   ====================================================================
-    %   - on deleting object, delete window, stop process (might be done
-    %   already, check Windows processes
-    %
-    %
-    %   COMMUNICATION OUTLINE
-    %   ====================================================================
-    %   METHODS:
-    %       - setResultAndTerminateWait(ref,ev_data,is_success)
-    %       - setFinalString(obj)
-    %
     %   METHODS IN OTHER FILES
-    %   openExplorerToMfileDirectory('NEURON')
+    %   ===================================================================
     %   - NEURON.compile
     %   - NEURON.init_dotnet_code
     %   - NEURON.setResultAndTerminateWait
@@ -64,13 +46,15 @@ classdef NEURON < handle_light
     %OPTIONS   %==========================================
     properties
         opt__throw_error_default = true;
-        opt__interactive_mode    = false;
+        opt__interactive_mode    = false; %If true, this tries to setup the
+                                   %NEURON writing process so that it is
+                                   %like typing into NEURON
     end
     
     %FOR DEBUGGING  %====================================
     properties
-        debug = false   %If true spits back everything from NEURON
-        last_cmd_str    %Set during NEURON.write in case there is an error
+        debug        = false   %If true spits back everything from NEURON
+        last_cmd_str = ''      %Set during NEURON.write in case there is an error
     end
     
     %"PUBLIC METHODS"  %==================================
@@ -78,17 +62,18 @@ classdef NEURON < handle_light
         function obj = NEURON
             %NEURON
             %
-            %   See class description above
+            %   See class description above -> help NEURON
             
             obj.path_obj = NEURON.paths;
             
+            %Load communication object based on system type
             if ispc
                 obj.comm_obj = NEURON.comm_obj.windows_comm_obj(obj.path_obj);
             else
                 error('Unsupported system')
             end
         end
-        function [success,result_str] = write(obj,command_str,varargin)
+        function varargout = write(obj,command_str,varargin)
             %write  Writes a command to the NEURON process
             %
             %   [success,results] = NEURON.write(str)
@@ -121,6 +106,15 @@ classdef NEURON < handle_light
                 else
                     error('ERROR FROM NEURON:\n%s',result_str)
                 end
+            elseif obj.opt__interactive_mode
+                fprintf('%s\n',result_str);
+            end
+            
+            %This cleans things up a bit during interactive mode
+            %where the command line color will indicate success or failure.
+            if nargout
+               varargout{1} = success;
+               varargout{2} = result_str;
             end
         end
     end
@@ -139,7 +133,7 @@ classdef NEURON < handle_light
         %
         %   Should be called on startup to initialize system, at least for
         %   Windows ...
-        
+
             if ispc
                 NEURON.comm_obj.windows_comm_obj.init_system_setup;
             else
@@ -151,8 +145,9 @@ classdef NEURON < handle_light
             %
             %   file_path = NEURON_createNeuronPath(file_path)
             %
-            %   NOTE: This function should provide a path that is safe for passing into
-            %   Neuron. This basically involves creating a cygwin path for windows.
+            %   NOTE: This function should provide a path that is safe for
+            %   passing into Neuron. This basically involves creating a
+            %   cygwin path for windows.
 
             if ispc
                 file_path = getCygwinPath(file_path);

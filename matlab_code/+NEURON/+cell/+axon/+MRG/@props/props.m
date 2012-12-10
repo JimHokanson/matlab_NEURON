@@ -1,6 +1,7 @@
 classdef props < handle
+    %props
     %
-    %NEURON.cell.axon.MRG.props
+    %   CLASS: NEURON.cell.axon.MRG.props
     %
     %   Relevant NEURON files:
     %   ==================================
@@ -9,16 +10,23 @@ classdef props < handle
     %
     %TODO: Still finishing this class
     %
-    %NEURON UNITS
-    %=================================================
-    %Section Units
-    %L      - microns
-    %diam   - microns
-    %Ra     - ohm-cm
+    %   NEURON UNITS
+    %   =================================================
+    %   Section Units
+    %   L      - microns
+    %   diam   - microns
+    %   Ra     - ohm-cm
     %
-    %NOTE: Most of these props should be private
-    %with a method that allows changing them 
-    %On change, update simulation dirty bit ...
+    %   NOTE: Most of these props should be private
+    %   with a method that allows changing them 
+    %   On change, update simulation dirty bit ...
+    %
+    %   IMPROVEMENTS
+    %   ===================================================================
+    %   1) Documentation
+    %   2) n_segs should be n_internodes
+    %   3) Change properties method 
+    %   
     
     
     %NOTE: Values without defaults are calculated based on the dependent variables
@@ -30,10 +38,10 @@ classdef props < handle
     properties   
 		%morphological parameters -----------------------------
 		fiber_diameter    = 10 %um choose from 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
-        node_diameter        %um
-        paranode_diameter_1  %um
-        paranode_diameter_2  %um
-        axon_diameter        %um
+        node_diameter          %um
+        paranode_diameter_1    %um
+        paranode_diameter_2    %um
+        axon_diameter          %um
 
         node_length       = 1  %um  %PAPER: Node length
 		paranode_length_1 = 3  %um  %PAPER: MYSA length
@@ -76,8 +84,6 @@ classdef props < handle
     properties
        %morphological parameters -----------------------------
        
-       
-
        %electrical parameters ----------------------------------
        rho_axial_node = 70    %Ohm-cm   %PAPER: Axoplasmic Resistivity
        rho_periaxonal = 70    %Ohm-cm   %PAPER: Periaxonal Resistivity

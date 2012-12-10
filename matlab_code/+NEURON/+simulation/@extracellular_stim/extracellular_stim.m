@@ -15,7 +15,10 @@ classdef extracellular_stim < NEURON.simulation
     %
     %   METHODS IN NEURON
     %   ===================================================================
-    %   xstim__load_data() :
+    %   xstim__define_global_variables() :
+    %   xstim__load_data()               :
+    %
+    %
     %
     %   VARIABLES IN NEURON
     %   ===================================================================
@@ -29,10 +32,10 @@ classdef extracellular_stim < NEURON.simulation
     %   openExplorerToMfileDirectory('NEURON.simulation.extracellular_stim')
     %       currently doesn't work due to bug in code ...   
     %
-    %   NEURON.simulation.extracellular_stim.init__create_stim_info
-    %   NEURON.simulation.extracellular_stim.sim__single_stim
-    %   NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
-    %   NEURON.simulation.extracellular_stim.sim__determine_threshold
+    %       NEURON.simulation.extracellular_stim.init__create_stim_info
+    %       NEURON.simulation.extracellular_stim.sim__single_stim
+    %       NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
+    %       NEURON.simulation.extracellular_stim.sim__determine_threshold
     %
     %   IMPROVEMENTS
     %   ===================================================================

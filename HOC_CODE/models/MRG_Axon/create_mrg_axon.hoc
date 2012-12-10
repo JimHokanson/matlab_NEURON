@@ -4,6 +4,7 @@
 create node[axonnodes], MYSA[paranodes1], FLUT[paranodes2], STIN[axoninter]
 access node[0]
 
+//NOTE: This needs to be moved to a different method ...
 objref node_list
 node_list = new SectionList()
 
@@ -22,28 +23,34 @@ proc MRG__init_axon() {
 		}
 	for i=0, paranodes1-1 {
 		MYSA[i]{
-			nseg=1
-			diam=fiber_diameter
-			L=paranode_length_1
-			Ra=rho_axial_1
-			cm=cm_1
+			nseg = 1
+			diam = fiber_diameter
+			L    = paranode_length_1
+			Ra   = rho_axial_1
+			cm 	 = cm_1
 			insert pas
-			g_pas=g_pas_1		
-			e_pas=v_init
-			insert extracellular xraxial=xraxial_1 xg=xg_1 xc=xc_1
+				g_pas = g_pas_1		
+				e_pas = v_init
+			insert extracellular 
+				xraxial = xraxial_1 
+				xg      = xg_1 
+				xc		= xc_1
 			}
 	}
 	for i=0, paranodes2-1 {
 		FLUT[i]{
-			nseg=1
-			diam=fiber_diameter
-			L=paranode_length_2
-			Ra=rho_axial_2
-			cm=cm_2
+			nseg = 1
+			diam = fiber_diameter
+			L    = paranode_length_2
+			Ra	 = rho_axial_2
+			cm 	 = cm_2
 			insert pas
-			g_pas=g_pas_2	
-			e_pas=v_init
-			insert extracellular xraxial=xraxial_2 xg=xg_2 xc=xc_2
+				g_pas = g_pas_2	
+				e_pas = v_init
+			insert extracellular 
+				xraxial = xraxial_2 
+				xg 	    = xg_2 
+				xc 		= xc_2
 			}
 	}
 	for i=0, axoninter-1 {
@@ -51,10 +58,15 @@ proc MRG__init_axon() {
 			nseg 	= 1
 			diam 	= fiber_diameter
 			L	    = stin_seg_length
-			Ra=rho_axial_i
-			cm=cm_i
-			insert pas g_pas=g_pas_i e_pas=v_init
-			insert extracellular xraxial=xraxial_i xg=xg_i xc=xc_i
+			Ra 		= rho_axial_i
+			cm 		= cm_i
+			insert pas 
+				g_pas = g_pas_i 
+				e_pas = v_init
+			insert extracellular 
+				xraxial = xraxial_i 
+				xg 		= xg_i 
+				xc 		= xc_i
 			}
 	}
 	for i=0, axonnodes-2 {
@@ -70,9 +82,8 @@ proc MRG__init_axon() {
 		connect MYSA[2*i+1](0), FLUT[2*i+1](1)
 		connect node[i+1](0), MYSA[2*i+1](1)	
 		}
-	
-	//finitialize(v_init)
-	//fcurrent()
 }
 MRG__init_axon()
-xstim__create_stim_sectionlist()
+
+
+//xstim__create_stim_sectionlist()

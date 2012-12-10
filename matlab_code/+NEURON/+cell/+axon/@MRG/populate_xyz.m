@@ -1,5 +1,5 @@
 function populate_xyz(obj)
-%populate_xyz
+%populate_xyz Population of xyz coordinates based on object properties
 %
 %   This function populates:
 %   ===================================

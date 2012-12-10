@@ -4,26 +4,27 @@ classdef paths < handle
     %   USER CONSTANTS NEEDED
     %   ==================================================================
     %   C.NEURON_EXE_PATH 
-    %   C.NEURON_SAVE_ROOT 
     %
-    %IMPROVEMENTS
-    %----------------------------
-    %build in reset method - NEURON_paths.reset
-    %build in support for model specific paths ...
+    %   IMPROVEMENTS
+    %   ===================================================================
+    %   build in reset method - NEURON_paths.reset
+    %   build in support for model specific paths ...
     
     properties
         hoc_code_root         %Directory containing all hoc code
         hoc_code_model_root   %Directory specifially containing code for models
-                              %(in subfolders of this directory)
+                              %(i.e. subfolders of this directory contain
+                              %the model code)
+                              
         %Executable Related
-        %------------------------------------------------------
+        %------------------------------------------------------------------
         exe_path   	%From C.NEURON_EXE_PATH (userConstants)
                    	%This is needed in order to launch NEURON
         
         save_root   %Location where files are saved to send back and forth to NEURON
 
         %Compile Related - See NEURON.compile
-        %------------------------------------------------------------
+        %------------------------------------------------------------------
         c_root_install
         c_bash
         c_bashStartFile
@@ -33,17 +34,16 @@ classdef paths < handle
     %INITIALIZATION METHODS
     methods
         function obj = paths
-            root_toolbox_directory = fileparts(fileparts(getMyPath));
+            %matlab_code\NEURON\paths -> three directories that we need to go up
+            root_toolbox_directory = fileparts(fileparts(fileparts(getMyPath)));
             
-            obj.hoc_code_root = fullfile(root_toolbox_directory,'HOC_CODE');
+            obj.hoc_code_root       = fullfile(root_toolbox_directory,'HOC_CODE');
             obj.hoc_code_model_root = fullfile(obj.hoc_code_root,'models');
-            
-            %C = getUserConstants({'NEURON_EXE_PATH' 'NEURON_SAVE_ROOT'});
-            
+                        
+            %NOTE: This is the only call to the user constants ...
             C = getUserConstants({'NEURON_EXE_PATH'});
             
             obj.exe_path  = C.NEURON_EXE_PATH;
-            %obj.save_root = C.NEURON_SAVE_ROOT;
             
             getCompilePaths(obj)
         end

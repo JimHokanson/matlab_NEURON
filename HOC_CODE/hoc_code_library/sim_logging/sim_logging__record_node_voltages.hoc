@@ -1,9 +1,8 @@
-obfunc sim_logging__record_node_voltages(){ local cur_seg localobj node_vm_hist, tempRecVec, node_section_list
+obfunc sim_logging__record_node_voltages(){ localobj node_vm_hist, tempRecVec, node_section_list
 /* sim_logging__record_node_voltages
 
-Given a list of nodes, this function will create recording vectors for each node
-to record the membrane potential 
-
+Given a list of sections, this function will create recording vectors 
+for each segment in the sections to record the membrane potential 
 
 USAGE
 ------------------------------------------------------------------
@@ -11,7 +10,8 @@ node_vm_hist = sim_logging__record_node_voltages(node_section_list)
 
 IN MATLAB 
 ------------------------------------------------------------------
-see function: NEURON.lib.sim_logging.record_node_voltages
+see function: 
+	NEURON.lib.sim_logging.record_membrane_voltages
 
 INPUTS  
 ------------------------------------------------------------------
@@ -20,12 +20,12 @@ node_section_list - (Class SectionList) , a section list of nodes
 
 OUTPUTS 
 ------------------------------------------------------------------
-node_vm_hist - (Class List) - holds vectors of membrane potentials at each segment
+node_vm_hist     - (Class List) - holds vectors of membrane potentials at each segment
 
 */
 
-tempRecVec   = new Vector()
-node_vm_hist = new List()
+tempRecVec   		 = new Vector()
+node_vm_hist 		 = new List()
 node_section_list    = $o1
 
 forsec node_section_list {

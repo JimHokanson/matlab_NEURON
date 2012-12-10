@@ -8,6 +8,7 @@ until the scaling step (xstim__apply_stimulus).  This code just says
 
 USAGE
 ------------------------------------------------------------
+xstim__setup_stim_playback
 
 GLOBALS 
 ------------------------------------------------------------
