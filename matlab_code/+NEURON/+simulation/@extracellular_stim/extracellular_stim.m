@@ -36,26 +36,29 @@ classdef extracellular_stim < NEURON.simulation
     %
     %   IMPROVEMENTS
     %   ===================================================================
-    %   1) Allow this class to run without being connected to NEURON (for e
-    %      field modeling purposes)
+    %   1) Allow this class to run without being connected to NEURON 
+    %       (for e field modeling purposes)
     %   2) Fix threshold_obj to be more accurate ...
-    %
     %
     %   TESTING
     %   ===================================================
     %   NEURON.simulation.extracellular_stim.defaultRun
     %
+    %   RELATED CLASSES
+    %   =================================================================
+    %
     %   PROPERTIES FROM OTHERS
-    %   ================================================
+    %   =================================================================
     %   FROM NEURON.simulation
     %   -------------------------
     %   n_obj    : (Class NEURON)
     %   cmd_obj  : (Class NEURON.cmd)
     
+    
     %OPTIONS =============================================================
     properties
-        threshold_cmd_obj   %(Class NEURON.threshold_cmd)
-        ev_man_obj          %(Class NEURON.simulation.extracellular_stim.event_manager)
+        threshold_cmd_obj   %Class: NEURON.threshold_cmd
+        ev_man_obj          %Class: NEURON.simulation.extracellular_stim.event_manager
     end
 
 	properties (SetAccess = private)
@@ -89,13 +92,13 @@ classdef extracellular_stim < NEURON.simulation
             obj.threshold_cmd_obj = NEURON.threshold_cmd;
             obj.ev_man_obj        = NEURON.simulation.extracellular_stim.event_manager(obj);
         end
+        %NOTE: The event manager object is reponsible is responsible
+        %for handling changes in NEURON from changes in Matlab. Given that
+        %one may construct the objects before 
         function set_Tissue(obj,tissue_obj)
            obj.tissue_obj = tissue_obj;
            tissueChanged(obj.ev_man_obj);
-           %TODO: plant event manager ...
-           %ALTERNATIVELY: make these calls all local, and handle
-           %the updating from there, I think that is a better way of doing
-           %it ...
+
         end
         function set_Electrodes(obj,elec_objs)
            obj.elec_objs = elec_objs;
@@ -111,6 +114,8 @@ classdef extracellular_stim < NEURON.simulation
     end
     
     methods
+        %This is some code that needs to be updated. Its goal is to
+        %determine stimulus threshold in a volume.
         function act_obj = sim__get_activation_volume(obj,file_save_path,x_bounds,y_bounds,z_bounds)
            %TODO: Fix me ...
            act_obj = NEURON.results.xstim.activation_volume.get(obj,file_save_path,x_bounds,y_bounds,z_bounds);
@@ -119,6 +124,9 @@ classdef extracellular_stim < NEURON.simulation
     
     methods
         function n = getNumberNonZeroStimTimes(obj)
+           %getNumberNonZeroStimTimes
+           %
+           %    Why was this method written?????
            n = length(find(any(obj.v_all,2)));
         end 
     end
@@ -169,7 +177,6 @@ classdef extracellular_stim < NEURON.simulation
            if ~isobject(obj.cell_obj)
               error('Neural cell must be specified before running simulation') 
            end
-
         end
     end
     
@@ -178,7 +185,11 @@ classdef extracellular_stim < NEURON.simulation
         function potentialTesting(varargin)
            %
            %    NEURON.simulation.extracellular_stim.potentialTesting
-            
+           %
+           %
+           %    OLD METHOD: Needs updating
+           
+           
            in.TISSUE_RESISTIVITY   = 500; 
            in.STIM_START_TIME      = 0.3;
            in.STIM_SCALE_1         = [1 -0.5];
@@ -207,7 +218,7 @@ classdef extracellular_stim < NEURON.simulation
                case 1
                     showPotentialPlane(obj)
                case 2
-                   showPotentialTwoElectrodes(obj)
+                    showPotentialTwoElectrodes(obj)
            end
            
         end

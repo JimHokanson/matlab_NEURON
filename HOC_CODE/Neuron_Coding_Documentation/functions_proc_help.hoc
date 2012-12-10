@@ -18,8 +18,8 @@ http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/ocsyntax.html#
 arguments -----------------------
 http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/ocsyntax.html#arguments
 
-$# - # refers to position in input
-$# - numeric
+$#  - # refers to position in input
+$#  - numeric
 $s# - string input
 $o# - object input
 

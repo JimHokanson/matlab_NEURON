@@ -9,8 +9,8 @@ function computeStimulus(obj,varargin)
 %   =======================================================================
 %   remove_zero_stim : (default false), if true removes times when there is
 %                      no stimulus.
-%   xyz_use : (default []), allows passing in different locations, 
-%               default (i.e. if empty) is to use cell location
+%   xyz_use          : (default []), allows passing in different locations, 
+%                       default (i.e. if empty) is to use cell location
 %
 %   RELIES ON
 %   =======================================================================
@@ -40,8 +40,8 @@ else
     cell_xyz_all = in.xyz_use;
 end
 
-%Change stim times to match across all electrodes. Causes redundant
-%information but makes vector addition easier.
+%Change stim times to match across all electrodes. 
+%This causes redundant information but makes vector addition possible.
 [t_vec,all_stim] = getMergedStimTimes(obj.elec_objs);
 %all_stim: columns are electrodes, rows are times
 
@@ -49,7 +49,7 @@ if in.remove_zero_stim
    %removal of zero stim cases
    mask = ~any(all_stim,2);
    all_stim(mask,:) = [];
-   t_vec(mask) = [];
+   t_vec(mask)      = [];
 end
 
 %Compute the voltage field
