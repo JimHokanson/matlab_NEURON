@@ -25,6 +25,7 @@ methods = {
     'getCallingFunction'        %formattedWarning()    
     'getCygwinPath' 
     'getMyPath'                 %NEURON.paths, initialize.m
+    'handle_light'              %NEURON
     'ismember_str'              %processVarargin()
     'processVarargin'           %used everywhere ...
     'strtools.propsValuesToStr' %NEURON.cmd , 
@@ -58,7 +59,10 @@ for iMethod = 1:nMethods
    
       %NOTE: Need to handle folder creation ...
    if length(method_parts) > 1
-       mkdir(fileparts(new_method_path))
+       new_dir = fileparts(new_method_path);
+       if ~exist(new_dir,'dir')
+          mkdir(new_dir)
+       end
    end
    
    copyfile(method_full_path,new_method_path)
