@@ -9,22 +9,10 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     %   methods and properties needed for extracellular stim are in place
     %   ...
     %
-    %   PROPERTIES 
-    %   ===================================================================
-    %   From NEURON.neural_cell
-    %   -------------------------------------------------------------------
-    %   simulation_obj %Class: NEURON.simulation or subclass
-    %                       -  NEURON.simulation.extracellular_stim
-    %   cmd_obj        %Class: NEURON.cmd
-    %
-    %   From NEURON.cell.axon
-    %   -------------------------------------------------------------------
-    %   -none
-    %
     %   IMPROVEMENTS
     %   ===================================================================
     %
-    %   METHODS IN OTHER FILES 
+    %   METHODS IN OTHER FILES
     %   ===================================================================
     %   NEURON.cell.axon.MRG.createCellInNEURON   (main NEURON interface method)
     %   NEURON.cell.axon.MRG.populateSpatialInfo
@@ -41,7 +29,15 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     %   excitability of mammalian nerve fibers: influence of
     %   afterpotentials on the recovery cycle. Journal of neurophysiology
     %   87:995–1006.
-    %
+    
+    
+    %   PROPERTIES
+    %   ===================================================================
+    %   From NEURON.neural_cell
+    %   -------------------------------------------------------------------
+    %   simulation_obj %Class: NEURON.simulation or subclass
+    %                       -  NEURON.simulation.extracellular_stim
+    %   cmd_obj        %Class: NEURON.cmd
     
     properties (Hidden,Constant)
         HOC_CODE_DIRECTORY = 'MRG_Axon' %This gets used by a superclass
@@ -50,48 +46,61 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     end
     
     properties (SetAccess = private)
-        %.moveCenter()
-        xyz_center %Location of the axon center in global space
-        %This is important for stimulation with electrodes
+        %.moveCenter(), .MRG()
+        xyz_center %User specified, location of the axon center in global space
+        %This is important for stimulation with electrodes.
         %This is specified by the user in the constructor ...
         
         %.MRG()
         props_obj   %Class: NEURON.cell.axon.MRG.props
-        
-        %.
-        xyz_all     %populate_xyz()
     end
     
-    %INTERNAL PROPS REGARDING SIZE
+    
+    %TEMPORARY SPATIAL INFO ===============================================
     properties (SetAccess = private)
-        %See populateSpatialInfo for all props below
-        %-------------------------------------------------------------
-        %
-        %see method .populate_section_id_info()
-        %------------------------------------------------
+        %MAIN METHOD:
+        %   NEURON.cell.axon.MRG.populateSpatialInfo
+        %------------------------------------------------------------------
+        %.populate_section_id_info()
         section_ids  %ID of each created section in NEURON
-        %1 - node
-        %These three together are an internode
-        %2 - MYSA
-        %3 - FLUT
-        %4 - STIN
+        %               1 - node
+        %               These three together are an internode
+        %               2 - MYSA
+        %               3 - FLUT
+        %               4 - STIN
         
-        %NEURON.cell.axon.MRG.populate_section_id_info
-        center_I     %index into node that is the center of the axon
-
+        %.populate_section_id_info()
+        center_I     %index into section_ids, L_all, etc that is
+        %the "center" of the axon, this currently indexes into
+        %the center most node
+        
         %.populate_axon_length_info()
         L_all        %length of each section ...
+    end
+    
+    properties (SetAccess = private)
+        %.populate_xyz()
+        xyz_all     %populate_xyz()
+        
+        avg_node_spacing
         
         %.createCellInNEURON()
         cell_populated_in_NEURON %used by function moveCenter()
         %to update xyz if other related props are already calculated ...
         
         spatial_info_populated = false   %see .getNodeSpacing()
-        props_populated        = false   %see .populateSpatialInfo()
-        %also props.populateDependentVariables
         
         %.setEventManagerObject()
         ev_man_obj   %Class: NEURON.simulation.extracellular_stim.event_manager
+        %IMPORTANT: On changing anything that changes the way the NEURON
+        %simulation would run, the event manager should be told of the
+        %change ...
+        %NOTE: Perhaps we just use a listener instead??????
+    end
+    
+    properties
+        props_populated        = false   %see .populateSpatialInfo()
+        %also props.populateDependentVariables 
     end
     
     %INITIALIZATION ====================================================
@@ -151,18 +160,15 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         function avg_node_spacing = getAverageNodeSpacing(obj)
             %getAverageNodeSpacing
             %
-            %   Written For:
-            %      
-            
-            %What a mess ...
+            %   Written For ...
+
             if ~obj.spatial_info_populated
                 %NEURON.cell.axon.MRG.populateSpatialInfo
                 populateSpatialInfo(obj)
             end
             
-            node_indices     = find(obj.section_ids == 1);
-            avg_node_spacing = obj.xyz_all(I(2),3) - obj.xyz_all(I(1),3); %NOTE: Might want to do distance instead
-            %also might want to do the average diff
+            avg_node_spacing = obj.avg_node_spacing;
+
         end
     end
     

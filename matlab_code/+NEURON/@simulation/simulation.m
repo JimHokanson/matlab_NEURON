@@ -83,6 +83,8 @@ classdef simulation < handle
             in = processVarargin(in,varargin);
             
             obj.sim_hash    = ['p' num2str(feature('GetPid'),'%d') '_'];
+            
+            %NOTE: I think I just want a delete method ...
             obj.cleanup_ref = onCleanup(@()cleanup_sim(obj));
             
             obj.run_NEURON = in.run_NEURON; 

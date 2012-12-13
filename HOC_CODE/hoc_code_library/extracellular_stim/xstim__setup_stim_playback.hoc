@@ -6,17 +6,24 @@ to apply the stimulus. The values in these vectors are not populated
 until the scaling step (xstim__apply_stimulus).  This code just says
 "this vector should get played into here when I run"
 
+Essentially this then becomes a way of initializing a bunch of objects.
+
 USAGE
 ------------------------------------------------------------
-xstim__setup_stim_playback
+xstim__setup_stim_playback()
 
 GLOBALS 
 ------------------------------------------------------------
-xstim__all_secs
+xstim__all_secs 	 :
+xstim__t_vec 		 : Used for knowing how many vectors to 
+xstim__n_play_orig   :
 
 CREATES 
 ------------------------------------------------------------
 xstim__stim_vector_list
+
+SEE ALSO
+--------------------------------------------------------------
 
 */
 
@@ -29,12 +36,18 @@ n_stim_changes = xstim__t_vec.size
 //Careful, made error of using for(x)
 //See http://www.neuron.yale.edu/phpBB/viewtopic.php?f=15&t=2663
 
-if (!(xstim__playback_initialized && xstim__n_play_orig == n_stim_changes)) {
+//We only need to reinitialize the list if it hasn't been done before
+//    OR
+//The # of elements in the list has changed ...
 
-//NOTE: If initialized already the list would append but we would only set the vectors
-//in the earlier part of the list :/
+if (!(xstim__playback_initialized && xstim__n_play_orig == n_stim_changes)) {
+//NOTE: If initialized already the list would append but 
+//we would only set the vectors in the earlier part of the list :/
 if (xstim__playback_initialized) {
-	xstim__stim_vector_list = new List()
+	//This is essentially a reset function ...
+	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/classes/list.html#remove_all
+	xstim__stim_vector_list.remove_all()
+	//xstim__stim_vector_list = new List()
 }
 
 xstim__playback_initialized = 1

@@ -51,12 +51,11 @@ obj.cmd_obj.writeVector(time_filepath,t_vec);
 
 %POPULATE IN NEURON
 %---------------------------------------------------------------------------
-%xstim__load_data - loads data from file
+%xstim__load_data           - loads data from file
 %xstim__setup_stim_playback - creates vectors for playing stimulation
 
-%obj.cmd_obj.run_command('{xstim__load_data() xstim__setup_stim_playback()}');
-
-%Which one is causing the problem???
+%NOTE: By executing these separately I can debug which, if either, is
+%causing a problem ...
 obj.cmd_obj.run_command('{xstim__load_data()}');
 obj.cmd_obj.run_command('{xstim__setup_stim_playback()}');
 end

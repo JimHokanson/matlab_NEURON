@@ -10,13 +10,16 @@ function populate_axon_length_info(obj)
 %       NEURON.cell.axon.MRG.populate_section_id_info
 %       NEURON.cell.axon.MRG.populate_xyz
 
+p = obj.props_obj; %(Class NEURON.cell.axon.MRG.props) 
+
+%NOTE HARDCODED ASSUMPTION ------------------------------------------------
 node_internode_lengths = [...
     p.node_length
     p.paranode_length_1
     p.paranode_length_2
-    repmat(p.stin_seg_length,1,p.n_STIN)
+    repmat(p.stin_seg_length,p.n_STIN,1)
     p.paranode_length_2
-    p.paranode_length_1];
+    p.paranode_length_1]'; %Make row vector, current layout implies column vector
 
 obj.L_all = [repmat(node_internode_lengths,1,p.n_segs) p.node_length];
 

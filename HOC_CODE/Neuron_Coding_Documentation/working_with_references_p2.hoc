@@ -1,0 +1,36 @@
+//SEE CHAPTER 12 - Page 654 NEURON BOOK
+//Arugments of type strdef and objref use call by reference
+//so the calling value may be changed by the called func or proc
+
+//Also see page 672 - CHAPTER 13
+
+//NOTE: These sections must procede the class definition ...
+//Unless construction takes place in the class ...
+//https://www.neuron.yale.edu/phpBB/viewtopic.php?f=8&t=2676
+
+create sect_1[1]
+create sect_2[2]
+
+objref xstim_list
+xstim_list = new SectionList()
+
+proc test(){localobj my_stim_list
+
+	//NOT NEEDED - localobj does this ...
+	//objref my_stim_list
+	
+	//my_stim_list = new SectionList()
+	my_stim_list = $o1
+	access sect_1[0]
+	my_stim_list.append()
+	access sect_2[1]
+	my_stim_list.append()
+	access sect_2[0]
+	my_stim_list.append()
+}
+
+
+
+
+test(xstim_list)
+xstim_list.printnames()

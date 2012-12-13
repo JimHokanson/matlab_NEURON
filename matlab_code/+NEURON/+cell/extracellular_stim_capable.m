@@ -3,7 +3,7 @@ classdef extracellular_stim_capable < handle
     %   Put in cells to enforce support for extracellular_stim simulations
     %   
     
-    properties (Abstract)
+    properties (Abstract,SetAccess = private)
         xyz_all
     end
     

@@ -22,7 +22,6 @@ strdef sim_hash //This is a string which can be used to differentiate between di
 {load_file("hoc_code_library/extracellular_stim/xstim__define_global_variables.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__load_data.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__setup_stim_playback.hoc")}
-{load_file("hoc_code_library/extracellular_stim/xstim__create_stim_sectionList.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__run_stimulation.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__apply_stimulus.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__did_ap_fire.hoc")}

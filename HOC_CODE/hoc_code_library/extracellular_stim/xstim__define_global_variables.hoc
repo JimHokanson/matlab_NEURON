@@ -2,10 +2,25 @@
 
 //NOTE: We should make this an object ...
 
+
+
 objref xstim__stim_vector_list, xstim__all_secs, xstim__v_ext_in, xstim__t_vec, xstim__node_vm_hist
 
+
+
+
+//This holds a set of vectors which get "played" into the model during the simulation.
+//Each vector in the list gets assigned to a particular segment.
+//In NEURON it is recommended that one use a list to hold onto
+//the vectors. In this way one can loop 
+
+
 xstim__stim_vector_list = new List() 		//xstim__setup_stim_playback
-xstim__all_secs 		= new SectionList()
+
+//This list is used to apply the stimulus 
+
+xstim__all_secs 		= new SectionList() //create_stim_section_list (user model defined)
+											//
 
 xstim__v_ext_in 		= new Vector() 		//xstim__load_data
 xstim__t_vec    		= new Vector()		//xstim__load_data

@@ -18,7 +18,10 @@ proc MRG__init_axon() {
 			Ra   = rho_axial_node
 			cm   = cap_nodal
 			insert axnode			
-			insert extracellular xraxial=xraxial_node xg=xg_node xc=xc_node
+			insert extracellular 
+				xraxial = xraxial_node
+				xg      = xg_node 
+				xc      = xc_node
 			}
 		}
 	for i=0, paranodes1-1 {

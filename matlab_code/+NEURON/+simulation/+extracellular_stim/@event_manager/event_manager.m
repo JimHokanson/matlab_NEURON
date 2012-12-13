@@ -69,11 +69,23 @@ classdef event_manager < handle
            NODE_MEMBRANE_VOLTAGE_RECORD_LIST = 'xstim__node_vm_hist';
            NODE_SECTION_LIST                 = 'node_list'; 
            
-           p = obj.parent;
+           p       = obj.parent;
+           cmd_obj = p.cmd_obj;
            
            %Verify that all objects are linked to the simulation ...
            if ~obj.ran_init_once
               init__verifyAssignedObjects(p)
+              
+              
+              %IMPROVEMENT:
+              %============================================================
+              %NOTE: Do we want to change to the directory and do
+              %initial setups here ...
+              %i.e. 
+              %1) cd to model directory
+              %2) load driver
+              %3) load function definition
+              
               obj.ran_init_once = true;
            end
            
@@ -82,12 +94,18 @@ classdef event_manager < handle
               %Example: NEURON.cell.axon.MRG.createCellInNEURON
               p.cell_obj.createCellInNEURON;
               
-              %TODO: Add on request for extracellular membrane voltage list
+              %NOTE: Currently this needs to follow the previous
+              %statement as the previous one cds into the proper directory
+              %This command defines the function ...
+              cmd_obj.load_file('create_stim_section_list.hoc');
+              %This command executes the function ...
+              cmd_obj.run_command('create_stim_section_list(xstim__all_secs)');
+              
               
               %Make sure we can record whatever we want. Currently this is
               %membrane voltage. We may later need to expand this ...
               NEURON.lib.sim_logging.record_membrane_voltages(...
-                  p.cmd_obj,...
+                  cmd_obj,...
                   NODE_SECTION_LIST,...
                   NODE_MEMBRANE_VOLTAGE_RECORD_LIST)
               obj.cell_definition_set = true;

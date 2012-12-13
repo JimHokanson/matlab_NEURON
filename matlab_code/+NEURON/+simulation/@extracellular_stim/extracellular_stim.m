@@ -1,6 +1,6 @@
 classdef extracellular_stim < NEURON.simulation
-	%
-    %   HOW TO CALL 
+    %
+    %   HOW TO CALL
     %   ===================================================================
     %   see testing functions (needs updating)
     %
@@ -8,7 +8,7 @@ classdef extracellular_stim < NEURON.simulation
     %   ====================================================================
     %   file                     Matlab                     NEURON
     %   inputs/[hash]v_ext.bin : init__create_stim_info : xstim__load_data
-    %   inputs/[hash]t_vec.bin : init__create_stim_info : xstim__load_data 
+    %   inputs/[hash]t_vec.bin : init__create_stim_info : xstim__load_data
     %
     %
     %   THESE SECTIONS BELOW NEED UPDATING  -------------------------------
@@ -30,7 +30,7 @@ classdef extracellular_stim < NEURON.simulation
     %   METHODS IN OTHER FILES
     %   ===================================================================
     %   openExplorerToMfileDirectory('NEURON.simulation.extracellular_stim')
-    %       currently doesn't work due to bug in code ...   
+    %       currently doesn't work due to bug in code ...
     %
     %       NEURON.simulation.extracellular_stim.init__create_stim_info
     %       NEURON.simulation.extracellular_stim.sim__single_stim
@@ -39,7 +39,7 @@ classdef extracellular_stim < NEURON.simulation
     %
     %   IMPROVEMENTS
     %   ===================================================================
-    %   1) Allow this class to run without being connected to NEURON 
+    %   1) Allow this class to run without being connected to NEURON
     %       (for e field modeling purposes)
     %   2) Fix threshold_obj to be more accurate ...
     %
@@ -63,25 +63,25 @@ classdef extracellular_stim < NEURON.simulation
         threshold_cmd_obj   %Class: NEURON.threshold_cmd
         ev_man_obj          %Class: NEURON.simulation.extracellular_stim.event_manager
     end
-
-	properties (SetAccess = private)
+    
+    properties (SetAccess = private)
         %Populate by using the set methods
-		tissue_obj   %(Subclass of NEURON.tissue)
-                     %  NEURON.tissue.homogeneous_anisotropic
-                     %  NEURON.tissue.homogeneous_isotropic
-		elec_objs    %(Class NEURON.extracellular_stim_electrode)
-		cell_obj     %(Class neural_cell), singular
+        tissue_obj   %(Subclass of NEURON.tissue)
+        %  NEURON.tissue.homogeneous_anisotropic
+        %  NEURON.tissue.homogeneous_isotropic
+        elec_objs    %(Class NEURON.extracellular_stim_electrode)
+        cell_obj     %(Class neural_cell), singular
     end
-
+    
     properties
-       %.
-       v_all    %stim_times x n_electrodes - populated by init__create_stim_info
-       t_vec
+        %.
+        v_all    %stim_times x n_electrodes - populated by init__create_stim_info
+        t_vec
     end
     
     %INITIALIZATION METHODS ==============================================
-	methods        
-		function obj = extracellular_stim(varargin)
+    methods
+        function obj = extracellular_stim(varargin)
             %
             %
             %   obj = extracellular_stim(varargin)
@@ -97,133 +97,133 @@ classdef extracellular_stim < NEURON.simulation
         end
         %NOTE: The event manager object is reponsible is responsible
         %for handling changes in NEURON from changes in Matlab. Given that
-        %one may construct the objects before 
+        %one may construct the objects before
         function set_Tissue(obj,tissue_obj)
-           obj.tissue_obj = tissue_obj;
-           tissueChanged(obj.ev_man_obj);
-
+            obj.tissue_obj = tissue_obj;
+            tissueChanged(obj.ev_man_obj);
+            
         end
         function set_Electrodes(obj,elec_objs)
-           obj.elec_objs = elec_objs;
-           stimElectrodesChanged(obj.ev_man_obj);
-           setEventManagerObject(obj.elec_objs,obj.ev_man_obj)
+            obj.elec_objs = elec_objs;
+            stimElectrodesChanged(obj.ev_man_obj);
+            setEventManagerObject(obj.elec_objs,obj.ev_man_obj)
         end
         function set_CellModel(obj,cell_obj)
-           obj.cell_obj = cell_obj;
-           setSimObjects(obj.cell_obj,obj.cmd_obj,obj)
-           setEventManagerObject(obj.cell_obj,obj.ev_man_obj)
-           cellLocationChanged(obj.ev_man_obj);
-        end    
+            obj.cell_obj = cell_obj;
+            setSimObjects(obj.cell_obj,obj.cmd_obj,obj)
+            setEventManagerObject(obj.cell_obj,obj.ev_man_obj)
+            cellLocationChanged(obj.ev_man_obj);
+        end
     end
     
     methods
         %This is some code that needs to be updated. Its goal is to
         %determine stimulus threshold in a volume.
         function act_obj = sim__get_activation_volume(obj,file_save_path,x_bounds,y_bounds,z_bounds)
-           %TODO: Fix me ...
-           act_obj = NEURON.results.xstim.activation_volume.get(obj,file_save_path,x_bounds,y_bounds,z_bounds);
+            %TODO: Fix me ...
+            act_obj = NEURON.results.xstim.activation_volume.get(obj,file_save_path,x_bounds,y_bounds,z_bounds);
         end
     end
     
     methods
         function n = getNumberNonZeroStimTimes(obj)
-           %getNumberNonZeroStimTimes
-           %
-           %    Why was this method written?????
-           n = length(find(any(obj.v_all,2)));
-        end 
+            %getNumberNonZeroStimTimes
+            %
+            %    Why was this method written?????
+            n = length(find(any(obj.v_all,2)));
+        end
     end
     
     methods
         function cleanup_sim(obj)
-           %
-           %    ON CLEANUP:
-           %    =============================================
-           %    1) delete t_vec
-           %    2) delete v_ext
-           
-% % %            cell_input_dir = fullfile(obj.cell_obj.getModelRootDirectory,'inputs');
-% % %            v_file_name = sprintf('%s%s',obj.sim_hash,'v_ext.bin');
-% % %            t_file_name = sprintf('%s%s',obj.sim_hash,'t_vec.bin');
-% % %            
-% % %            voltage_filepath = fullfile(cell_input_dir,v_file_name);
-% % %            time_filepath    = fullfile(cell_input_dir,t_file_name);
-% % %            
-% % %            if exist(voltage_filepath,'file')
-% % %               delete(voltage_filepath)
-% % %            end
-% % %            
-% % %            if exist(time_filepath,'file')
-% % %               delete(time_filepath)
-% % %            end
-           
+            %
+            %    ON CLEANUP:
+            %    =============================================
+            %    1) delete t_vec
+            %    2) delete v_ext
+            
+            % % %            cell_input_dir = fullfile(obj.cell_obj.getModelRootDirectory,'inputs');
+            % % %            v_file_name = sprintf('%s%s',obj.sim_hash,'v_ext.bin');
+            % % %            t_file_name = sprintf('%s%s',obj.sim_hash,'t_vec.bin');
+            % % %
+            % % %            voltage_filepath = fullfile(cell_input_dir,v_file_name);
+            % % %            time_filepath    = fullfile(cell_input_dir,t_file_name);
+            % % %
+            % % %            if exist(voltage_filepath,'file')
+            % % %               delete(voltage_filepath)
+            % % %            end
+            % % %
+            % % %            if exist(time_filepath,'file')
+            % % %               delete(time_filepath)
+            % % %            end
+            
         end
         function init__verifyAssignedObjects(obj)
-           %init__verifyAssignedObjects
-           %    
-           %    Verifies that all objects which are necessary for this
-           %    simulation are defined ...
-           %
-           %    init__verifyAssignedObjects(obj)
-           %    
-           %    KNOWN CALLERS:
-           %    =====================================
-           
-           if ~isobject(obj.tissue_obj)
-               error('Tissue object must be specified before initializing system')
-           end
-           
-           if ~isobject(obj.elec_objs)
-              error('Electrodes must be specified before running simulations') 
-           end
-           
-           if ~isobject(obj.cell_obj)
-              error('Neural cell must be specified before running simulation') 
-           end
+            %init__verifyAssignedObjects
+            %
+            %    Verifies that all objects which are necessary for this
+            %    simulation are defined ...
+            %
+            %    init__verifyAssignedObjects(obj)
+            %
+            %    KNOWN CALLERS:
+            %    =====================================
+            
+            if ~isobject(obj.tissue_obj)
+                error('Tissue object must be specified before initializing system')
+            end
+            
+            if ~isobject(obj.elec_objs)
+                error('Electrodes must be specified before running simulations')
+            end
+            
+            if ~isobject(obj.cell_obj)
+                error('Neural cell must be specified before running simulation')
+            end
         end
     end
     
     %TESTING =========================================================
-    methods(Static)	  
+    methods(Static)
         function potentialTesting(varargin)
-           %
-           %    NEURON.simulation.extracellular_stim.potentialTesting
-           %
-           %
-           %    OLD METHOD: Needs updating
-           
-           
-           in.TISSUE_RESISTIVITY   = 500; 
-           in.STIM_START_TIME      = 0.3;
-           in.STIM_SCALE_1         = [1 -0.5];
-           in.STIM_SCALE_2         = [-1 0.5]; 
-           in.STIM_DURATION_1      = [0.2 0.4];
-           in.STIM_DURATION_2      = [0.2 0.4];
-           in.ELECTRODE_LOCATIONS  = [-200 0 0; 200 0 0];
-           in.plot_option          = 2;
-           obj = NEURON.simulation.extracellular_stim; 
+            %
+            %    NEURON.simulation.extracellular_stim.potentialTesting
+            %
+            %
+            %    OLD METHOD: Needs updating
             
-           %tissue ------------------------------------------------
-           set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.TISSUE_RESISTIVITY));
-           
-           %stimulation electrode ---------------------------------
-           e_objs = NEURON.extracellular_stim_electrode(in.ELECTRODE_LOCATIONS);
-           
-           setStimPattern(e_objs(1),in.STIM_START_TIME,in.STIM_DURATION_1,in.STIM_SCALE_1);
-           setStimPattern(e_objs(2),in.STIM_START_TIME,in.STIM_DURATION_2,in.STIM_SCALE_2);
-           
-           set_Electrodes(obj,e_objs);
-           
-           %cell ---------------------------------------------------
-           %set_CellModel(obj,NEURON.cell.axon.MRG(in.CELL_CENTER))
-           
-           switch in.plot_option
-               case 1
+            
+            in.TISSUE_RESISTIVITY   = 500;
+            in.STIM_START_TIME      = 0.3;
+            in.STIM_SCALE_1         = [1 -0.5];
+            in.STIM_SCALE_2         = [-1 0.5];
+            in.STIM_DURATION_1      = [0.2 0.4];
+            in.STIM_DURATION_2      = [0.2 0.4];
+            in.ELECTRODE_LOCATIONS  = [-200 0 0; 200 0 0];
+            in.plot_option          = 2;
+            obj = NEURON.simulation.extracellular_stim;
+            
+            %tissue ------------------------------------------------
+            set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.TISSUE_RESISTIVITY));
+            
+            %stimulation electrode ---------------------------------
+            e_objs = NEURON.extracellular_stim_electrode(in.ELECTRODE_LOCATIONS);
+            
+            setStimPattern(e_objs(1),in.STIM_START_TIME,in.STIM_DURATION_1,in.STIM_SCALE_1);
+            setStimPattern(e_objs(2),in.STIM_START_TIME,in.STIM_DURATION_2,in.STIM_SCALE_2);
+            
+            set_Electrodes(obj,e_objs);
+            
+            %cell ---------------------------------------------------
+            %set_CellModel(obj,NEURON.cell.axon.MRG(in.CELL_CENTER))
+            
+            switch in.plot_option
+                case 1
                     showPotentialPlane(obj)
-               case 2
+                case 2
                     showPotentialTwoElectrodes(obj)
-           end
-           
+            end
+            
         end
         function extras = defaultRun(debug,stim_amp,varargin)
             %NEURON.simulation.extracellular_stim.defaultRun
@@ -253,7 +253,7 @@ classdef extracellular_stim < NEURON.simulation
             in = processVarargin(in,varargin);
             
             obj = NEURON.simulation.extracellular_stim('debug',debug);
-
+            
             %tissue ------------------------------------------------
             set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.TISSUE_RESISTIVITY));
             
@@ -271,18 +271,18 @@ classdef extracellular_stim < NEURON.simulation
             
             switch in.run_option
                 case 1
-            [apFired,extras] = sim__single_stim(obj,stim_amp,'save_data',in.save_data);
-            extras.apFired = apFired;
+                    [apFired,extras] = sim__single_stim(obj,stim_amp,'save_data',in.save_data);
+                    extras.apFired = apFired;
                 case 2
-            %fprintf('SIMULATION FINISHED: AP FIRED = %d\n',apFired);
-            extras = [];
-            thresh_value = sim__determine_threshold(obj,in.STARTING_STIM_AMP);
-            fprintf('SIMULATION FINISHED: THRESHOLD = %0g\n',thresh_value);
+                    %fprintf('SIMULATION FINISHED: AP FIRED = %d\n',apFired);
+                    extras = [];
+                    thresh_value = sim__determine_threshold(obj,in.STARTING_STIM_AMP);
+                    fprintf('SIMULATION FINISHED: THRESHOLD = %0g\n',thresh_value);
             end
             
         end
     end
-
-%--------------------------------------------------------------------------	
-
+    
+    %--------------------------------------------------------------------------
+    
 end
