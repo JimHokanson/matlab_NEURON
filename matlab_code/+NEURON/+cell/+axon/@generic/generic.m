@@ -64,9 +64,6 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         props_populated = false; % props.populateDependentVariables
         ev_man_obj;
         
-        
-        % the rest related to populateSpatialInfo and the functions it calls, taken
-        % from MRG, may need fixin'
         section_ids % ID of sections, see populate_section_id_info
         center_I % index into node that is center of axon
         L_all % populate_axon_length_info
@@ -106,8 +103,6 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         end   
     end
     
-    % following is taken from MRG and need modification. MRG has different 
-    % types of axon segments generic axons don't need.
     % INFO FOR OTHERS
     methods
         function node_spacing = getNodeSpacing(obj)
