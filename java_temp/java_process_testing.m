@@ -11,7 +11,11 @@
 
 %ping_cmd = {'ping.exe', 'www2.google.com'};
 ping_cmd =  {'C:\nrn72\bin\nrniv.exe' '-nogui -isatty'};
+
+%java.lang.ProcessBuilder
 pb      = java.lang.ProcessBuilder(ping_cmd);
+
+%java.lang.ProcessImpl
 p       = pb.start();
 
 p_in  = p.getInputStream;

@@ -59,18 +59,25 @@ classdef NEURON < handle_light
     
     %"PUBLIC METHODS"  %==================================
     methods
-        function obj = NEURON
+        function obj = NEURON(varargin)
             %NEURON
             %
             %   See class description above -> help NEURON
+            
+            in.win_use_java = false;
+            in = processVarargin(in,varargin);
             
             obj.path_obj = NEURON.paths;
             
             %Load communication object based on system type
             if ispc
-                obj.comm_obj = NEURON.comm_obj.windows_comm_obj(obj.path_obj);
+                if in.win_use_java
+                    obj.comm_obj = NEURON.comm_obj.java_comm_obj(obj.path_obj);
+                else
+                    obj.comm_obj = NEURON.comm_obj.windows_comm_obj(obj.path_obj);
+                end
             else
-                error('Unsupported system')
+                obj.comm_obj = NEURON.comm_obj.java_comm_obj(obj.path_obj);
             end
         end
         function varargout = write(obj,command_str,varargin)
