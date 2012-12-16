@@ -16,9 +16,13 @@ public class NEURON_reader {
 
 	//Set by class 
 	public boolean good_read              = false;
-	public boolean detected_end_statement = false;   //Set true if we detect the 
+	public boolean detected_end_statement = false;   //Set true if we detect the terminal string
+	public boolean stackdump_present      = false;
 	public boolean process_running        = false;
 	public String  result_str             = new String();
+	
+	int next_input_index;
+	int next_err_index;
 	
 	public NEURON_reader(BufferedInputStream pin, FileInputStream perr, Process p) {
 		//Nothing currently needed ...
@@ -32,16 +36,22 @@ public class NEURON_reader {
 	{
 
 		long wait_time_nanoseconds = (long) (wait_time_seconds*1e9);
-		int n_bytes_available;
-		int index_term_string_match; 
-		String temp_string;
-		boolean is_terminal_string = false;
-		boolean is_terminal_string2 = false;
 		long start_time = System.nanoTime();
 		
-		int next_input_index = 0;
-		int next_err_index = 0;
+		int n_bytes_available;
+		int index_term_string_match; 
 		
+		next_input_index = 0;
+		next_err_index = 0;
+		
+		boolean is_terminal_string = false;
+		boolean is_terminal_string2 = false;
+		
+		String temp_string;
+		
+
+		//OUTLINE
+		//------------------------------------------------------------------
 		//1 Check if process is running
 		//2 Check timing
 		//3 Read input
@@ -79,20 +89,32 @@ public class NEURON_reader {
 			n_bytes_available = pin.available();
 			if (n_bytes_available > 0){
 				pin.read(temp_data,0,n_bytes_available);
+				
+				readStream(int n_bytes_available, boolean debug, boolean is_input_string)
+				
+				//Function after here ...
 				temp_string = new String(temp_data,0,n_bytes_available);
 				index_term_string_match = temp_string.lastIndexOf(term_string_const);
 				
 				if (debug){
 					System.out.println(temp_string);
 				}
-				System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
-				next_input_index = next_input_index + n_bytes_available;
 				
-				//END EARLY FOR NOW
-				
-				is_terminal_string2 = index_term_string_match != -1;
-				System.out.printf("is terminal: %b\n", is_terminal_string2);
-				
+				if (index_term_string_match != -1){
+					if (index_term_string_match != 0){
+						System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
+						next_input_index = next_input_index + n_bytes_available;
+					}
+					is_terminal_string = true;
+					System.out.println("Terminal String Detected");
+					break;
+				}else{
+					if (isStackdumpPresent(temp_string,true)){
+						break;
+					}
+					System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
+					next_input_index = next_input_index + n_bytes_available;
+				}
 			}
 			
 			//READING ERROR
@@ -151,10 +173,72 @@ public class NEURON_reader {
 		}
 	}
 	
-	public int checkIfTerminalString(String temp_string){
+	//isStackdumpPresent
+	//==========================================================================
+	private boolean isStackdumpPresent(String temp_string, boolean is_success){
 
-		return temp_string.lastIndexOf(term_string_const);
+		boolean potential_stackdump;
+		String  possible_error_string;
+		boolean stackdump_present = false;
+		
+		potential_stackdump = is_success && next_err_index > 0;
+		if (potential_stackdump){
+			possible_error_string = new String(error_data,0,next_err_index);
+			stackdump_present     = possible_error_string.lastIndexOf("Dumping stack trace to") != -1;
+			if (stackdump_present){
+				System.err.printf("STACKDUMP ERROR MESSAGE:\n%s\n",possible_error_string);
+			}
+		}
 
+		return stackdump_present;
+	}
+	
+	private boolean readStream(int n_bytes_available, boolean debug, boolean is_input_string){
+		
+		String temp_string;
+		int index_term_string_match; 
+		
+		//Bytes to string
+		temp_string = new String(temp_data,0,n_bytes_available);
+		
+		//Check if the terminal string is present
+		if (is_input_string){
+			index_term_string_match = temp_string.lastIndexOf(term_string_const);
+		}else{
+			//NOTE: Error string will not have terminal string ...
+			index_term_string_match = -1;
+		}
+		
+		//Print out things if debugging ...
+		if (debug){
+			System.out.println(temp_string);
+		}
+		
+		if (index_term_string_match != -1){
+			//NOTE: This will ONLY occur for input strings ...
+			//Trim string so that terminal string is not returned ...
+			if (index_term_string_match != 0){
+				System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
+				next_input_index = next_input_index + n_bytes_available;
+			}
+			System.out.println("Terminal String Detected");
+			return true;
+		}else{
+			if (isStackdumpPresent(temp_string,is_input_string)){
+				stackdump_present = true;
+				return false;
+			}
+			if (is_input_string){
+				System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
+				next_input_index = next_input_index + n_bytes_available;
+			} else {
+				System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
+				next_input_index = next_input_index + n_bytes_available;
+			}
+			return false;
+		}
+		
 		
 	}
+	
 }
