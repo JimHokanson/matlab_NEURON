@@ -1,6 +1,9 @@
 classdef java_comm_obj < NEURON.comm_obj
     %
     %
+    %   IMPROVEMENTS
+    %   =========================================
+    %   1) Allow 
     
     properties
         paths      %Class: NEURON.paths
