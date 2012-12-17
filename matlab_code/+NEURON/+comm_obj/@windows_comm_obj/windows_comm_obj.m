@@ -15,6 +15,7 @@ classdef windows_comm_obj < NEURON.comm_obj
     %
     %   METHODS IN OTHER FILES
     %   ===========================================================
+    %   NEURON.comm_obj.cleanNeuronStr
     %   NEURON.comm_obj.windows_comm_obj.init_dotnet_code
     %   
     

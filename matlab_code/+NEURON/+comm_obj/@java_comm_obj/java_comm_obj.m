@@ -60,18 +60,88 @@ classdef java_comm_obj < NEURON.comm_obj
             obj.j_process       = temp_process_builder.start();
             
             obj.j_error_stream  = obj.j_process.getErrorStream;
-            obj.j_input_stream  = obj.j_process.getInputStream; 
+            obj.j_input_stream  = obj.j_process.getInputStream;
             obj.j_output_stream = obj.j_process.getOutputStream;
+            %Java class
+            obj.j_reader        = NEURON_reader(obj.j_input_stream,...
+                obj.j_error_stream,obj.j_process);
+
+            %NOTE: I can try and hide the window here ...
             
-            obj.j_reader        = NEURON_reader; %Java class
+        end
+        function [success,results] = readResult(obj,wait_time,debug)
+           r = obj.j_reader;
+           r.init_read(wait_time,debug);
+            done = false;
+            while ~done
+                done = r.read_result;
+                if ~done
+                    pause(0.001)
+                end
+            end
+
+            success = r.success_flag;
             
+             if ~success
+                process_running =  r.process_running;
+                if ~process_running
+                    error('Process is no longer running')
+                end
+                
+                stackdump_present = r.stackdump_present;
+                if stackdump_present
+                    error('Stackdump detected');
+                end
+                
+                read_timeout = r.read_timeout;
+                if read_timeout
+                    error('Read timeout');
+                end
+                
+             end
             
+            results = char(r.result_str);
+            if ~isempty(results) && results(end) == char(10);
+                results(end) = [];
+            end     
+        end
+        function hideWindow(obj)
+            if ispc
+                %NOT YET IMPLEMENTED
+                
+                
+                %hwnd = user32.getWindowHandleByName('C:\nrn72\bin\nrniv.exe')
+               %.NET methods???
+               % EnumWindows
+               % GetWindowThreadProcessID
+                
+                %tasklist.exe - will yield process id
+                
+                %OLD CODE FOR WINDOWS COMM OBJ:
+%                 HIDE_WINDOW_OPTION = 0;
+%                 LAUNCH_TIMEOUT     = 2; %seconds, How long to wait for window to launch before throwing an error
+%                 
+%                 hwnd = 0;
+%                 ti = tic;
+%                 while hwnd == 0
+%                     hwnd = p.MainWindowHandle.ToInt32;
+%                     pause(0.001)
+%                     t = toc(ti);
+%                     if t > LAUNCH_TIMEOUT
+%                         error('Failed to launch process successfully')
+%                     end
+%                 end
+%                 user32.showWindow(hwnd,HIDE_WINDOW_OPTION)
+                
+            end
         end
         function delete(obj)
             %delete
             %
             %   delete(obj)
             
+            %?? Should I exit first ????
+            obj.j_process.destroy;
         end
     end
     
@@ -79,8 +149,11 @@ classdef java_comm_obj < NEURON.comm_obj
         function init_system_setup
             %
             
-            %TODO: Add class file ...
-            
+            %NOTE: For non-jar files we add the directory, not the class
+            %files
+            my_path       = getMyPath;
+            java_bin_path = fullfile(my_path,'private','java_code','bin');
+            javaaddpath(java_bin_path);
         end
     end
     
@@ -111,7 +184,6 @@ classdef java_comm_obj < NEURON.comm_obj
             
             obj.writeLine(command_str);
             
-            
             %Forcing a newline
             %--------------------------------------------------------------
             %In general Neuron doesn't always do a line return with an <oc>
@@ -122,16 +194,13 @@ classdef java_comm_obj < NEURON.comm_obj
             %for newlines. The second newline ends the transmission.
             obj.writeLine('{fprint("\n<oc>\n")}');
             
+            max_wait = option_structure.max_wait;
             
-            %NOTE: It would be nice on system error to cancel this
-            %i.e. errors that occur in callback method ...
-            [success,results] = waitForFinish(obj,option_structure.max_wait);
-            
-            
+            [success,results] = readResult(obj,max_wait,obj.debug);
         end
     end
     
-
+    
     
 end
 

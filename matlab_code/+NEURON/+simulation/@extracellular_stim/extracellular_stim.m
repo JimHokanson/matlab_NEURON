@@ -42,6 +42,8 @@ classdef extracellular_stim < NEURON.simulation
     %   1) Allow this class to run without being connected to NEURON
     %       (for e field modeling purposes)
     %   2) Fix threshold_obj to be more accurate ...
+    %   3) Create option classes for passing things to the higher
+    %   simulation class and the NEURON class, like using the java object 
     %
     %   TESTING
     %   ===================================================

@@ -1,54 +1,78 @@
 import java.io.*;  
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 //TO LOOK INTO:
 //http://www.mathworks.com/support/solutions/en/data/1-9389FH/index.html?product=ML&solution=1-9389FH
 
 public class NEURON_reader {
-	
+
 	BufferedInputStream pin;
 	FileInputStream perr;
 	Process p;
-	
-	String term_string_const;
-	byte[] input_data = new byte[2000];
-	byte[] error_data = new byte[2000];
+
+	//CONSTANTS
+	//-----------------------------------------------------------------------
+	public static final String term_string_const = String.format("\n<oc>\n");
+	public static final Pattern pattern = Pattern.compile("\n(oc>)*");
+
+	//??? Use StringBuilder????
+	StringBuffer input_data = new StringBuffer(2000);
+	StringBuffer error_data = new StringBuffer(2000);
 	byte[] temp_data  = new byte[2000];
 
 	//Set by class 
-	public boolean good_read              = false;
+	public boolean success_flag           = false;   //aka 'result' or 'success flag'
 	public boolean detected_end_statement = false;   //Set true if we detect the terminal string
-	public boolean stackdump_present      = false;
-	public boolean process_running        = false;
+	public boolean stackdump_present      = false; 	 //Set true if stackdump detected
+	public boolean process_running        = false;   //Set false if process is no longer running
+	public boolean read_timeout 	      = false; 	 //Set true if the reading failed due to a timeout
 	public String  result_str             = new String();
-	
-	int next_input_index;
-	int next_err_index;
-	
+
+	//For repeated calls
+	long start_time;
+	long wait_time_nanoseconds;
+	boolean debug;
+	boolean allow_timeout;
+
 	public NEURON_reader(BufferedInputStream pin, FileInputStream perr, Process p) {
 		//Nothing currently needed ...
 		this.p    = p;
 		this.perr = perr;
 		this.pin  = pin;
-		term_string_const = String.format("\n<oc>\n");
 	}
-	
-	public void read_result( long wait_time_seconds, boolean debug) throws IOException
+
+	public void init_read(long wait_time_seconds, boolean debug_input)
+	{
+		//Initialization ...
+		input_data.setLength(0);
+		error_data.setLength(0);
+		read_timeout = false;
+		stackdump_present = false;
+		detected_end_statement = false;
+		success_flag = false;
+
+		start_time = System.nanoTime();
+		debug = debug_input;
+		allow_timeout = wait_time_seconds != -1;
+		wait_time_nanoseconds = (long) (wait_time_seconds*1e9);
+	}
+
+	public boolean read_result() throws IOException
 	{
 
-		long wait_time_nanoseconds = (long) (wait_time_seconds*1e9);
-		long start_time = System.nanoTime();
-		
+		//RETURNED VALUE SHOULD BE WHETHER OR NOT TO STOP ...
+
+		//NOTE: I couldn't figure out how to intterupt
+		//So I call this function a bunch of times from Matlab ... :/
+
+
+
 		int n_bytes_available;
-		int index_term_string_match; 
-		
-		next_input_index = 0;
-		next_err_index = 0;
-		
+
 		boolean is_terminal_string = false;
-		boolean is_terminal_string2 = false;
-		
-		String temp_string;
-		
+
+
 
 		//OUTLINE
 		//------------------------------------------------------------------
@@ -57,133 +81,81 @@ public class NEURON_reader {
 		//3 Read input
 		//4 Read error
 		//5 Brief pause ????
-		
-		//Some initialization ...
-		detected_end_statement = false;
-		
-		//Copying: System.arraycopy()
-		
-		while (true){
-			//PROCESS RUNNING CODE
-			//---------------------------------------------------
-			//NOTE: Asking a process for its exit value will throw an error if it is still running
-			//I don't know of any other way to ask if the process is still valid ...
-			try {
-				p.exitValue();
-				process_running = false;
-				break;
-			} catch (IllegalThreadStateException e) {
-				process_running = true;
-			}
-	
-			//TIME CHECKING
-			//---------------------------------------------------
-			if (wait_time_nanoseconds != 0 && ((System.nanoTime() - start_time) > wait_time_nanoseconds)) {
-				break;
-			}
-			
-			is_terminal_string = true;
-			
-			//READING INPUT
-			//---------------------------------------------------
-			n_bytes_available = pin.available();
-			if (n_bytes_available > 0){
-				pin.read(temp_data,0,n_bytes_available);
-				
-				readStream(int n_bytes_available, boolean debug, boolean is_input_string)
-				
-				//Function after here ...
-				temp_string = new String(temp_data,0,n_bytes_available);
-				index_term_string_match = temp_string.lastIndexOf(term_string_const);
-				
-				if (debug){
-					System.out.println(temp_string);
-				}
-				
-				if (index_term_string_match != -1){
-					if (index_term_string_match != 0){
-						System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
-						next_input_index = next_input_index + n_bytes_available;
-					}
-					is_terminal_string = true;
-					System.out.println("Terminal String Detected");
-					break;
-				}else{
-					if (isStackdumpPresent(temp_string,true)){
-						break;
-					}
-					System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
-					next_input_index = next_input_index + n_bytes_available;
-				}
-			}
-			
-			//READING ERROR
-			//---------------------------------------------------
-			n_bytes_available = perr.available();
-			if (n_bytes_available > 0){
-				perr.read(temp_data,0,n_bytes_available);
-				
-				//Make all of this a function 
-				//Pass in which stream
-				
-				temp_string = new String(temp_data,0,n_bytes_available);
-				index_term_string_match = temp_string.lastIndexOf(term_string_const);
-				if (debug){
-					System.err.println(temp_string);
-				}
-				System.arraycopy(temp_data,0,error_data,next_err_index,n_bytes_available);
-				next_err_index = next_err_index + n_bytes_available;
-				
-				//END EARLY FOR NOW
-				is_terminal_string = true; // checkIfTerminalString(n_bytes_available);
-				is_terminal_string2 = index_term_string_match != -1;
-				System.out.printf("is terminal: %b\n", is_terminal_string2);
-				
-			}
-			
-			//TODO: Check for stackdump - add prop, quit, throw error warning ...
-			
-			if (is_terminal_string){
-				detected_end_statement = true;
-				break;
-			}
-			
+
+		//PROCESS RUNNING CODE
+		//---------------------------------------------------
+		//NOTE: Asking a process for its exit value will throw an error if it is still running
+		//I don't know of any other way to ask if the process is still valid ...
+		try {
+			p.exitValue();
+			process_running = false;
+			System.err.println("NEURON process Exited");
+			return true;
+		} catch (IllegalThreadStateException e) {
+			process_running = true;
+		}
+
+		//TIME CHECKING
+		//---------------------------------------------------
+		if (allow_timeout && ((System.nanoTime() - start_time) > wait_time_nanoseconds)) {
+			read_timeout = true;
+			System.err.println("Reading from NEURON timed out");
+			return true;
+		}
+
+		//READING ERROR
+		//---------------------------------------------------
+		n_bytes_available = perr.available();
+		if (n_bytes_available > 0){
+			perr.read(temp_data,0,n_bytes_available);
+			readStream(n_bytes_available, debug, false);
+			//NOTE: We'll never get the terminal string from the error stream
+			//Don't assign variable from function call..
+		}
+
+		//READING INPUT
+		//---------------------------------------------------
+		n_bytes_available = pin.available();
+		if (n_bytes_available > 0){
+			pin.read(temp_data,0,n_bytes_available);
+			is_terminal_string = readStream(n_bytes_available, debug, true);
 		}
 		
-		if (!detected_end_statement){
-			good_read = false;
-			return;
-		}
-		
-		//SETTING THE FINAL STRING
-		//--------------------------------------------------------------------------
-		if (next_err_index > 0){
-			good_read = false;
-			//NOTE: We'll Ignore partially good strings for now ...
-			/*
+		if (is_terminal_string){
+			detected_end_statement = true;
+
+			//SETTING THE FINAL STRING
+			//--------------------------------------------------------------------------
+			if (error_data.length() > 0){
+				success_flag = false;
+				//NOTE: We'll Ignore partially good strings for now ...
+				/*
 	        if obj.temp_stdout_index > 0
             obj.partial_good_str = obj.temp_stdout_str(1:obj.temp_stdout_index-1);
 	        end
-	        */
-			result_str = new String(error_data,0,next_err_index);
-		}else {
-			good_read = true;
-			//TODO: Extract good string
-			result_str = new String(input_data,0,next_input_index);
+				 */
+				result_str = error_data.toString();
+			}else {
+				success_flag = true;
+				result_str = input_data.toString();
+			}
 		}
+		
+		return is_terminal_string;
 	}
-	
-	//isStackdumpPresent
-	//==========================================================================
+
 	private boolean isStackdumpPresent(String temp_string, boolean is_success){
+
+		//NOTE: This code is a bit messy, essentially we look for a particular string
+		//in the current error string. 
 
 		boolean potential_stackdump;
 		String  possible_error_string;
 		boolean stackdump_present = false;
-		
-		potential_stackdump = is_success && next_err_index > 0;
+
+		potential_stackdump = is_success && error_data.length() > 0;
 		if (potential_stackdump){
-			possible_error_string = new String(error_data,0,next_err_index);
+			possible_error_string = error_data.toString();
 			stackdump_present     = possible_error_string.lastIndexOf("Dumping stack trace to") != -1;
 			if (stackdump_present){
 				System.err.printf("STACKDUMP ERROR MESSAGE:\n%s\n",possible_error_string);
@@ -192,53 +164,75 @@ public class NEURON_reader {
 
 		return stackdump_present;
 	}
-	
-	private boolean readStream(int n_bytes_available, boolean debug, boolean is_input_string){
-		
+
+	private String cleanString(int n_bytes_available){
+
+		Matcher matcher;
 		String temp_string;
-		int index_term_string_match; 
-		
+
+		//Add newline to facilitate oc> matching ...
+		//Convert from bytes to string ...
+		temp_string = "\n" + new String(temp_data,0,n_bytes_available);
+
+		//Replace with a replacement of \noc>oc>* with nothing.
+		matcher     = pattern.matcher(temp_string);
+		temp_string = matcher.replaceAll("\n");
+
+		//NOTE: I need to remove the first newline since I added it to facilitate matching
+		return temp_string.substring(1);
+	}
+
+	private boolean readStream(int n_bytes_available, boolean debug, boolean is_input_string){
+
+		String temp_string;
+		int index_term_string_match;
+		boolean is_terminal_string = false;
+
 		//Bytes to string
-		temp_string = new String(temp_data,0,n_bytes_available);
-		
+		//------------------------------------------------------------
+		temp_string = cleanString(n_bytes_available);
+
 		//Check if the terminal string is present
+		//If it is, trim it out of the result ...
+		//------------------------------------------------------------
 		if (is_input_string){
 			index_term_string_match = temp_string.lastIndexOf(term_string_const);
-		}else{
-			//NOTE: Error string will not have terminal string ...
-			index_term_string_match = -1;
+			if (index_term_string_match >= 0){
+				is_terminal_string = true;
+				//Remove the terminal string ...
+				if (index_term_string_match == 0){
+					temp_string = new String("");
+				}else{
+					temp_string = temp_string.substring(0,index_term_string_match-1);
+				}
+			}
 		}
-		
+
 		//Print out things if debugging ...
 		if (debug){
-			System.out.println(temp_string);
-		}
-		
-		if (index_term_string_match != -1){
-			//NOTE: This will ONLY occur for input strings ...
-			//Trim string so that terminal string is not returned ...
-			if (index_term_string_match != 0){
-				System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
-				next_input_index = next_input_index + n_bytes_available;
+			if (is_input_string){
+				System.out.println(temp_string);
+			} else {
+				System.err.println(temp_string);
 			}
-			System.out.println("Terminal String Detected");
-			return true;
+		}
+
+		if (is_terminal_string){
+			//NOTE: We will eventually remove this ...
+			//System.out.println("Terminal String Detected");
 		}else{
 			if (isStackdumpPresent(temp_string,is_input_string)){
 				stackdump_present = true;
-				return false;
 			}
-			if (is_input_string){
-				System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
-				next_input_index = next_input_index + n_bytes_available;
-			} else {
-				System.arraycopy(temp_data,0,input_data,next_input_index,n_bytes_available);
-				next_input_index = next_input_index + n_bytes_available;
-			}
-			return false;
 		}
-		
-		
+
+		//String copying to buffer ...
+		if (is_input_string){
+			input_data.append(temp_string);
+		} else {
+			error_data.append(temp_string);
+		}
+		return is_terminal_string;
 	}
-	
+
 }
