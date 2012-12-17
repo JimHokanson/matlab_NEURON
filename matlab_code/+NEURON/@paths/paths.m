@@ -31,6 +31,10 @@ classdef paths < handle
         c_mknrndll
     end
     
+    properties (Constant)
+        NEURON_EXE_PATH = 'C:\nrn72\bin\nrniv.exe'
+    end
+    
     %INITIALIZATION METHODS
     methods
         function obj = paths
@@ -41,10 +45,13 @@ classdef paths < handle
             obj.hoc_code_model_root = fullfile(obj.hoc_code_root,'models');
                         
             %NOTE: This is the only call to the user constants ...
-            C = getUserConstants({'NEURON_EXE_PATH'});
-            
-            obj.exe_path  = C.NEURON_EXE_PATH;
-            
+            if exist('getUserConstants','file')
+                C = getUserConstants({'NEURON_EXE_PATH'});
+                obj.exe_path  = C.NEURON_EXE_PATH;
+            else
+                obj.exe_path  = obj.NEURON_EXE_PATH;
+            end
+
             getCompilePaths(obj)
         end
         function getCompilePaths(obj)
