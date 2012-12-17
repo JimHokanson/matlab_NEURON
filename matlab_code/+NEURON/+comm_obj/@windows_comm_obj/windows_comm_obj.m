@@ -12,6 +12,12 @@ classdef windows_comm_obj < NEURON.comm_obj
     %   was essentially how I interacted with NEURON before hand. Now I can
     %   send a command, get the result, and then send another command to
     %   the same process.
+    %
+    %   METHODS IN OTHER FILES
+    %   ===========================================================
+    %   NEURON.comm_obj.cleanNeuronStr
+    %   NEURON.comm_obj.windows_comm_obj.init_dotnet_code
+    %   
     
     properties
         paths       %Class: NEURON.paths
@@ -186,6 +192,7 @@ classdef windows_comm_obj < NEURON.comm_obj
     end
     
     methods (Hidden)
+        %NEURON.comm_obj.windows_comm_obj.setResultAndTerminateWait
         setResultAndTerminateWait(ref,ev_data,is_success)
     end
     

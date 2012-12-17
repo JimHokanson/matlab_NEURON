@@ -115,6 +115,9 @@ function hideWindow(p)
 %   INPUTS
 %   ======================================
 %   p.System.Diagnostics.Process
+%
+%   NOTE: It should be possible to do all of this in .NET without
+%   going back to user32.dll
 
 HIDE_WINDOW_OPTION = 0;
 LAUNCH_TIMEOUT     = 2; %seconds, How long to wait for window to launch before throwing an error

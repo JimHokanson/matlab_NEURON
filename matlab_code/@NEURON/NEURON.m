@@ -59,18 +59,25 @@ classdef NEURON < handle_light
     
     %"PUBLIC METHODS"  %==================================
     methods
-        function obj = NEURON
+        function obj = NEURON(varargin)
             %NEURON
             %
             %   See class description above -> help NEURON
+            
+            in.win_use_java = false;
+            in = processVarargin(in,varargin);
             
             obj.path_obj = NEURON.paths;
             
             %Load communication object based on system type
             if ispc
-                obj.comm_obj = NEURON.comm_obj.windows_comm_obj(obj.path_obj);
+                if in.win_use_java
+                    obj.comm_obj = NEURON.comm_obj.java_comm_obj(obj.path_obj);
+                else
+                    obj.comm_obj = NEURON.comm_obj.windows_comm_obj(obj.path_obj);
+                end
             else
-                error('Unsupported system')
+                obj.comm_obj = NEURON.comm_obj.java_comm_obj(obj.path_obj);
             end
         end
         function varargout = write(obj,command_str,varargin)
@@ -106,7 +113,7 @@ classdef NEURON < handle_light
                 else
                     error('ERROR FROM NEURON:\n%s',result_str)
                 end
-            elseif obj.opt__interactive_mode
+            elseif obj.opt__interactive_mode && ~isempty(result_str)
                 fprintf('%s\n',result_str);
             end
             
@@ -134,10 +141,10 @@ classdef NEURON < handle_light
         %   Should be called on startup to initialize system, at least for
         %   Windows ...
 
+            NEURON.comm_obj.java_comm_obj.init_system_setup;
+            
             if ispc
                 NEURON.comm_obj.windows_comm_obj.init_system_setup;
-            else
-                error('Unsupported system')
             end 
         end
         function file_path = createNeuronPath(file_path)

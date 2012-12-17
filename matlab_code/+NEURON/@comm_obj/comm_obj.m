@@ -5,7 +5,7 @@ classdef comm_obj < handle_light
     %   IMPLEMENTATIONS
     %   ===================================================================
     %   NEURON.comm_obj.windows_comm_obj - windows
-    %   
+    %   NEURON.comm_obj.java_comm_obj    - java implementation
     %
     %   Improvements:
     %   ================================================================
