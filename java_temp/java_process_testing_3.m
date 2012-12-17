@@ -32,6 +32,9 @@ pout = p.getOutputStream;
 
 r = NEURON_reader(pin,perr,p);
 
+[ success,result ] = readStuffs(r,-1,true);
+
+%read_result(r,-1,true);
 
 %NOTE: There needs to be time for the process to initiate ...
 %How do we know how long to wait before it has initiated ???
@@ -39,20 +42,30 @@ r = NEURON_reader(pin,perr,p);
 %r.process_running
 
 %TODO:
-%1) - implement full loop
-%2) - document code a bit
-%3) - remove terminal string from string
-%4) - implement stack dump check
-%5) - integrate code into OS
+%1) - implement full loop - i.e. looping until done
+%2) - DONE document code a bit - 
+%3) - DONE remove terminal string from string
+%4) - DONE implement stack dump check
+%5) - DONE integrate code into Matlab object
 %6) - test
+%7) Startup delay handling ... - add read at start ...
 
 
 writeLine(pout,'a=1');
 
 writeLine(pout,'a');
-writeLine(pout,[char '{fprint("\n<oc>\n")}']);
 
-read_result(r,0,true);
+%NOTE: Here we dont want to use a write line ...
+%For some reason there is an extra newline ... 
+writeLine(pout,'{fprint("\n<oc>\n")}');
+[ success,result ] = readStuffs(r,-1,true);
+
+
+disp(r.result_str);
+%good_read
+%
+
+
 %neuron_process.run_stuff(pin,perr)
 
 % outputStream = java.io.ByteArrayOutputStream;
