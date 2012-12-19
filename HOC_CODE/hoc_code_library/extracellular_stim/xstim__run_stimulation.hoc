@@ -1,7 +1,7 @@
 func xstim__run_stimulation() { local stim_scale, fired, run_complicated_ap_analysis
 /*
 
-	ap_fired = xstim__run_stimulation(stim_scale,save_vm)
+	ap_fired = xstim__run_stimulation(stim_scale,save_vm,*run_complicated_analysis)
 
 GLOBALS 
 --------------------------------------------------------
@@ -17,6 +17,12 @@ OUTPUTS
 ap_fired : true if stimulus elicited an AP (see  xstim__did_ap_fire)
 
 */
+
+	//NO LONGER USED .........................
+	//I should throw an error ...
+	//Just wanted to keep for reference ...
+
+
 
 	stim_scale = $1
 	save_vm    = $2
