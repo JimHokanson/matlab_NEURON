@@ -1,18 +1,18 @@
 function data = loadMatrix(filePath)
-
-%NEURON_readMatrix Reads a binary matrix file from Neuron
+%loadMatrix Reads a binary matrix file from Neuron
 %
-%   data = NEURON_readMatrix(filePath)
+%   data = NEURON.cmd.loadMatrix(filePath)
 %
 %   WARNING: Only doubles currently supported ...
 %
-%
 %   Assumes usage of vector's vwrite functionality in NEURON
+%
+%   This can also be used to read vectors as well.
 %
 %   FILE FORMAT:
 %   ---------------------------------------------------------------
 %   1) # of values in vector (uint32)
-%   2) data type (NOT HANDLED) - 4 is a double (checks)
+%   2) data type (NOT HANDLED) - 4 is a double (code does check for this)
 %   http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/classes/vector/vect.html#vwrite
 %   3) data
 %   1 - 3 are then repeated for each vector (THIS IS NOT CHECKED)
