@@ -2,23 +2,21 @@ proc saveDataMatrix(){localobj file_ref, temp_save_vec, temp_list_obj
 // 
 //	JIM NOTE: localobj must be on first line
 //
-//	saveDataMatrix("name","data/fileName",list_obj)
-//
-//
-// IMPROVEMENTS: prepend data to input instead of making input pass it in ...
+//	saveDataMatrix(file_path,list_obj)
 
 	file_ref      = new File()
 	temp_save_vec = new Vector()
 	temp_list_obj = new List()
-	//This print statement is for the Matlab parser
-	//No longer used, Matlab knows where things are saved ...
-	//printf("#file#%s#%s#\n",$s1,$s2)
 	
-	file_ref.wopen($s2)
-	temp_list_obj = $o3
+	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/classes/vector/vect.html#vwrite
+	
+	
+	file_ref.wopen($s1)
+	temp_list_obj = $o2
 	for ii = 0, temp_list_obj.count()-1 {
 		temp_save_vec = temp_list_obj.object(ii)
 		temp_save_vec.vwrite(file_ref,4)
+		//NOTE: I believe 4 indicates a double
 	} 
 	file_ref.close()
 }

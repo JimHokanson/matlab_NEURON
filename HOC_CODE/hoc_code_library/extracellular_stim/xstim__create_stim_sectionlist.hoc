@@ -1,0 +1,45 @@
+proc xstim__create_stim_sectionlist() {localobj xstim_section_list
+/*
+
+This method is required for extracellular stimulation to apply the stimulus. 
+Extracellular_stim asks this method to populate the sections. 
+Later we will iterate through these sections and apply the stimulus to each section in this list.
+
+IMPORTANT: 
+In this way the stimulus supplied by NEURON matches with the spatial layout.
+For more documentation on this point see the note on spatial layout in
+the documentation folder of the extracellular_stim class in Matlab.
+
+CALLING FORM
+===========================================================================
+xstim__create_stim_sectionlist(xstim_section_list)
+
+INPUTS
+===========================================================================
+xstim_section_list : See xstim__define_global_variables.hoc
+
+Documentation Finished: 12/18/2012 JAH
+
+*/
+
+//NOTE: This access statement has been replaced by a default statement in Matlab
+//which can be overridden by a different statement
+//	NEURON.cell.extracellular_stim_capable.create_stim_sectionlist
+//-------------------------------------
+//Old statement - Global ...
+//access node[0]
+
+//Objects are passed by reference 
+//localobj above declares this to be an object
+//For some reason I don't need to specify that this is a section list ...
+xstim_section_list = $o1
+
+//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/classes/seclist.html#wholetree
+xstim_section_list.wholetree()
+
+//NOTE: For the MRG code we just start at one end and go to the other.
+//This gets more complicated if we have branching and we need to take into
+//account a situation where sequential indices in the section list are not
+//physically adjacent in space
+//This must be taken care of by the xyz_all of the neural cell
+}

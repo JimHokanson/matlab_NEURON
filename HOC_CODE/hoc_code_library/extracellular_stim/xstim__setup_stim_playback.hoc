@@ -1,4 +1,4 @@
-proc xstim__setup_stim_playback() { localobj xstim__temp_stim_vector
+proc xstim__setup_stim_playback() { local n_stim_changes localobj xstim__temp_stim_vector
 /*  xstim__setup_stim_playback
 
 Creates the vectors that are played into the extracellular potential
@@ -14,79 +14,60 @@ xstim__setup_stim_playback()
 
 GLOBALS 
 ------------------------------------------------------------
-xstim__all_secs 	 :
-xstim__t_vec 		 : Used for knowing how many vectors to 
-xstim__n_play_orig   :
+xstim__all_sectionlist 	:
+xstim__t_vec :
+xstim__playback_initialized :
+xstim__cell_setup_changed_since_last_playback_initialization :
+xstim__stim_vector_list :
 
-CREATES 
+POPULATES 
 ------------------------------------------------------------
 xstim__stim_vector_list
 
 SEE ALSO
 --------------------------------------------------------------
 
+
+NEURON.simulation.extracellular_stim.init__create_stim_info
+
+
 */
+
+n_stim_changes = xstim__t_vec.size
 
 //FOR DEBUGGING
 //print "Setting up stim playback"
 
+//NOTE: At some point I thought I saw that this needs to be defined outside of any 
+//loops. It can then be redefined in the loops. I am not sure where documentation
+//discussing this is.
 xstim__temp_stim_vector = new Vector()
-n_stim_changes = xstim__t_vec.size	
 
 //Careful, made error of using for(x)
 //See http://www.neuron.yale.edu/phpBB/viewtopic.php?f=15&t=2663
 
-//We only need to reinitialize the list if it hasn't been done before
-//    OR
-//The # of elements in the list has changed ...
 
-if (!(xstim__playback_initialized && xstim__n_play_orig == n_stim_changes)) {
-//NOTE: If initialized already the list would append but 
-//we would only set the vectors in the earlier part of the list :/
-if (xstim__playback_initialized) {
-	//This is essentially a reset function ...
-	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/classes/list.html#remove_all
-	xstim__stim_vector_list.remove_all()
-	//xstim__stim_vector_list = new List()
-}
-
-xstim__playback_initialized = 1
-xstim__n_play_orig = n_stim_changes
-
-forsec xstim__all_secs {
-	for (x,0) {
-	
-		xstim__temp_stim_vector = new Vector(n_stim_changes)
-		xstim__temp_stim_vector.play(&e_extracellular(x),xstim__t_vec)
-		xstim__stim_vector_list.append(xstim__temp_stim_vector)
-	}
-}
-
-}
-
-}
-
-
-
-
-
-//The start of perhaps more efficient code ... ============================
-
-/*
-objref xstim__stim_vector[n_sections]
-
-nStimChanges = t_vec.size
-
-cur_sec = 0
-forsec axon
-	for (x) {
-		xstim__stim_vector[curI] = new Vector(nStimChanges)	
-		for (i = 0; i < nStimChanges; i=i+1) {
-			s.x[i] = v_ext_vec.x[cur_I]
-			cur_I  = cur_I + 1
+	if (!(xstim__playback_initialized && !xstim__cell_setup_changed_since_last_playback_initialization)) {
+		//NOTE: If initialized already the list would append but 
+		//we would only set the vectors in the earlier part of the list :/
+		//Thus we need to reset things ...
+		if (xstim__playback_initialized) {
+			//This is essentially a reset function ...
+			//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/classes/list.html#remove_all
+			xstim__stim_vector_list.remove_all()
 		}
-	
-	
+
+		xstim__playback_initialized = 1
+		xstim__cell_setup_changed_since_last_playback_initialization = 0
+
+		forsec xstim__all_sectionlist {
+			for (x,0) {
+				xstim__temp_stim_vector = new Vector(n_stim_changes)
+				xstim__temp_stim_vector.play(&e_extracellular(x),xstim__t_vec)
+				xstim__stim_vector_list.append(xstim__temp_stim_vector)
+			}
+		}
+
 	}
+
 }
-*/

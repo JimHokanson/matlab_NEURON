@@ -50,6 +50,8 @@ classdef neural_cell < handle
            %cdToModelDirectory
            %
            %    Changes current directory in NEURON to the model directory
+           %
+           %    NEURON.neural_cell.cdToModelDirectory
            
            obj.cmd_obj.cd_set(obj.model_directory);
         end 
