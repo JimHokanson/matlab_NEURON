@@ -32,7 +32,12 @@ classdef paths < handle
     end
     
     properties (Constant)
-        NEURON_EXE_PATH = 'C:\nrn72\bin\nrniv.exe'
+        % Default nrniv install directories, by OS
+        % Must change the appropriate property if nrniv installed somewhere
+        % else
+        NRNIV_WIN_PATH = 'C:\nrn72\bin\nrniv.exe'
+        NRNIV_MAC_PATH = '/Applications/NEURON-7.2/nrn/i386/bin/nrniv'
+        NNRNIV_LINUX_PATH = '/usr/local/nrn/i686/bin/nrniv'
     end
     
     %INITIALIZATION METHODS
@@ -49,7 +54,13 @@ classdef paths < handle
                 C = getUserConstants({'NEURON_EXE_PATH'});
                 obj.exe_path  = C.NEURON_EXE_PATH;
             else
-                obj.exe_path  = obj.NEURON_EXE_PATH;
+                if ispc % Windows
+                    obj.exe_path  = obj.NRNIV_WIN_PATH;
+                elseif ismac % Mac
+                    obj.exe_path = obj.NRNIV_MAC_PATH;
+                else % Linux, etc.
+                   obj.exe_path = obj.NRNIV_LINUX_PATH; 
+                end
             end
 
             getCompilePaths(obj)

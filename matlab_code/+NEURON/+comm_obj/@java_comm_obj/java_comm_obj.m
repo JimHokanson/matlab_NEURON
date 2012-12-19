@@ -48,14 +48,22 @@ classdef java_comm_obj < NEURON.comm_obj
     end
     
     properties (Constant, Hidden)
-        cmd_options = {'-nogui' '-nobanner' '-isatty'};
+        % -isatty vs -notatty
+        % check here
+        % http://www.neuron.yale.edu/phpBB/viewtopic.php?f=4&t=2732
+        cmd_options_pc = {'-nogui' '-nobanner' '-isatty'}
+        cmd_options_unix = {'-nogui' '-nobanner' '-notatty'}
     end
     
     methods
         function obj = java_comm_obj(paths_obj)
             obj.paths = paths_obj;
             
-            cmd_array = [obj.paths.exe_path obj.cmd_options];
+            if ispc
+                cmd_array = [obj.paths.exe_path obj.cmd_options_pc];
+            else % here i'm assuming mac and unix behave the same, if there's an issue with unix, fix this
+                cmd_array = [obj.paths.exe_path obj.cmd_options_unix];
+            end
             
             %java.lang.ProcessBuilder
             temp_process_builder = java.lang.ProcessBuilder(cmd_array);
