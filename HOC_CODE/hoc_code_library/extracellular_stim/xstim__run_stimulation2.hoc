@@ -1,0 +1,53 @@
+func xstim__run_stimulation2() { local stim_scale, fired, run_complicated_ap_analysis
+/*
+
+	xstim__run_stimulation2(stim_scale)
+
+	NOTE: Version 2 sends the membrane potential data back to Matlab for analysis
+	
+GLOBALS 
+--------------------------------------------------------
+xstim__node_vm_hist : output of sim_logging__record_node_voltages()
+
+INPUTS 
+---------------------------------------------------------
+stim_scale : 
+save_vm    : Whether or not to save the membrane voltage to disk
+
+OUTPUTS 
+----------------------------------------------------------
+ap_fired : true if stimulus elicited an AP (see  xstim__did_ap_fire)
+
+SEE ALSO
+-----------------------------------------------------------
+
+*/
+
+	//Can I make this local somehow?
+	//Do I have to use a String object????
+	strdef vm_save_path
+
+	stim_scale = $1
+	
+	xstim__apply_stimulus(stim_scale)
+
+	//This code would allow timing the simulation ...
+	//xstim__run_simulation_timer1 = startsw()
+	run()
+	//NOTE: Need to modify to take advantage of hash
+	sprint(vm_save_path,"%s%s%s","data/",sim_hash,"xstim__vm.bin")
+	saveDataMatrix(vm_save_path,xstim__node_vm_hist)
+	
+	
+	//print "xstim__run_simulation_timer1"
+	//print startsw() - xstim__run_simulation_timer1
+
+	//xstim__run_simulation_timer2 = startsw()
+	fired = xstim__did_ap_fire(run_complicated_ap_analysis)
+	//print "xstim__run_simulation_timer2"
+	//print startsw() - xstim__run_simulation_timer2
+	
+	return fired
+	
+}
+
