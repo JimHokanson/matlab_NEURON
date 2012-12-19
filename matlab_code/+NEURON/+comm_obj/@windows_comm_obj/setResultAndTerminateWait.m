@@ -98,6 +98,8 @@ function stackdump_present = helper__detectStackDump(obj,is_success,isTermString
 %STACKDUMP HANDLING =======================================================
 potential_stackdump =  is_success && obj.temp_stderr_index > 0 && ~isTermString;
 
+%To recreate a stack dump do objref node[0]
+
 %NOTE: This fails to capture syntax errors which have this same behavior ...
 stackdump_present = false;
 if potential_stackdump

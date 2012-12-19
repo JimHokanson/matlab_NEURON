@@ -35,13 +35,21 @@ public class NEURON_reader {
 	boolean debug;
 	boolean allow_timeout;
 
+	//We start everything in Matlab and pass in the relevant objects here ...
 	public NEURON_reader(BufferedInputStream pin, FileInputStream perr, Process p) {
-		//Nothing currently needed ...
 		this.p    = p;
 		this.perr = perr;
 		this.pin  = pin;
 	}
 
+	public String getCurrentInputString(){
+		return input_data.toString();
+	}
+	
+	public String getCurrentErrorString(){
+		return error_data.toString();
+	}
+	
 	public void init_read(long wait_time_seconds, boolean debug_input)
 	{
 		//Initialization ...

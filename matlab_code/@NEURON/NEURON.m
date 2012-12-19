@@ -158,9 +158,6 @@ classdef NEURON < handle_light
 
             if ispc
                 file_path = getCygwinPath(file_path);
-            else
-                %Do nothing
-                error('Not yet tested')
             end
         end
         compile(mod_path)  %Method will compile mod files into dll

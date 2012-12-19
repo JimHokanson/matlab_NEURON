@@ -7,13 +7,17 @@ xstim__apply_stimulus(stim_scale)
 
 NOTE: Prior to this the following must occur:
 1) Define a cell model
-2) Create a stimulus section list : xstim__create_stim_sectionlist
-3) Load stim data : xstim__load_data
-4) Initialize Playback : xstim__setup_stim_playback
+2) Create a stimulus section list : 
+	    - xstim__create_stim_sectionlist or create_stim_sectionlist (local)
+		- see NEURON.simulation.extracellular_stim.event_manager
+3) Load stim data : 
+		- xstim__load_data
+4) Initialize Playback : 
+		- xstim__setup_stim_playback
 
 GLOBALS 
 ------------------------------------------------------------------
-xstim__all_secs         : see xstim__create_all_sectionlist in xstim__setup_stim_playback
+xstim__all_sectionlist  : see xstim__create_all_sectionlist in xstim__setup_stim_playback
 xstim__stim_vector_list : 
 xstim__t_vec 			:
 
@@ -31,12 +35,12 @@ n_stim_changes = xstim__t_vec.size
 stim_scale     = $1
 s = new Vector()
 
-//TODO - should check that xstim__setup_stim_playback length == xstim__all_secs length ~= 0
+//TODO - should check that xstim__setup_stim_playback length == xstim__all_sectionlist length ~= 0
 
 //xstim__apply_stimulus_timer = startsw()
 
 //n = 0
-forsec xstim__all_secs {
+forsec xstim__all_sectionlist {
 	for (x,0) {
 		s = xstim__stim_vector_list.o(cur_sec_index)
 		for (i = 0; i < n_stim_changes; i=i+1) {
@@ -47,7 +51,6 @@ forsec xstim__all_secs {
 			//}
 			cur_stim_index  = cur_stim_index + 1
 		}
-
 	}
 	//print n
 	cur_sec_index = cur_sec_index + 1

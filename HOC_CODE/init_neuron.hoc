@@ -4,8 +4,8 @@
 {xopen("$(NEURONHOME)/lib/hoc/noload.hoc")}  //loads library files, NOTE: We need load_file because this file is not in our directory
 
 //NOTE: This needs to be before these other things ...
-strdef sim_hash //This is a string which can be used to differentiate between different concurrent simulations
-//when using files to transfer data between Matlab and NEURON
+strdef sim_hash //This is a string which can be used to differentiate between 
+//different concurrent simulations when using files to transfer data between Matlab and NEURON
 
 //									Load user library
 //=======================================================================================
@@ -19,13 +19,30 @@ strdef sim_hash //This is a string which can be used to differentiate between di
 {load_file("hoc_code_library/io__print_variable.hoc")}
 
 //Extracellular Stim Simulation --------------------------------------------------------
+chdir("hoc_code_library/extracellular_stim")
+{load_file("xstim__define_global_variables.hoc")}
+{load_file("xstim__create_stim_sectionlist.hoc")}
+{load_file("xstim__create_node_sectionlist.hoc")}
+{load_file("xstim__load_data.hoc")}
+{load_file("xstim__setup_stim_playback.hoc")}
+{load_file("xstim__run_stimulation.hoc")}
+{load_file("xstim__run_stimulation2.hoc")}
+{load_file("xstim__apply_stimulus.hoc")}
+{load_file("xstim__did_ap_fire.hoc")}
+{load_file("xstim__determine_threshold.hoc")}
+chdir("../..")
+
+/*
 {load_file("hoc_code_library/extracellular_stim/xstim__define_global_variables.hoc")}
+{load_file("hoc_code_library/extracellular_stim/xstim__create_stim_sectionlist.hoc")}
+{load_file("hoc_code_library/extracellular_stim/xstim__create_node_sectionlist.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__load_data.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__setup_stim_playback.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__run_stimulation.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__apply_stimulus.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__did_ap_fire.hoc")}
 {load_file("hoc_code_library/extracellular_stim/xstim__determine_threshold.hoc")}
+*/
 
 //Simulation Logging --------------------------------------------------------------
 {load_file("hoc_code_library/sim_logging/sim_logging__record_node_voltages.hoc")}

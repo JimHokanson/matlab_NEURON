@@ -2,35 +2,79 @@
 
 //NOTE: We should make this an object ...
 
+//NOTE: This is a bit unfortunate since it makes encapsulation a bit more difficult
+//objref node[0] //Unfortunately we need this to allow xstim__create_node_sectionlist to be interpreted
+//See https://www.neuron.yale.edu/phpBB/viewtopic.php?f=8&t=2676
+//Specifically the fourth part
+
+//=================================================================
+//					OBJECT VARIABLES
+//=================================================================
+objref xstim__all_sectionlist, xstim__node_sectionlist, xstim__stim_vector_list, xstim__v_ext_in, xstim__t_vec, xstim__node_vm_hist
+
+//---------------------------------------------------------------------
+//This is a list of all sections for stimulation
+xstim__all_sectionlist  = new SectionList() 
+//Relevant Methods:
+//	xstim__create_stim_sectionlist.hoc
+//	create_stim_sectionlist.hoc   => optional user defined method
+//	xstim__setup_stim_playback
+//	xstim__apply_stimulus
+//
+//	NEURON.cell.extracellular_stim_capable.create_stim_sectionlist
+//TODO: What other methods use this method ?????
+
+//---------------------------------------------------------------------
+//This list holds all nodes that could fire an action potential ...
+xstim__node_sectionlist = new SectionList()
+//	xstim__create_node_sectionlist.hoc
+//	create_node_sectionlist.hoc
+//	sim_logging__record_node_voltages.hoc
+//	
+//
+//	NEURON.cell.extracellular_stim_capable.create_node_sectionlist
+
+//---------------------------------------------------------------------
+//In order to record values during the simulation one can record variables into vectors.
+//These vectors must be held in memory in order to be written to during simulation.
+//The easiest way to do this is to add the vectors to a list, so that keeping the list
+//in memory keeps the vectors in memory and thus allows recordings of values.
+xstim__node_vm_hist 	= new List() 		
+//xstim__run_extracellular_stim
+//sim_logging__record_node_voltages
 
 
-objref xstim__stim_vector_list, xstim__all_secs, xstim__v_ext_in, xstim__t_vec, xstim__node_vm_hist
 
-
-
-
+//----------------------------------------------------------------------------------------
 //This holds a set of vectors which get "played" into the model during the simulation.
 //Each vector in the list gets assigned to a particular segment.
-//In NEURON it is recommended that one use a list to hold onto
-//the vectors. In this way one can loop 
+xstim__stim_vector_list = new List() 		
+//	xstim__setup_stim_playback.hoc
+//
+//	NEURON.simulation.extracellular_stim.init__create_stim_info
 
 
-xstim__stim_vector_list = new List() 		//xstim__setup_stim_playback
 
-//This list is used to apply the stimulus 
+//-------------------------------------------------------------------------
+//These are used for data transfer to NEURON from Matlab ...
+xstim__v_ext_in 		= new Vector() 	
+xstim__t_vec    		= new Vector()		
+//	xstim__load_data.hoc
+//	xstim__setup_stim_playback.hoc
+//
+//	NEURON.simulation.extracellular_stim.init__create_stim_info
 
-xstim__all_secs 		= new SectionList() //create_stim_section_list (user model defined)
-											//
+//=================================================================
+//					NON-OBJECT VARIABLES
+//=================================================================
 
-xstim__v_ext_in 		= new Vector() 		//xstim__load_data
-xstim__t_vec    		= new Vector()		//xstim__load_data
+xstim__playback_initialized = 0 
+//See xstim__setup_stim_playback
 
-xstim__node_vm_hist 	= new List() 		//xstim__run_extracellular_stim
-											//sim_logging__record_node_voltages
-
-//Non-object variables
-xstim__playback_initialized = 0 //See xstim__setup_stim_playback
-xstim__n_play_orig 			= 0 //See xstim__setup_stim_playback
+xstim__cell_setup_changed_since_last_playback_initialization = 1
+//	See xstim__setup_stim_playback
+//
+//	
 
 
 

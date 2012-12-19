@@ -14,7 +14,8 @@ function [apFired,extras] = sim__single_stim(obj,scale,varargin)
 %   OPTIONAL INPUTS
 %   =======================================================================
 %   save_data : (default false), if true the output populates additional
-%               properties, TODO: This could be expanded to a class which
+%               properties
+%               TODO: This could be expanded to a class which
 %               has specific properties that can be toggled as to whether
 %               or not they should be returned (length, time, 
 %               membrane voltage, etc)
@@ -56,21 +57,33 @@ in = processVarargin(in,varargin);
 initSystem(obj.ev_man_obj)
 
 c   = obj.cmd_obj;
-str = sprintf('ap_fired = xstim__run_stimulation(%0g,%d,%d)\n io__print_variable("ap_fired",ap_fired)',scale,in.save_data,in.complicated_analysis);
-[~,result_str] = c.run_command(str);
 
-apFired = str2double(c.extractSingleParam(result_str,'ap_fired'));
-extras  = struct;
+%NOTE: This will need to be encapsulated into a function
+str = sprintf('xstim__run_stimulation2(%0g)',scale);
+[success,result_str] = c.run_command(str);
+vm = obj.data_transfer_obj.getMembranePotential;
 
-if in.save_data
-   %TODO: This should be a wrapped method for the model
-   %something like:
-   %getData(obj,'membrane_voltage')
-   %This would allow for handling of different process ids, if we ever do
-   %parallel runs, as well as centralizing things in general
-   root_path = fullfile(obj.cell_obj.getModelRootDirectory,'data');
-   filepath  = fullfile(root_path,'extracellular_stim_mrg_vm.bin');
-   extras.vm = c.loadMatrix(filepath);
-end
+%TODO: Analyze results
+
+apFired = false;
+extras  = struct('vm',vm);
+
+
+
+%This will change ...
+
+% apFired = str2double(c.extractSingleParam(result_str,'ap_fired'));
+% extras  = struct;
+% 
+% if in.save_data
+%    %TODO: This should be a wrapped method for the model
+%    %something like:
+%    %getData(obj,'membrane_voltage')
+%    %This would allow for handling of different process ids, if we ever do
+%    %parallel runs, as well as centralizing things in general
+%    root_path = fullfile(obj.cell_obj.getModelRootDirectory,'data');
+%    filepath  = fullfile(root_path,'extracellular_stim_mrg_vm.bin');
+%    extras.vm = c.loadMatrix(filepath);
+% end
 
 end

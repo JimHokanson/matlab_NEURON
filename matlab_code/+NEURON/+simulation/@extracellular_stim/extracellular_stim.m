@@ -30,7 +30,7 @@ classdef extracellular_stim < NEURON.simulation
     %   METHODS IN OTHER FILES
     %   ===================================================================
     %   openExplorerToMfileDirectory('NEURON.simulation.extracellular_stim')
-    %       currently doesn't work due to bug in code ...
+    %       currently doesn't work due to bug in openExplorerToMfileDirectory()
     %
     %       NEURON.simulation.extracellular_stim.init__create_stim_info
     %       NEURON.simulation.extracellular_stim.sim__single_stim
@@ -42,6 +42,7 @@ classdef extracellular_stim < NEURON.simulation
     %   1) Allow this class to run without being connected to NEURON
     %       (for e field modeling purposes)
     %   2) Fix threshold_obj to be more accurate ...
+    %           IN PROGRESS
     %   3) Create option classes for passing things to the higher
     %   simulation class and the NEURON class, like using the java object 
     %
@@ -51,19 +52,22 @@ classdef extracellular_stim < NEURON.simulation
     %
     %   RELATED CLASSES
     %   =================================================================
-    %
+    
+    
+    
     %   PROPERTIES FROM OTHERS
     %   =================================================================
-    %   FROM NEURON.simulation
+    %   FROM NEURON.simulation - NOTE: Unfortunately there are many more ...
     %   -------------------------
     %   n_obj    : (Class NEURON)
     %   cmd_obj  : (Class NEURON.cmd)
-    
+    %   sim_hash : String
     
     %OPTIONS =============================================================
     properties
         threshold_cmd_obj   %Class: NEURON.threshold_cmd
         ev_man_obj          %Class: NEURON.simulation.extracellular_stim.event_manager
+        data_transfer_obj   %Class: NEURON.simulation.extracellular_stim.data_transfer
     end
     
     properties (SetAccess = private)
@@ -76,9 +80,14 @@ classdef extracellular_stim < NEURON.simulation
     end
     
     properties
-        %.
-        v_all    %stim_times x n_electrodes - populated by init__create_stim_info
-        t_vec
+        %.init__create_stim_info()
+        %--------------------------------------------------------
+        v_all    %stim_times x n_electrodes
+        t_vec    %1 x stim times
+        %NOTE: Stim times is any time in which any stimulus changes, as
+        %this will change the electric field that the cell is in. It will
+        %also include a time at zero (NOTE: Might change) to indicate that
+        %at time zero there is generally no stimulus.
     end
     
     %INITIALIZATION METHODS ==============================================
@@ -88,6 +97,8 @@ classdef extracellular_stim < NEURON.simulation
             %
             %   obj = extracellular_stim(varargin)
             
+            %TODO: Make options a class for more explicit passing to 
+            
             in.run_NEURON = true;
             in.debug      = false;
             in = processVarargin(in,varargin);
@@ -96,14 +107,15 @@ classdef extracellular_stim < NEURON.simulation
             
             obj.threshold_cmd_obj = NEURON.threshold_cmd;
             obj.ev_man_obj        = NEURON.simulation.extracellular_stim.event_manager(obj);
+            obj.data_transfer_obj = NEURON.simulation.extracellular_stim.data_transfer(obj,obj.sim_hash);
         end
         %NOTE: The event manager object is reponsible is responsible
         %for handling changes in NEURON from changes in Matlab. Given that
-        %one may construct the objects before
+        %one may construct the objects before associating them with this
+        %object, these methods are needed ...
         function set_Tissue(obj,tissue_obj)
             obj.tissue_obj = tissue_obj;
             tissueChanged(obj.ev_man_obj);
-            
         end
         function set_Electrodes(obj,elec_objs)
             obj.elec_objs = elec_objs;
@@ -137,29 +149,6 @@ classdef extracellular_stim < NEURON.simulation
     end
     
     methods
-        function cleanup_sim(obj)
-            %
-            %    ON CLEANUP:
-            %    =============================================
-            %    1) delete t_vec
-            %    2) delete v_ext
-            
-            % % %            cell_input_dir = fullfile(obj.cell_obj.getModelRootDirectory,'inputs');
-            % % %            v_file_name = sprintf('%s%s',obj.sim_hash,'v_ext.bin');
-            % % %            t_file_name = sprintf('%s%s',obj.sim_hash,'t_vec.bin');
-            % % %
-            % % %            voltage_filepath = fullfile(cell_input_dir,v_file_name);
-            % % %            time_filepath    = fullfile(cell_input_dir,t_file_name);
-            % % %
-            % % %            if exist(voltage_filepath,'file')
-            % % %               delete(voltage_filepath)
-            % % %            end
-            % % %
-            % % %            if exist(time_filepath,'file')
-            % % %               delete(time_filepath)
-            % % %            end
-            
-        end
         function init__verifyAssignedObjects(obj)
             %init__verifyAssignedObjects
             %
@@ -169,7 +158,8 @@ classdef extracellular_stim < NEURON.simulation
             %    init__verifyAssignedObjects(obj)
             %
             %    KNOWN CALLERS:
-            %    =====================================
+            %    ==========================================================
+            %    NEURON.simulation.extracellular_stim.event_manager
             
             if ~isobject(obj.tissue_obj)
                 error('Tissue object must be specified before initializing system')
@@ -251,7 +241,7 @@ classdef extracellular_stim < NEURON.simulation
             in.STIM_SCALES        = [1 -0.5];
             in.STARTING_STIM_AMP  = stim_amp;
             in.save_data          = true;
-            in.run_option         = 2;
+            in.run_option         = 1;
             in = processVarargin(in,varargin);
             
             obj = NEURON.simulation.extracellular_stim('debug',debug);

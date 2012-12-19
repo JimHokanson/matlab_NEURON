@@ -1,6 +1,24 @@
-classdef threshold_analysis < handle
+classdef threshold_analysis < handle_light
     %
     %
+    %
+    %   CLASS GOALS
+    %   =========================================================
+    %   1) Complex action potential analysis:
+    %       - Allow simple threshold analysis
+    %       - Detect activation but no propogation
+    %   2) Code to determine threshold
+    %       - use membrane analysis to guess next threshold
+    %       - 
+    %
+    %   NOTE: I would also like to handle the "frying the NEURON case"
+    %   - NEURON throws an error: exp(#) out of range, returning exp(700)
+    %
+    %   Class: NEURON.simulation.extracellular_stim.threshold_analysis
+    
+    
+    %FROM PRIOR
+    %======================================================================
     %   New place for code related to threshold handling
     %
     %   METHODS TO IMPLEMENT
@@ -23,11 +41,9 @@ classdef threshold_analysis < handle
     %   NOTE: This should work in coordination with NEURON.threshold_cmd
     
     properties
-        
     end
     
     methods
-    
     end
     
 end

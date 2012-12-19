@@ -18,8 +18,6 @@ end
 
 p.populateDependentVariables();
 
-
-
 p_v = {...
     'v_init'            p.v_init
     'axonnodes'         p.n_segs+1

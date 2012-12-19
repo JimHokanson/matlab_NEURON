@@ -26,7 +26,7 @@ classdef cmd
     %Generic ==============================================================
     methods
        function [flag,results] = run_command(obj,str)
-           %run_command
+           %run_command Runs commands in NEURON and returns the result
            %
            %    [flag,results] = run_command(obj,str)
            %
@@ -34,6 +34,8 @@ classdef cmd
            %
            %    INPUTS
            %    =================================================
+           %    str : command to run
+           %    
            
            [flag,results] = obj.comm_obj.write(str);
        end
@@ -49,9 +51,14 @@ classdef cmd
            success = obj.comm_obj.write(str);  
        end
        function [success,results] = writeStringProps(obj,props,values)
-           %NOTE: strings must have been previously defined using strdef in
-           %NEURON
+           %
+           %    [success,results] = writeStringProps(obj,props,values)
+           %
+           %    NOTE: strings must have been previously defined using strdef in
+           %    NEURON - TODO: Implement strdef method 
+           %    strdef a,b,c,d - defines strings a - d
            
+           %Add on quotes to strings
            value_strings = cellfun(@(x) sprintf('"%s"',x),values,'un',0); 
             
            str = ['{' strtools.propsValuesToStr(props,value_strings) '}'];
@@ -64,9 +71,12 @@ classdef cmd
     methods
         function [success,results] = load_file(obj,file_path)
             %NEW VERSION: load_file(sim_obj,file_path)
-            %load_file
             %
+            %   load_file
             %
+            %   NEURON COMMAND - load_file
+            %   ===========================================================
+            %   http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/ocfunc.html#load_file
             
             load_cmd = sprintf('{load_file("%s")}',file_path);
             
@@ -80,7 +90,11 @@ classdef cmd
         function success = load_dll(obj,dll_path)
            %
            %
-           %  http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/system.html#nrn_load_dll
+           %    success = load_dll(obj,dll_path)
+           %
+           %    NEURON COMMAND - nrn_load_dll
+           %    =============================================================
+           %    http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/system.html#nrn_load_dll
 
             
            load_cmd = sprintf('nrn_load_dll("%s")',dll_path); 
@@ -94,36 +108,42 @@ classdef cmd
         function success = cd_set(obj,new_dir,throw_error)
             %cd_set  Wrapper for NEURON function that accomplishes cd() set functionality
             %
-            %    JAH TODO: document function
+            %   NOTE: Normally in Matlab, cd peforms both set and get
+            %   functionality. I wanted to make things a bit clearer so
+            %   this function changes the current directory. A 
             %   
             %   success = cd_set(obj,new_dir,*throw_error) Change to a new directory
             %
-            %   NEURON COMMAND
-            %   ==============================================
-            %   chdir
-            %   http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/0fun.html#chdir
-            %   
-
-            %   
+            %   INPUTS
+            %   ===========================================================
+            %   new_dir : path, absolute or relative should be fine ...
             %
-            %   IMPROVEMENTS:
-            %   ------------------------
-            %   - distinguish btwn system error and function failure
-
+            %   NEURON COMMAND - chdir
+            %   ===========================================================
+            %   http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/0fun.html#chdir
+            %
+            %   See Also:
+            
             if ~exist('throw_error','var')
                 throw_error = true;
             end
             
-            start_dir_cmd = sprintf('chdir("%s")',getCygwinPath(new_dir));
+            start_dir_cmd  = sprintf('chdir("%s")',NEURON.createNeuronPath(new_dir));
             [flag,results] = obj.comm_obj.write(start_dir_cmd);
             
             %chdir => -1, failed
             %NOTE: For 0, it prints [tab 0 space] => ' 0 ' 
-            %I'm not sure why it does this but the str2double works
+            %I'm not sure why it does this but str2double works
             
-            success = flag && str2double(results) == 0;
+            numeric_result = str2double(results);
+            
+            success = flag && numeric_result == 0;
             if ~success && throw_error
-                error('Failed to change directory to "%s"',new_dir)
+                if numeric_result == -1
+                    error('Failed to change directory to "%s"',new_dir)
+                else
+                    error('System error, write/read cycle failed')
+                end
             end
             
         end
