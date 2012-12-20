@@ -28,6 +28,16 @@ classdef simulation < handle
         dt      = 0.005;  %(units - ms),
     end
     
+    properties (Dependent)
+       time_vector 
+    end
+    
+    methods 
+        function value = get.time_vector(obj)
+           value = 0:obj.dt:obj.tstop;
+        end
+    end
+    
     properties
         run_NEURON = true %Started but not yet suppported ... Goal was to allow calling
         %certain methods that didn't need the NEURON environment in order

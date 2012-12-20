@@ -24,14 +24,13 @@ v_all = obj.v_all;
 %This call allows adjustment of the simulation time in case it is too short or long
 adjustSimTimeIfNeeded(obj,t_vec(end))
 
-%Adjust the bounds for threshold testing ...
-%NOTE: This needs to be updated to be more robust ...
-max_abs_applied_voltage = max(abs(v_all(:)));
-obj.threshold_cmd_obj.adjust_max_safe_threshold(max_abs_applied_voltage);
+%TODO: Might 
 
 %WRITE DATA TO FILE
 %---------------------------------------------------------------------------
-%TODO: Encapsulate all of this better, see also cleanup_sim
+
+%data_transfer_obj = obj.data_transfer_obj;
+%TODO: Move below into data_transfer_obj ...
 input_dir   = fullfile(obj.cell_obj.getModelRootDirectory,'inputs');
 v_file_name = sprintf('%s%s',obj.sim_hash,'v_ext.bin');
 t_file_name = sprintf('%s%s',obj.sim_hash,'t_vec.bin');

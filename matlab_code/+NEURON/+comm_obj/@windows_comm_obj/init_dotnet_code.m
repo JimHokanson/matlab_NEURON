@@ -29,7 +29,8 @@ initStartupInfo(obj,p)
 %-------------------------------------------------------
 p.Start();
 
-hideWindow(p) %helper function, see below
+%NEURON.comm_obj.hideWindow_dotnet
+hideWindow_dotnet(obj,p)
 
 %Begin Asynchronous Processing
 %--------------------------------------------------------------------------
@@ -106,33 +107,3 @@ p.StartInfo.CreateNoWindow  = true;
 %NOTE: This requires UseShellExecute to be set to false as well
 p.StartInfo.WindowStyle     = System.Diagnostics.ProcessWindowStyle.Hidden;
 end
-
-function hideWindow(p)
-%hideWindow
-%
-%   hideWindow(p)
-%
-%   INPUTS
-%   ======================================
-%   p.System.Diagnostics.Process
-%
-%   NOTE: It should be possible to do all of this in .NET without
-%   going back to user32.dll
-
-HIDE_WINDOW_OPTION = 0;
-LAUNCH_TIMEOUT     = 2; %seconds, How long to wait for window to launch before throwing an error
-
-hwnd = 0;
-ti = tic;
-while hwnd == 0
-    hwnd = p.MainWindowHandle.ToInt32;
-    pause(0.001)
-    t = toc(ti);
-    if t > LAUNCH_TIMEOUT
-        error('Failed to launch process successfully')
-    end
-end
-user32.showWindow(hwnd,HIDE_WINDOW_OPTION)
-
-end
-

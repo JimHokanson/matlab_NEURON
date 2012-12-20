@@ -64,7 +64,7 @@ classdef NEURON < handle_light
             %
             %   See class description above -> help NEURON
             
-            in.win_use_java = false;
+            in.win_use_java = true;
             in = processVarargin(in,varargin);
             
             obj.path_obj = NEURON.paths;
@@ -93,12 +93,12 @@ classdef NEURON < handle_light
             %   See Also:
             %       NEURON.cmd      %Main access point for calling this function
             
-            obj.last_cmd_str = command_str;
-            
             in.throw_error = obj.opt__throw_error_default;
             in.max_wait    = -1;
             in.debug       = obj.debug;
             in = processVarargin(in,varargin);
+            
+            obj.last_cmd_str = command_str;
             
             if in.debug
                 fprintf('COMMAND:%s\n',command_str);
@@ -106,6 +106,8 @@ classdef NEURON < handle_light
             
             [success,result_str] = write(obj.comm_obj,command_str,in);
             
+            %Error Handling and Interactive Display Handling
+            %--------------------------------------------------------------
             if ~success && in.throw_error
                 fprintf(2,'LAST COMMAND:\n%s\n',command_str);
                 if obj.opt__interactive_mode
@@ -119,6 +121,7 @@ classdef NEURON < handle_light
             
             %This cleans things up a bit during interactive mode
             %where the command line color will indicate success or failure.
+            %We don't also need the success flag to show up
             if nargout
                varargout{1} = success;
                varargout{2} = result_str;

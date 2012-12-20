@@ -61,15 +61,6 @@ classdef threshold_cmd < handle
     properties
         threshold_accuracy   = 0.1      %How fine to get when determining threshold
         guess_amount         = 1        %Amount to try and bound initially, afterwards it defaults to the max and min
-        allow_opposite_sign  = true     %
-                                        %Must be implemented by solvers ...
-                                        %ex. NEURON.simulation.extracellular_stim.sim_determine_threshold
-                                        %
-                                        %Goal was to have the user be able to 
-                                        %say they only wanted a solution
-                                        %for one polarity, and that an
-                                        %opposite polarity was not a valid
-                                        %option -
         throw_error_on_no_solution = true %otherwise NaN returned
     end
     

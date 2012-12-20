@@ -68,44 +68,26 @@ classdef java_comm_obj < NEURON.comm_obj
             obj.j_error_stream  = obj.j_process.getErrorStream;
             obj.j_input_stream  = obj.j_process.getInputStream;
             obj.j_output_stream = obj.j_process.getOutputStream;
-            %Java class
+            
+            %Java Reader class - local code, added during initialization
             obj.j_reader        = NEURON_reader(obj.j_input_stream,...
                 obj.j_error_stream,obj.j_process);
             
-            %NOTE: I can try and hide the window here ...
-            %------------------------------------------------
-            %hideWindow(obj) %NOT YET IMPLEMENTED
+            hideWindow(obj)
             
         end
-        
         function hideWindow(obj)
             if ispc
-                %NOT YET IMPLEMENTED
+                process_array = System.Diagnostics.Process.GetProcessesByName('nrniv');
                 
+                %TODO: Need to fix this. I need to be able to link 
+                if process_array.Length ~= 1
+                   %NOTE: Eventually this might be more than 2 ...
+                   error('Expecting singular process match')
+                end
+                p = process_array(1);
                 
-                %hwnd = user32.getWindowHandleByName('C:\nrn72\bin\nrniv.exe')
-                %.NET methods???
-                % EnumWindows
-                % GetWindowThreadProcessID
-                
-                %tasklist.exe - will yield process id
-                
-                %OLD CODE FOR WINDOWS COMM OBJ:
-                %                 HIDE_WINDOW_OPTION = 0;
-                %                 LAUNCH_TIMEOUT     = 2; %seconds, How long to wait for window to launch before throwing an error
-                %
-                %                 hwnd = 0;
-                %                 ti = tic;
-                %                 while hwnd == 0
-                %                     hwnd = p.MainWindowHandle.ToInt32;
-                %                     pause(0.001)
-                %                     t = toc(ti);
-                %                     if t > LAUNCH_TIMEOUT
-                %                         error('Failed to launch process successfully')
-                %                     end
-                %                 end
-                %                 user32.showWindow(hwnd,HIDE_WINDOW_OPTION)
-                
+                hideWindow_dotnet(obj,p)
             end
         end
         function delete(obj)
@@ -113,8 +95,9 @@ classdef java_comm_obj < NEURON.comm_obj
             %
             %   delete(obj)
             
-            %?? Should I exit NEURON first ????
-            obj.j_process.destroy;
+            if isjava(obj.j_process)
+                obj.j_process.destroy;
+            end
         end
     end
     

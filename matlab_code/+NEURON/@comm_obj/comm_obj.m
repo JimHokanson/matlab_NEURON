@@ -63,5 +63,39 @@ classdef comm_obj < handle_light
         end
     end
     
+    methods (Hidden)
+        function hideWindow_dotnet(obj,dotnet_process)
+           %hideWindow
+            %
+            %   hideWindow(p)
+            %
+            %   INPUTS
+            %   ======================================
+            %   p.System.Diagnostics.Process
+            %
+            %   After much searching I haven't been able to find
+            %   a way to hide the window without using user32.dll
+
+            HIDE_WINDOW_OPTION = 0;
+            LAUNCH_TIMEOUT     = 2; %seconds, How long to wait for window to launch before throwing an error
+
+            ti = tic;
+            while 1
+                hwnd = dotnet_process.MainWindowHandle.ToInt32;
+                if (hwnd == 0)
+                    pause(0.001)
+                    t = toc(ti);
+                    if t > LAUNCH_TIMEOUT
+                        error('Failed to launch process successfully')
+                    end
+                else
+                    break
+                end
+            end
+
+            user32.showWindow(hwnd,HIDE_WINDOW_OPTION) 
+        end
+    end
+    
 end
 

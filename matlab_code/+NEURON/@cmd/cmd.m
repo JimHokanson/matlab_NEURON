@@ -25,19 +25,22 @@ classdef cmd
     
     %Generic ==============================================================
     methods
-       function [flag,results] = run_command(obj,str)
+       function [flag,results] = run_command(obj,str,varargin)
            %run_command Runs commands in NEURON and returns the result
            %
-           %    [flag,results] = run_command(obj,str)
+           %    [flag,results] = run_command(obj,str,varargin)
            %
            %    Generic method to run command
            %
            %    INPUTS
            %    =================================================
            %    str : command to run
-           %    
+           %
+           %    OPTIONAL INPUTS
+           %    ===========================================================
+           %    See: NEURON.write
            
-           [flag,results] = obj.comm_obj.write(str);
+           [flag,results] = obj.comm_obj.write(str,varargin{:});
        end
        function success = writeNumericProps(obj,props,values)
            %
@@ -97,7 +100,7 @@ classdef cmd
            %    http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/system.html#nrn_load_dll
 
             
-           load_cmd = sprintf('nrn_load_dll("%s")',dll_path); 
+           load_cmd = sprintf('{nrn_load_dll("%s")}',dll_path); 
            [flag,~] = obj.comm_obj.write(load_cmd);
            
            %As of right now, it doesn't seem like the results are

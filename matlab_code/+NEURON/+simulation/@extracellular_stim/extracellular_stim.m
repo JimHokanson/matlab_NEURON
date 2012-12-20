@@ -65,9 +65,10 @@ classdef extracellular_stim < NEURON.simulation
     
     %OPTIONS =============================================================
     properties
-        threshold_cmd_obj   %Class: NEURON.threshold_cmd
-        ev_man_obj          %Class: NEURON.simulation.extracellular_stim.event_manager
-        data_transfer_obj   %Class: NEURON.simulation.extracellular_stim.data_transfer
+        threshold_options_obj   %Class: NEURON.simulation.extracellular_stim.threhsold_options
+        ev_man_obj              %Class: NEURON.simulation.extracellular_stim.event_manager
+        data_transfer_obj       %Class: NEURON.simulation.extracellular_stim.data_transfer
+        threshold_analysis_obj  %Class: NEURON.simulation.extracellular_stim.threshold_analysis
     end
     
     properties (SetAccess = private)
@@ -99,15 +100,19 @@ classdef extracellular_stim < NEURON.simulation
             
             %TODO: Make options a class for more explicit passing to 
             
+            import NEURON.simulation.extracellular_stim.*
+            
             in.run_NEURON = true;
             in.debug      = false;
             in = processVarargin(in,varargin);
             
             obj@NEURON.simulation(in);
             
-            obj.threshold_cmd_obj = NEURON.threshold_cmd;
-            obj.ev_man_obj        = NEURON.simulation.extracellular_stim.event_manager(obj);
-            obj.data_transfer_obj = NEURON.simulation.extracellular_stim.data_transfer(obj,obj.sim_hash);
+            obj.threshold_options_obj  = threshold_options;
+            obj.ev_man_obj             = event_manager(obj);
+            obj.data_transfer_obj      = data_transfer(obj,obj.sim_hash);
+            obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd_obj);
+    
         end
         %NOTE: The event manager object is reponsible is responsible
         %for handling changes in NEURON from changes in Matlab. Given that
@@ -177,12 +182,57 @@ classdef extracellular_stim < NEURON.simulation
     
     %TESTING =========================================================
     methods(Static)
+        function obj = create_standard_sim(varargin)
+           %
+           %
+           %    obj = create_standard_sim(varargin)
+           %    
+           %    OPTIONAL INPUTS
+           %    ===========================================================
+           %    tissue_resistivity : (default 500 Ohm-cm, Units: Ohm-cm),
+           %        either a 1 or 3 element vector ...
+           %
+           
+            in.tissue_resistivity    = 500; 
+            in.cell_center           = [0 100 0];
+            
+            in.launch_neuron_process = false; %NOT YET IMPLEMENTED
+            
+            in.electrode_locations   = [0 0 0]; %array, rows are entries ...
+            in.stim_scales           = {[-1 0.5]}; %Could be cell array
+            
+            error('Code in progress')
+            
+            
+            
+            
+            %electrodes
+            %locations
+            %stim profiles
+            
+            in.ELECTRODE_LOCATION = [0 0 0];
+            in.CELL_CENTER        = [0 50 0];
+            in.STIMULUS_AMP       = -1;
+            in.STIM_START_TIME    = 0.2;
+            in.STIM_DURATIONS     = [0.2 0.4];
+            in.STIM_SCALES        = [1 -0.5];
+            in.STARTING_STIM_AMP  = stim_amp;
+           
+           
+        end
         function potentialTesting(varargin)
             %
             %    NEURON.simulation.extracellular_stim.potentialTesting
             %
             %
             %    OLD METHOD: Needs updating
+            
+            
+            
+            %??? - how to update or process pieces of varargin
+            %- like adding on not to run NEURON process
+            %and then passing to create_standard_sim
+            error('Needs updating ...')
             
             
             in.TISSUE_RESISTIVITY   = 500;
@@ -241,7 +291,7 @@ classdef extracellular_stim < NEURON.simulation
             in.STIM_SCALES        = [1 -0.5];
             in.STARTING_STIM_AMP  = stim_amp;
             in.save_data          = true;
-            in.run_option         = 1;
+            in.run_option         = 2;
             in = processVarargin(in,varargin);
             
             obj = NEURON.simulation.extracellular_stim('debug',debug);
@@ -263,15 +313,14 @@ classdef extracellular_stim < NEURON.simulation
             
             switch in.run_option
                 case 1
-                    [apFired,extras] = sim__single_stim(obj,stim_amp,'save_data',in.save_data);
-                    extras.apFired = apFired;
+                    sim__single_stim(obj,stim_amp);
                 case 2
                     %fprintf('SIMULATION FINISHED: AP FIRED = %d\n',apFired);
                     extras = [];
-                    thresh_value = sim__determine_threshold(obj,in.STARTING_STIM_AMP);
-                    fprintf('SIMULATION FINISHED: THRESHOLD = %0g\n',thresh_value);
+                    %NEURON.simulation.extracellular_stim.sim__determine_threshold
+                    [thresh_value,n_loops] = sim__determine_threshold(obj,in.STARTING_STIM_AMP);
+                    fprintf('SIMULATION FINISHED: THRESHOLD = %0g, n_loops = %d\n',thresh_value,n_loops);
             end
-            
         end
     end
     

@@ -1,4 +1,4 @@
-function [apFired,extras] = sim__single_stim(obj,scale,varargin)
+function [apFired,extras] = sim__single_stim(obj,scale)
 %sim__single_stim
 %
 %   [apFired,extras] = sim__single_stim(obj,scale,varargin)
@@ -49,41 +49,14 @@ function [apFired,extras] = sim__single_stim(obj,scale,varargin)
 %   See Also:
 %       sim__determine_threshold
 
-in.save_data = false;
-in.complicated_analysis = false;
-in = processVarargin(in,varargin);
-
 %Important call to make sure everything is synced
 initSystem(obj.ev_man_obj)
 
-c   = obj.cmd_obj;
+%c   = obj.cmd_obj;
 
 %NOTE: This will need to be encapsulated into a function
-str = sprintf('xstim__run_stimulation2(%0g)',scale);
-[success,result_str] = c.run_command(str);
-vm = obj.data_transfer_obj.getMembranePotential;
-
-%TODO: Analyze results
-
-apFired = false;
-extras  = struct('vm',vm);
+obj.threshold_analysis_obj.run_stimulation(scale);
 
 
-
-%This will change ...
-
-% apFired = str2double(c.extractSingleParam(result_str,'ap_fired'));
-% extras  = struct;
-% 
-% if in.save_data
-%    %TODO: This should be a wrapped method for the model
-%    %something like:
-%    %getData(obj,'membrane_voltage')
-%    %This would allow for handling of different process ids, if we ever do
-%    %parallel runs, as well as centralizing things in general
-%    root_path = fullfile(obj.cell_obj.getModelRootDirectory,'data');
-%    filepath  = fullfile(root_path,'extracellular_stim_mrg_vm.bin');
-%    extras.vm = c.loadMatrix(filepath);
-% end
 
 end
