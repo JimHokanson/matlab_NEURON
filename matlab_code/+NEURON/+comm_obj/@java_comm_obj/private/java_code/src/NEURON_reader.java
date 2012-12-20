@@ -71,16 +71,12 @@ public class NEURON_reader {
 
 		//RETURNED VALUE SHOULD BE WHETHER OR NOT TO STOP ...
 
-		//NOTE: I couldn't figure out how to intterupt
+		//NOTE: I couldn't figure out how to interrupt
 		//So I call this function a bunch of times from Matlab ... :/
-
-
 
 		int n_bytes_available;
 
 		boolean is_terminal_string = false;
-
-
 
 		//OUTLINE
 		//------------------------------------------------------------------
@@ -182,7 +178,7 @@ public class NEURON_reader {
 		//Convert from bytes to string ...
 		temp_string = "\n" + new String(temp_data,0,n_bytes_available);
 
-		//Replace with a replacement of \noc>oc>* with nothing.
+		//Replace with a replacement of \noc>oc>* with just the newline.
 		matcher     = pattern.matcher(temp_string);
 		temp_string = matcher.replaceAll("\n");
 
@@ -217,7 +213,7 @@ public class NEURON_reader {
 		}
 
 		//Print out things if debugging ...
-		if (debug){
+		if (debug && temp_string.length() > 0){
 			if (is_input_string){
 				System.out.println(temp_string);
 			} else {
