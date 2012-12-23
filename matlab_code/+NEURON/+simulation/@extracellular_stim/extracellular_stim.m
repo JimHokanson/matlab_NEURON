@@ -4,56 +4,32 @@ classdef extracellular_stim < NEURON.simulation
     %   ===================================================================
     %   see testing functions (needs updating)
     %
-    %   FILES USED FOR DATA TRANSER
-    %   ====================================================================
-    %   file                     Matlab                     NEURON
-    %   inputs/[hash]v_ext.bin : init__create_stim_info : xstim__load_data
-    %   inputs/[hash]t_vec.bin : init__create_stim_info : xstim__load_data
-    %
-    %
-    %   THESE SECTIONS BELOW NEED UPDATING  -------------------------------
-    %
-    %   METHODS IN NEURON
+    %   
+    %   Simulation Methods
     %   ===================================================================
-    %   xstim__define_global_variables() :
-    %   xstim__load_data()               :
+    %   NEURON.simulation.extracellular_stim.sim__single_stim
+    %   NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
+    %   NEURON.simulation.extracellular_stim.sim__determine_threshold
     %
-    %
-    %
-    %   VARIABLES IN NEURON
+    %   Package Classes
     %   ===================================================================
-    %   xstim__t_vec       :
-    %   xstim__v_ext_in    :
+    %   data_transfer
+    %   event_manager
+    %   threshold_analysis
+    %   threshold_options
     %
     %
-    %
-    %   METHODS IN OTHER FILES
-    %   ===================================================================
-    %   openExplorerToMfileDirectory('NEURON.simulation.extracellular_stim')
-    %       currently doesn't work due to bug in openExplorerToMfileDirectory()
-    %
-    %       NEURON.simulation.extracellular_stim.init__create_stim_info
-    %       NEURON.simulation.extracellular_stim.sim__single_stim
-    %       NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
-    %       NEURON.simulation.extracellular_stim.sim__determine_threshold
+    
+    
+    
     %
     %   IMPROVEMENTS
     %   ===================================================================
     %   1) Allow this class to run without being connected to NEURON
     %       (for e field modeling purposes)
-    %   2) Fix threshold_obj to be more accurate ...
-    %           IN PROGRESS
-    %   3) Create option classes for passing things to the higher
+    %   2) Create option classes for passing things to the higher
     %   simulation class and the NEURON class, like using the java object 
-    %
-    %   TESTING
-    %   ===================================================
-    %   NEURON.simulation.extracellular_stim.defaultRun
-    %
-    %   RELATED CLASSES
-    %   =================================================================
-    
-    
+
     
     %   PROPERTIES FROM OTHERS
     %   =================================================================
@@ -114,6 +90,10 @@ classdef extracellular_stim < NEURON.simulation
             obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd_obj);
     
         end
+    end
+    
+    %EVENT HANDLING  ======================================================
+    methods
         %NOTE: The event manager object is reponsible is responsible
         %for handling changes in NEURON from changes in Matlab. Given that
         %one may construct the objects before associating them with this
@@ -153,6 +133,7 @@ classdef extracellular_stim < NEURON.simulation
         end
     end
     
+    %INITIALIZATION  =====================================================
     methods
         function init__verifyAssignedObjects(obj)
             %init__verifyAssignedObjects
@@ -204,7 +185,7 @@ classdef extracellular_stim < NEURON.simulation
             error('Code in progress')
             
             
-            
+            %obj = NEURON.simulation.extracellular_stim();
             
             %electrodes
             %locations
@@ -322,8 +303,5 @@ classdef extracellular_stim < NEURON.simulation
                     fprintf('SIMULATION FINISHED: THRESHOLD = %0g, n_loops = %d\n',thresh_value,n_loops);
             end
         end
-    end
-    
-    %--------------------------------------------------------------------------
-    
+    end 
 end

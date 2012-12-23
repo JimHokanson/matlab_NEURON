@@ -1,3 +1,0 @@
-load_file("nrngui.hoc")
-xopen("MRGaxon.hoc")
-xopen("MRGaxon.ses")

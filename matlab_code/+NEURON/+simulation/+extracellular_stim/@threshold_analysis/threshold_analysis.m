@@ -25,6 +25,7 @@ classdef threshold_analysis < handle_light
        FRIED_TISSUE_MESSAGE = 'out of range, returning exp(700)' 
     end
     
+    %CONTSTRUCTOR =========================================================
     methods
         function obj = threshold_analysis(xstim_obj,cmd_obj)
             obj.parent  = xstim_obj;
@@ -56,7 +57,14 @@ classdef threshold_analysis < handle_light
     
     methods
         function result_obj = run_stimulation(obj,scale)
-
+            %
+            %
+            %   result_obj = run_stimulation(obj,scale)
+            %
+            %   OUTPUTS
+            %   ===========================================================
+            %   
+            
             result_obj = NEURON.simulation.extracellular_stim.results.single_sim;
             
             %Move this back into simulation class with throw error optional????

@@ -1,0 +1,13 @@
+proc file__saveDataVector(){localobj file_ref, temp_save_vec
+// 
+//	saveDataVector(file_path,list_obj)
+//
+
+	file_ref      = new File()
+	temp_save_vec = new Vector()
+
+	file_ref.wopen($s1)
+	temp_save_vec = $o2
+	temp_save_vec.vwrite(file_ref,4)
+	file_ref.close()
+}

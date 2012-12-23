@@ -103,6 +103,10 @@ classdef event_manager < handle
            %sections didn't change, but that optimization isn't critical
            %---------------------------------------------------------------
            if ~obj.cell_definition_set
+               
+              %Make sure relevant 
+               
+               
               %Create cell in NEURON
               %
               %Example: NEURON.cell.axon.MRG.createCellInNEURON
@@ -130,6 +134,10 @@ classdef event_manager < handle
               %Make the assumption that the playback vector needs to be
               %recreated ...
               cmd_obj.run_command('xstim__cell_setup_changed_since_last_playback_initialization = 1');
+           
+              %Make sure relevant save paths exist for data transfer
+              p.data_transfer_obj.initializeDataSavingPaths();
+           
            end
            
            %SETUP OF STIMULATION INFO
