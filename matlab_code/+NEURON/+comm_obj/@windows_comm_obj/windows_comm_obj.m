@@ -113,7 +113,10 @@ classdef windows_comm_obj < NEURON.comm_obj
             %   Calling Form:
             %   NEURON.init - calls this method ...
             
-            NET.addAssembly('System');
+            %NOTE: These are also needed for the Java version
+            %Moved to NEURON init code ...
+%             user32.init();
+%             NET.addAssembly('System');
         end
     end
     
