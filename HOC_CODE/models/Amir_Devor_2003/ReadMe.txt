@@ -1,0 +1,1 @@
+This model is still a bit messy and not rewritten yet to properly support extracellular stim.

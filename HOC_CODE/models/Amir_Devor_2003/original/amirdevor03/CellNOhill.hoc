@@ -1,0 +1,418 @@
+//MYELINATED SENSORY NEURON (different diam for DR and peripheral axon)
+//SOMA & INITIAL SEG have REDUCED Frankenhaueser-Huxley 64 conductance
+//node has Frankenhaueser-Huxley 64 conductance
+//MORPHOLOGICALLY BASED ON ITO & TAKAHASHI 60 (TOAD DRG)
+
+pwman_place(0,0)
+
+objref tempobj
+{
+// the following are now obsolete:
+// load_file("stdgui.hoc")
+// load_file("electrod.hoc")
+// load_file("pointman.hoc")
+// load_file("showmech.hoc")
+}
+
+//CONSTRACTING CELL SOMA
+
+create soma  		//Soma for myelinated axons
+
+soma {  diam=80		//Ito & Takahashi 60 (60-100micron) 
+	L=80		//<0.1Lambda
+	nseg=1		//Lambda~3015micron. nseg=L/0.05Lambda	 
+        cm=1
+
+	insert fh
+	nai=13.74  //the fh.mod file does not REALY install this param 
+	nao=114.5  //the fh.mod file does not REALY install this param
+	ki=120    //the fh.mod file does not REALY install this param
+	ko=2.5	   //the fh.mod file does not REALY install this param
+
+	pnabar_fh=0.08e-3  //pNabar_fh/100 (Carbone & Lux 86; Campbell 92)
+	ppbar_fh=0  
+	pkbar_fh=0.035e-3   //to match Ito 57 spike AHP amplitude
+	gl_fh=0.0002	    // Ito 1957	(Table 2 - Rin by hyperpol. pulses)
+}
+
+
+//CONSTRACTING T-STEM AXON
+
+create iseg  		//unmyelinated
+
+iseg  { diam=5		//See below (node1m). Lenhossek 1886 (cited in Ito 1959).  
+			//Also Fits Shinder & Devor 94 (Figs 6,7)
+	L=200		//to block M-NM spike by hyper. from soma (Ito & Saiga 59)
+			//can reach x5.5(Spencer 73) up to x10(Cajal 09) soma diam 
+     	nseg=6		//Lambda~754micron
+	cm=1
+
+//	insert pas
+//	g_pas=0.0002
+
+	insert fh
+	nai=13.74  //the fh.mod file does not REALY install this param 
+	nao=114.5  //the fh.mod file does not REALY install this param
+	ki=120    //the fh.mod file does not REALY install this param
+	ko=2.5	   //the fh.mod file does not REALY install this param
+
+	pnabar_fh=0.08e-3    //like soma
+	ppbar_fh=0    	     //like soma
+	pkbar_fh=0.035e-3    //like soma 
+	gl_fh=0.0002	     //like soma
+}
+
+
+create node1m[1]	//"m" after "node" for Monopolar axon (Ito & Takahasi 60)
+
+node1m { diam=5		//Diam=~0.6 of 1st internode (Spencer et al 73 Fig 7, Ha 70)
+}			//Lambda=61micron
+
+
+create myelin1m		//11 myelin wraps. see below
+
+myelin1m {diam=8	//0.95 (Spencer et al 73) of ex. diam (8.4, Ito & Takahashi 60)
+	 L=85		//Lambda=1318micron
+	 nseg=2
+	 cm=0.08	//Cm=1micro/N wraps+1  - Moore e-mail
+			//N wraps = ex diam-int diam/2/wrap thick (18nM, THE AXON)
+	 insert pas
+	 g_pas=0.0001046 //Assuming g_pas=0.0000085 (MYELIN p.123) for 147 myelin wraps  
+			//in the normal peripheral internode (see below).
+			//Hence for 11 wraps g_pas increase by factor of 147+1/11+1=12.3 
+}
+
+
+create node2m[1]
+
+node2m { diam=8		//No constriction of node in area of abnormal myelin (Spencer 73)
+}			//Lambda=77micron
+
+create myelin2m		//69 myelin wraps
+
+myelin2m {diam=8
+	 L=130		
+	 nseg=1		 //Lambda=3187micron
+	 cm=0.014	 //see above for way of calculation
+
+	 insert pas
+	 g_pas=0.0000179 //see above for way of calculation 
+}
+
+
+create node3m[1]
+
+node3m { diam=8
+}			//Lambda=77micron		
+
+create myelin3m		//94 myelin wraps
+
+myelin3m {diam=8
+	  L=168		
+	  nseg=1	//Lambda=3697micron
+	  cm=0.011
+
+	  insert pas
+	  g_pas=0.0000133
+}
+
+create node4m[1]
+
+node4m { diam=8
+}			//Lambda=77micron		
+
+create myelin4m		//142 myelin wraps
+
+myelin4m {diam=8	//Although 7.8micron reported by Ito & Takahashi 60
+	  L=201		
+	  nseg=1	//Lambda=4545micron	
+	  cm=0.007
+
+	  insert pas
+	  g_pas=0.0000088
+}
+
+
+create node5m[1]
+
+node5m { diam=8
+}			//Lambda=77micron		 
+
+soma connect iseg(0),1       
+iseg connect node1m(0),1
+node1m connect myelin1m(0),1
+myelin1m connect node2m(0),1
+node2m connect myelin2m(0),1
+myelin2m connect node3m(0),1
+node3m connect myelin3m(0),1
+myelin3m connect node4m(0),1
+node4m connect myelin4m(0),1
+myelin4m connect node5m(0),1
+
+
+
+//CONSTRACT MYELINATED AXONS
+
+//ABNORMAL SEGMENTS (NODE+MYELIN) OF DORSAL ROOT
+
+create node1d[1]			//"d"- Dorsal (Ito & Takahashi 60)
+node1d { diam=1.6 			//Ha 1970 Fig.7 - ~0.25 of abmyelin1d diam
+}					//Lambda=35micron			
+
+create abmyelin1d		 	//100 myelin wraps
+abmyelin1d 	    {diam=6.5
+	    	    L=358
+	  	    nseg=3		//Lambda=3438micron	
+	  	    cm=0.01
+
+	  	    insert pas
+		    g_pas=0.0000125
+}
+
+
+create node2d[1]
+node2d  { diam=6.5    		//No node constrict. in area of abnormal myelin (Spencer 73)
+}
+
+
+create abmyelin2d		 	//95 myelin wraps
+abmyelin2d 	    {diam=6.7
+	  	    L=780
+	  	    nseg=5 		//Lambda=3409micron		
+	  	    cm=0.01
+
+	  	    insert pas
+		    g_pas=0.0000131
+} 
+
+
+create node3d[1]
+node3d  { diam=6.7
+}					//Lambda=71micron			
+
+
+create abmyelin3d		 	//100 myelin wraps
+abmyelin3d 	    {diam=7.6
+	  	    L=1170
+	  	    nseg=7		//Lambda=3717micron	
+	  	    cm=0.01
+
+	  	    insert pas
+		    g_pas=0.0000125
+} 
+
+create node4d[1]
+node4d  { diam=7.6			//Lambda=75micron	
+}
+
+
+//ABNORMAL SEGMENTS (NODE+MYELIN) OF PERIPHERAL NERVE
+
+create node1p[1]		//"p"- Peripheral (Ito & Takahashi 60)
+node1p { diam=2.6 		//Ha 1970 Fig.7 - X1.6 of node1d
+}				//Lambda=44micron				
+
+create abmyelin1p 			//136 myelin wraps
+abmyelin1p 	    {diam=8
+		    L=461
+	  	    nseg=3		//Lambda=4446micron	
+	  	    cm=0.007
+
+	  	    insert pas
+		    g_pas=0.0000092
+}
+
+
+create node2p[1]
+node2p  { diam=8  	      //No node constrict. in area of abnormal myelin (Spencer 73)
+}			      //Lambda=77micron
+
+
+create abmyelin2p 			//133 myelin wraps
+abmyelin2p 	    {diam=8.7
+	  	    L=670
+	  	    nseg=3		//Lambda=4586micron		
+	  	    cm=0.007
+
+	  	    insert pas
+		    g_pas=0.0000094
+} 
+
+
+create node3p[1]
+node3p  { diam=8.7
+}					//Lambda=81micron	
+
+
+create abmyelin3p 			//136 myelin wraps
+abmyelin3p 	    {diam=10.1
+	  	    L=1119
+	  	    nseg=5		//Lambda=4995micron		
+	  	    cm=0.007
+
+	  	    insert pas
+		    g_pas=0.0000092
+} 
+
+create node4p[1]
+node4p  { diam=10.1
+}
+
+
+
+
+//CONNECT DORSAL ROOT ABNORMAL SEGMENTS
+node1d connect abmyelin1d(0),1
+abmyelin1d connect node2d(0),1
+node2d connect abmyelin2d(0),1
+abmyelin2d connect node3d(0),1
+node3d connect abmyelin3d(0),1
+abmyelin3d connect node4d(0),1
+
+
+//CONNECT PERIPHERAL NERVE ABNORMAL SEGMENTS
+node1p connect abmyelin1p(0),1
+abmyelin1p connect node2p(0),1
+node2p connect abmyelin2p(0),1
+abmyelin2p connect node3p(0),1
+node3p connect abmyelin3p(0),1
+abmyelin3p connect node4p(0),1
+
+
+//CONNECT ABNORMAL SEGMENTS TO T-STEM AXON
+node5m connect node1d(0),1
+node1d connect node1p(0),0
+node5m connect node1p(0),1
+
+
+
+
+//NORMAL SEGMENTS (NODE+MYELIN) OF DORSAL ROOT
+create  myelindr[30], nodedr[30] 
+
+proc create_DR(){
+	for i=$1,$2 {
+
+  myelindr[i]{diam=9.3	   //0.7 (Spencer et al 73) of ex diam (Ito & Takahashi 60) 
+	    L=1450  	   //Ito & Takahashi 60.
+	    nseg=7	   //Lambda=sqrt[(d/4)*(Rm/Ri)]~4344micron. Rm~89,000 Ri=110
+	    cm=0.009	   //111 myelin wraps
+
+	    insert pas
+	    g_pas=0.0000112
+ 	}
+
+   nodedr[i]{ diam=9.3	 //IGNORE node diam/internode diam=0.4 (THE AXON Fig 2-12, Table 2-3)
+}			 //Lambda=84micron
+ 
+	myelindr[i] connect nodedr[i](0),1
+        if (i !=  $2) { 
+          nodedr[i] connect myelindr[i+1](0),1
+ 	}
+ }
+}
+
+create_DR(0, 29)
+
+
+
+//NORMAL SEGMENTS (NODE+MYELIN) OF PERIPHERAL NERVE
+create  myelinpn[30], nodepn[30] 
+
+proc create_PN(){
+	for i=$1,$2 {
+
+  myelinpn[i]{diam=12.5  //0.7 (Spencer et al 73) of ex diam (based on Ito & Takahashi 60) 
+	    L=1567  	   //Ito & Takahashi 60.
+	    nseg=6	   //Lambda=sqrt[(d/4)*(Rm/Ri)]~5781micron. Rm~118,000 Ri=110
+	    cm=0.007	   //147 myelin wraps
+
+	    insert pas
+	    g_pas=0.0000085
+	}
+
+   nodepn[i]{ diam=12.5	   //IGNORE node diam/internode diam=0.4 (THE AXON Fig 2-12, Table 2-3)
+}			   //Lambda=97micron	
+ 
+	myelinpn[i] connect nodepn[i](0),1
+        if (i !=  $2) { 
+          nodepn[i] connect myelinpn[i+1](0),1
+ 	}
+ }
+}
+
+create_PN(0, 29)
+
+
+
+
+//CONNECT NORMAL TO ABNORMAL DORSAL ROOT
+node4d connect myelindr[0](0),1
+
+
+//CONNECT NORMAL TO ABNORMAL PERIPHERAL NERVE 
+node4p connect myelinpn[0](0),1
+
+
+
+forsec "node" { L=1.5	    //1-1.5micron (THE AXON p. 34). independent of axon diam
+		nseg=1
+		cm=1
+
+		insert fh
+		nai=13.74  //the fh.mod file does not REALY install this param 
+		nao=114.5  //the fh.mod file does not REALY install this param
+		ki=120    //the fh.mod file does not REALY install this param
+		ko=2.5	   //the fh.mod file does not REALY install this param
+}
+
+
+forall {Ra=110}	//FROG NEUROBIOLOGY p.13 Table 1. Lenhossek (1886, cited in Ito 59)
+
+celsius=20		//moore et al. 78
+
+
+//objectvar stim[2]
+
+//node[30] stim[0]=new IClamp(0.5)
+//stim[0].del=1
+//stim[0].dur=1
+//stim[0].amp=0
+
+//node1p[0] stim[1]=new IClamp(0.5)
+//stim[1].del=1
+//stim[1].dur=1
+//stim[1].amp=0
+
+access nodepn[15]
+//access node1p[0]
+
+load_proc("nrnmainmenu")
+nrnmainmenu()
+
+steps_per_ms=100
+dt=1/steps_per_ms
+tstop=5
+
+nrncontrolmenu()
+secondorder=1
+
+// define vectro to record the voltage
+//objref el1
+//el1 = new Vector(tstop/dt+2)
+
+//el1.record(&soma.v(0.5))
+
+//objref out
+
+//proc savedat(){
+//	out = new File()
+//        out.wopen($s1)
+//	out.printf("vsoma = [ ")
+//	el1.printf(out,"%g\n")
+//	out.printf("]; \n")
+
+//	out.close()
+//}
+
+

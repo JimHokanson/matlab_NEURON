@@ -1,0 +1,4 @@
+Documentation is not finished ...
+
+xstim__apply_stimulus :
+xstim__class_props    : 
