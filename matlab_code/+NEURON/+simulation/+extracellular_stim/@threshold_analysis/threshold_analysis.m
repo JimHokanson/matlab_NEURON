@@ -2,7 +2,18 @@ classdef threshold_analysis < handle_light
     %
     %
     %   Class: NEURON.simulation.extracellular_stim.threshold_analysis
-
+    %
+    %
+    %   IMPROVEMENTS:
+    %   ===================================================================
+    %   1) For propogation index, don't allow within a certain distance of
+    %   the stimulation maximum. I'm not sure how to quantify this yet ...
+    %
+    %   ACCESS METHODS
+    %   ===================================================================
+    %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
+    %   NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
+    
     properties (Hidden)
         parent
         cmd_obj
@@ -14,11 +25,12 @@ classdef threshold_analysis < handle_light
         %so we'll change settings via a separate method instead of adding
         %onto the parent constructor
         membrane_threshold = 0  %Value above which action potential
-        propogation_index  = 1  %Index to check 
-    end
-    
-    %Determining threshold ================================================
-    properties 
+        propogation_index  = 1  %Index to check. Could allow negative values
+        %Negative values not yet implemented ...
+        
+        no_stim_threshold         = Inf;
+        infinite_stim_threshold   = 0;
+        throw_error_for_edge_case = false;
     end
     
     properties (Constant, Hidden)
@@ -32,42 +44,24 @@ classdef threshold_analysis < handle_light
             obj.cmd_obj = cmd_obj;
         end
     end
-    
-    %THRESHOLD ANALYSIS
-    %======================================================================
-    %Things to know:
-    %----------------------------------------------------------------------
-    %1) Anything above threshold
-    %2) Fried tissue
-    %3) Highest subthreshold response - i.e. if we have nothing, what is
-    %       the maximum potential that was reached? This may have
-    %       predictive purposes ...
-    %4) Was a certain area above threshold - i.e. to test propogation
-    
-    %Cases
-    %----------------------------------------------------------------------
-    %1) A.P. but propogation failure:
-    %      - due to lack of simulation time, AP should propogate
-    %      - due to anodal block phenomena
-    %      - NOTE: We could eventually try and differentiate between these
-    %      two but we would need to rely on stim times ...
-    %
-    %2) No AP
-    %      - insufficient stimulus
-    
+
     methods
         function result_obj = run_stimulation(obj,scale)
-            %
+            %run_stimulation
             %
             %   result_obj = run_stimulation(obj,scale)
             %
             %   OUTPUTS
             %   ===========================================================
-            %   
+            %   result_obj : Class NEURON.simulation.extracellular_stim.results.single_sim
+            %
+            %   Class:
+            %   NEURON.simulation.extracellular_stim.threshold_analysis
+            %
             
             result_obj = NEURON.simulation.extracellular_stim.results.single_sim;
-            
-            %Move this back into simulation class with throw error optional????
+
+            %Running the simulation
             str = sprintf('{xstim__run_stimulation2(%0g)}',scale);
             [result_obj.success,result_str] = obj.cmd_obj.run_command(str,'throw_error',false);
             

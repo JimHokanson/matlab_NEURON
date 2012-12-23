@@ -296,11 +296,9 @@ classdef extracellular_stim < NEURON.simulation
                 case 1
                     sim__single_stim(obj,stim_amp);
                 case 2
-                    %fprintf('SIMULATION FINISHED: AP FIRED = %d\n',apFired);
-                    extras = [];
                     %NEURON.simulation.extracellular_stim.sim__determine_threshold
-                    [thresh_value,n_loops] = sim__determine_threshold(obj,in.STARTING_STIM_AMP);
-                    fprintf('SIMULATION FINISHED: THRESHOLD = %0g, n_loops = %d\n',thresh_value,n_loops);
+                    extras = sim__determine_threshold(obj,in.STARTING_STIM_AMP);
+                    disp(extras.getSummaryString);
             end
         end
     end 
