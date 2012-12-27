@@ -44,6 +44,7 @@ methods = {
     'processVarargin'           %used everywhere ...
     'strtools.propsValuesToStr' %NEURON.cmd , 
     'load2'
+    'unique2'                   %NEURON.extracellular_stim_electrode.getMergedStimTimes
     };
 
 my_path          = fileparts(mfilename('fullpath')); %This will return the
