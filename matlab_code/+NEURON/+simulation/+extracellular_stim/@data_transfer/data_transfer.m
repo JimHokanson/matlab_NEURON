@@ -12,6 +12,15 @@ classdef data_transfer < handle_light
     %   1) Move stimulus potential and time writing into this class
     %   2) Finish delete function
     %   3) Rename file io NEURON functions to have consistent header ...
+    %
+    %   IMPROVEMENTS
+    %   ====================================================================
+    %   1) Allow ignoring of loading the time vector (if it doesn't change)
+    %   2) Stimulus should ignore 0 stim at 0 - handle in NEURON
+    %       i.e. if we don't stimulate at time zero, NEURON, not Matlab,
+    %       should add on that at time 0, there is no stimulus
+    %       I would actually be surprised if this isn't in the hoc code ...
+    %       - would need to see vector.play code 
     
     properties
         parent    %
@@ -19,44 +28,114 @@ classdef data_transfer < handle_light
         cmd_obj   %Reference to command object ...
     end
     
+    %These are dependent in case the cell changes ...
     properties (Dependent)
        cell_obj
-       root_data_directory
+       root_read_directory
+       root_write_directory
     end
     
     methods 
         function value = get.cell_obj(obj)
            value = obj.parent.cell_obj; 
         end
-        function value = get.root_data_directory(obj)
-           value = fullfile(obj.cell_obj.getModelRootDirectory,'data');  
+        function value = get.root_read_directory(obj)
+           value = fullfile(obj.cell_obj.getModelRootDirectory,'data');
+        end
+        function value = get.root_write_directory(obj)
+           value = fullfile(obj.cell_obj.getModelRootDirectory,'inputs');
         end
     end
     
+    %CONSTRUCTOR  =========================================================
     methods
         function obj = data_transfer(parent_obj,sim_hash)
             obj.parent   = parent_obj;
             obj.sim_hash = sim_hash; 
             obj.cmd_obj  = obj.parent.cmd_obj;
         end
-        function membrane_potential = getMembranePotential(obj)
+    end
+    
+    %INITIALIZATION METHODS ===============================================
+    methods
+        function initializeDataSavingPaths(obj)
+           %initializeDataSavingPaths
            %
+           %    Called by event_manager on cell type change
+           
+           temp = obj.root_read_directory;
+           if ~exist(temp,'dir')
+               mkdir(temp);
+           end
+           
+           temp = obj.root_write_directory;
+           if ~exist(temp,'dir')
+               mkdir(temp);
+           end
+        end
+    end
+    
+    %DATA EXTRACTION FROM NEURON  =========================================
+    methods
+        function membrane_potential = getMembranePotential(obj)
+           %getMembranePotential
+           %
+           %    Retrieves the membrane potential at various segments of the
+           %    neural cell over time, primarily for use in threshold
+           %    analysis.
            %
            %    OUTPUTS
            %    ===========================================================
-           %    membrane_potential : time x space
+           %    membrane_potential : time x space (Units mV)
            %
            %    NOTE: The space does not need to be contiguous and can
            %    represent many different locations in 3d, some of which may
            %    not be connected.
            %
-           membrane_potential = obj.cmd_obj.loadMatrix(obj.getFilePath('xstim__vm.bin'));
+           %    NOTE: The contents of the membrane_potential are generally
+           %    the membrane voltage at Nodes of Ranvier. It is however 
+           %    allowable by the cell class to create other recordings.
+
+           membrane_potential = obj.cmd_obj.loadMatrix(obj.getReadFilePath('xstim__vm.bin'));
         end
     end
     
+    %WRITING DATA FUNCTIONS  ==============================================
+    methods
+        function writeStimInfo(obj,applied_voltage,stimulus_times)
+        %writeStimInfo
+        %
+        %
+        %   TODO: Finish Documentation
+        
+        
+        %Write to disk
+        %------------------------------------------------------------------
+        obj.cmd_obj.writeVector(obj.getWriteFilePath('v_ext.bin'),applied_voltage(:));
+        
+        %NOTE: Often this doesn't change. Could only write this on change.
+        obj.cmd_obj.writeVector(obj.getWriteFilePath('t_vec.bin'),stimulus_times);
+        
+        %Load into NEURON
+        %------------------------------------------------------------------
+        %xstim__load_data           - loads data from file
+        %xstim__setup_stim_playback - creates vectors for playing stimulation
+        
+        %NOTE: By executing these separately I can debug which, if either, is
+        %causing a problem ...
+        obj.cmd_obj.run_command('{xstim__load_data()}');
+        obj.cmd_obj.run_command('{xstim__setup_stim_playback()}');
+        end
+    end
+    
+    
+    %SIMPLE HELPERS =======================================================
     methods (Hidden)
-        function file_path = getFilePath(obj,file_name)
-           file_path = fullfile(obj.root_data_directory,[obj.sim_hash file_name]); 
+        function file_path = getReadFilePath(obj,file_name)
+           file_path = fullfile(obj.root_read_directory,[obj.sim_hash file_name]); 
+        end
+        function file_path = getWriteFilePath(obj,file_name)
+           file_path = fullfile(obj.root_write_directory,[obj.sim_hash file_name]); 
         end
     end
     
@@ -68,6 +147,8 @@ classdef data_transfer < handle_light
             %    2) delete v_ext
             
             %TODO: Not sure why I commented this out ...
+            
+            %This is really low priority
             
             % % %            cell_input_dir = fullfile(obj.cell_obj.getModelRootDirectory,'inputs');
             % % %            v_file_name = sprintf('%s%s',obj.sim_hash,'v_ext.bin');

@@ -1,39 +1,28 @@
-function [thresh_value,n_loops] = sim__determine_threshold(obj,starting_value)
+function result_obj = sim__determine_threshold(obj,starting_value)
 %sim__determine_threshold
 %
-%   [thresh_value,nLoops] = sim__determine_threshold(obj,starting_value)
+%   result_obj = sim__determine_threshold(obj,starting_value)
+%
+%   OUTPUTS
+%   =======================================================================
+%   result_obj : (NEURON.simulation.extracellular_stim.results.threshold_testing_history)
 %
 %   This method works closely with the following class:
 %       NEURON.threshold_cmd
 %   This class is available as the property:
 %       .threshold_cmd_obj
 %
-%   Specifically the following things may be manipulated:
-%   =======================================================
-%   max_threshold       - max stimulus amplitude to use
-%   use_max_threshold   - allows solving based only on what won't throw
-%                         numerical errors
-%   threshold_accuracy  - accuracy to solve threshold to ...
-%   guess_amount        - amount to guess when first testing threshold
-%   allow_opposite_sign - whether or not to allow a double sided solution
-%                         (either sign)
-%   
-%
-%
-%   SPECIAL CASES - see helper__handleError
-%   =======================================================
-%   10000
-%
-%   NEURON FUNCTIONS CALLED
-%   =======================================================
-%   xstim__determine_threshold
+%   See Also:
+%       NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
+%       NEURON.simulation.extracellular_stim.threshold_analysis
+%       NEURON.simulation.extracellular_stim.results.threshold_testing_history
 %
 %   FULL PATH: NEURON.simulation.extracellular_stim.sim_determine_threshold
 
     %Important call to make sure everything is synced
     initSystem(obj.ev_man_obj)
 
-    [thresh_value,n_loops] = obj.threshold_analysis_obj.determine_threshold(starting_value);
+    result_obj = obj.threshold_analysis_obj.determine_threshold(starting_value);
 end
 
 

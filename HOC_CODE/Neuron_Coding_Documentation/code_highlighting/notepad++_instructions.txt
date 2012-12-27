@@ -1,0 +1,5 @@
+NEURON FORUM POST:
+http://www.neuron.yale.edu/phpbb/viewtopic.php?f=30&t=1763
+
+instructions:
+Under language - choose defined language - import xml files

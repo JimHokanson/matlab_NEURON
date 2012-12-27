@@ -1,0 +1,149 @@
+objectvar save_window_, rvp_
+objectvar scene_vector_[5]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+
+//Begin PointProcessGroupManager
+{
+load_file("pointgrp.hoc")
+}
+{
+ocbox_ = new PointProcessGroupManager(0)
+}
+{object_push(ocbox_)}
+{
+ms = new MechanismStandard("IClamp")
+ms.set("del", 1, 0)
+ms.set("dur", 0.2, 0)
+ms.set("amp", 5, 0)
+mnews("IClamp", ms)
+select(0)
+execute("nodepn[20] ocbox_.move(1)")
+}
+{object_pop() doNotify()}
+{
+ocbox_ = ocbox_.v1
+ocbox_.map("PointProcessGroupManager", 400, 163, 556.8, 295.68)
+}
+objref ocbox_
+//End PointProcessGroupManager
+{
+xpanel("soma(0 - 1) (Parameters)", 0)
+xlabel("soma(0 - 1) (Parameters)")
+xlabel("nseg = 1")
+soma.L = 80
+xvalue("L","soma.L", 1,"define_shape()", 0, 0 )
+soma.diam = 80
+xvalue("diam","soma.diam", 1,"", 0, 0 )
+soma.cm = 1
+xvalue("cm","soma.cm", 1,"", 0, 0 )
+soma.pnabar_fh = 8e-5
+xvalue("pnabar_fh","soma.pnabar_fh", 1,"", 0, 0 )
+soma.ppbar_fh = 0
+xvalue("ppbar_fh","soma.ppbar_fh", 1,"", 0, 0 )
+soma.pkbar_fh = 3.5e-05
+xvalue("pkbar_fh","soma.pkbar_fh", 1,"", 0, 0 )
+soma.gl_fh = 0.0002
+xvalue("gl_fh","soma.gl_fh", 1,"", 0, 0 )
+soma.el_fh = -69.74
+xvalue("el_fh","soma.el_fh", 1,"", 0, 0 )
+soma.nai = 13.74
+xvalue("nai","soma.nai", 1,"", 0, 0 )
+soma.nao = 114.5
+xvalue("nao","soma.nao", 1,"", 0, 0 )
+soma.ki = 120
+xvalue("ki","soma.ki", 1,"", 0, 0 )
+soma.ko = 2.5
+xvalue("ko","soma.ko", 1,"", 0, 0 )
+xpanel(731,462)
+}
+objectvar scene_vector_[2]
+{doNotify()}
+v_init=-70
+tstop=10
+
+objref vgraphbox, g[3]
+
+vgraphbox = new VBox()
+vgraphbox.intercept(1)
+
+for i=0,2 {
+	g[i] = new Graph()
+	g[i].exec_menu("Keep Lines")
+}
+
+objref Vsoma, VR1, VR2, VR5
+vec_sizes = tstop/dt+1
+Vsoma = new Vector(vec_sizes)
+Vsoma.record(&soma.v(.5))
+
+init()
+run()
+
+Vsoma.line(g[0],dt)
+
+soma.pnabar_fh = 0 // turns off transient Na channel in soma
+v_init=-70
+
+init()
+run()
+
+Vsoma.line(g[0],dt)
+
+g[0].label(.1,.9,"Figure 2.  Soma spike invasion.")
+g[0].label("Simulations with and without")
+g[0].label("transient Na channels in soma.")
+
+VR1 = new Vector(vec_sizes)
+VR1.record(&nodepn[12].v(.5)) // 12th index is 13th node
+VR2 = new Vector(vec_sizes)
+VR2.record(&nodedr[1].v(.5)) // 1st index is 2nd node
+VR5 = new Vector(vec_sizes)
+VR5.record(&nodedr[29].v(.5)) // 30th node closets to 34th node reported in paper
+soma.pnabar_fh=40e-5	// high Na chan state
+
+objref anotheric	// another IClamp
+tstop=15
+nodepn[20] anotheric = new IClamp(1)
+
+anotheric.del=1+2.26
+anotheric.dur=.2
+anotheric.amp=6.25  // 2.5xThresh
+
+v_init=-70
+init()
+run()
+
+VR1.add(200)
+VR2.add(100)
+
+VR1.line(g[1],dt)
+VR2.line(g[1],dt)
+VR5.line(g[1],dt)
+
+g[1].label(.1,.9,"Figure 3A.  Pulse pair tranmission")
+g[1].label("with high soma-initial segment pNA_max")
+
+soma.pnabar_fh=0	// 0 Na chan state
+iseg.pnabar_fh=0	// 0 Na chan state
+
+v_init=-70
+init()
+run()
+
+VR1.add(200)
+VR2.add(100)
+
+VR1.line(g[2],dt)
+VR2.line(g[2],dt)
+VR5.line(g[2],dt)
+
+g[2].label(.1,.9,"Figure 3B.  Pulse pair transmission")
+g[2].label("with 0 soma-initial segment pNA_max")
+
+for i=0,2 {
+	g[i].exec_menu("View = plot")
+}
+
+vgraphbox.intercept(0)
+vgraphbox.map()

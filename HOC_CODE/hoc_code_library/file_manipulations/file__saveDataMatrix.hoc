@@ -1,15 +1,13 @@
-proc saveDataMatrix(){localobj file_ref, temp_save_vec, temp_list_obj
+proc file__saveDataMatrix(){localobj file_ref, temp_save_vec, temp_list_obj
 // 
-//	JIM NOTE: localobj must be on first line
-//
 //	saveDataMatrix(file_path,list_obj)
+//
 
 	file_ref      = new File()
 	temp_save_vec = new Vector()
 	temp_list_obj = new List()
 	
 	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/classes/vector/vect.html#vwrite
-	
 	
 	file_ref.wopen($s1)
 	temp_list_obj = $o2

@@ -1,0 +1,15 @@
+proc file__loadDataVector(){localobj file_ref, temp_save_vec
+//
+//	file__loadDataVector(file_path,vector_obj)
+//
+
+//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/classes/vector/vect.html#vread
+
+	file_ref      = new File()
+	temp_save_vec = new Vector()
+	
+	file_ref.ropen($s1)
+	temp_save_vec = $o2
+	temp_save_vec.vread(file_ref,4)
+	file_ref.close()
+}

@@ -15,7 +15,9 @@ function computeStimulus(obj,varargin)
 %   RELIES ON
 %   =======================================================================
 %   1) cell placement
-%   2) .... list unfinished
+%   2) tissue properties
+%   3) spatial relation between electrodes and cell
+%   4) stimulus pattern for each electrode
 %
 %   POPULATES
 %   ===============================

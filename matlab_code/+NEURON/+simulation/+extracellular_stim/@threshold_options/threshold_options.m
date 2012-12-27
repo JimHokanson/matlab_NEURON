@@ -1,6 +1,7 @@
 classdef threshold_options < handle_light
     %
     %  
+    %   Class: NEURON.simulation.extracellular_stim.threshold_options
     
     %?? Move threshold_analysis options into here????
     
@@ -30,7 +31,11 @@ classdef threshold_options < handle_light
     
     methods 
         function testing_values = getLowerStimulusTestingPoints(obj,starting_value)
-           %TODO: Document
+           %getLowerStimulusTestingPoints
+           %
+           %    testing_values = getLowerStimulusTestingPoints(obj,starting_value)
+           %
+           
            s = sign(starting_value);
            starting_value = abs(starting_value);
            testing_values = starting_value - obj.guess_amounts;
@@ -38,10 +43,13 @@ classdef threshold_options < handle_light
            testing_values = s.*[testing_values obj.MIN_THRESHOLD];
         end
         function testing_values = getHigherStimulusTestingPoints(obj,starting_value)
-           %TODO: Document 
+           %getHigherStimulusTestingPoints
+           %
+           %    testing_values = getHigherStimulusTestingPoints(obj,starting_value)
+           %
            s = sign(starting_value);
            starting_value = abs(starting_value);
-           testing_values = starting_value - obj.guess_amounts;
+           testing_values = starting_value + obj.guess_amounts;
            testing_values(testing_values >= obj.max_threshold) = [];
            testing_values = s.*[testing_values obj.max_threshold]; 
         end

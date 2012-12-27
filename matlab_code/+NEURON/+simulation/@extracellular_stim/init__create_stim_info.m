@@ -8,10 +8,6 @@ function init__create_stim_info(obj)
 %
 %    Writes voltage files for NEURON code to use ...
 %
-%   IMPROVEMENTS
-%   ====================================================================
-%   1) Allow ignoring of loading the time vector (if it doesn't change)
-%
 %   NEURON.simulation.extracellular_stim.init__create_stim_info
 %   
 
@@ -24,31 +20,7 @@ v_all = obj.v_all;
 %This call allows adjustment of the simulation time in case it is too short or long
 adjustSimTimeIfNeeded(obj,t_vec(end))
 
-%TODO: Might 
+%Data transfer to NEURON
+obj.data_transfer_obj.writeStimInfo(v_all,t_vec);
 
-%WRITE DATA TO FILE
-%---------------------------------------------------------------------------
-
-%data_transfer_obj = obj.data_transfer_obj;
-%TODO: Move below into data_transfer_obj ...
-input_dir   = fullfile(obj.cell_obj.getModelRootDirectory,'inputs');
-v_file_name = sprintf('%s%s',obj.sim_hash,'v_ext.bin');
-t_file_name = sprintf('%s%s',obj.sim_hash,'t_vec.bin');
-
-voltage_filepath = fullfile(input_dir,v_file_name);
-obj.cmd_obj.writeVector(voltage_filepath,v_all(:)); %NOTE vectortization of matrix for writing
-
-%NOTE: Often this doesn't change, could ignore loading this ...
-time_filepath    = fullfile(input_dir,t_file_name);
-obj.cmd_obj.writeVector(time_filepath,t_vec);
-
-%POPULATE IN NEURON
-%---------------------------------------------------------------------------
-%xstim__load_data           - loads data from file
-%xstim__setup_stim_playback - creates vectors for playing stimulation
-
-%NOTE: By executing these separately I can debug which, if either, is
-%causing a problem ...
-obj.cmd_obj.run_command('{xstim__load_data()}');
-obj.cmd_obj.run_command('{xstim__setup_stim_playback()}');
 end

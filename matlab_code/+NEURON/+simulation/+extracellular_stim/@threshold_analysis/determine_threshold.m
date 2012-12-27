@@ -1,6 +1,12 @@
-function [threshold_value,n_loops] = determine_threshold(obj,starting_value)
-%NOTE: This will require use of the threshold_cmd object ...
+function result_obj = determine_threshold(obj,starting_value)
+%determine_threshold.
 %
+%   result_obj = determine_threshold(obj,starting_value)
+%
+%   OUTPUTS
+%   =======================================================================
+%   result_obj : (NEURON.simulation.extracellular_stim.results.threshold_testing_history)
+%                Result object documenting testing ...
 %
 %   TODO:
 %   =======================================================================
@@ -9,27 +15,42 @@ function [threshold_value,n_loops] = determine_threshold(obj,starting_value)
 %   3) Handle bounding errors more appropriately
 %   4) Document results ...
 %   5) Do subthreshold to threshold projections ...
+%
+%
+%   See Also:
+%       NEURON.simulation.extracellular_stim.results.single_sim;
+%
+%   FULL PATH: NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold;
 
+%in.throw_error = true;
+%in = processVarargin(in,varargin);
 
 %What about if there is:
-%1) - no stim
-%2) - infinite applied extracellular voltage????
+%1) No applied stimulus 
+%   - this can come in if exactly half way between two opposite signed stimuli
+%2) Infinite applied extracellular voltage????
+
+%TODO: Check applied stimulus ...
 
 
 stim_sign = sign(starting_value);
 
-%NEURON.simulation.extracellular_stim.threshold_cmd;
+%NEURON.simulation.extracellular_stim.threshold_options;
 t = obj.parent.threshold_options_obj;
 
+%First simulation ---------------------------------------------------------
 r = run_stimulation(obj,starting_value);
+%r Class: NEURON.simulation.extracellular_stim.results.single_sim;
+
+result_obj = NEURON.simulation.extracellular_stim.results.threshold_testing_history;
 
 %Bounding the solution
 %--------------------------------------------------------------------------
-[lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,starting_value);
+lower_bound = helper__getNewestBounds(obj,r,t,starting_value,result_obj);
 if isempty(lower_bound)
-    [lower_bound,upper_bound,n_loops] = helper_getLowerBound(obj,t,starting_value);
+    [lower_bound,upper_bound,n_loops] = helper__getLowerBound(obj,t,starting_value,result_obj);
 else
-    [lower_bound,upper_bound,n_loops] = helper__getHigherBound(obj,t,starting_value);
+    [lower_bound,upper_bound,n_loops] = helper__getHigherBound(obj,t,starting_value,result_obj);
 end
 
 %Binary search until solution is found
@@ -38,6 +59,7 @@ while true
    bound_difference = abs(upper_bound - lower_bound);
    if bound_difference < t.threshold_accuracy
        threshold_value = upper_bound;
+       result_obj.finalizeData(threshold_value);
        break
    end
     
@@ -46,7 +68,7 @@ while true
    
    n_loops = n_loops + 1;
    
-   [lower_bound_temp,upper_bound_temp] = helper__getNewestBounds(obj,r,t,next_value);
+   [lower_bound_temp,upper_bound_temp] = helper__getNewestBounds(obj,r,t,next_value,result_obj);
    if isempty(lower_bound_temp)
        upper_bound = upper_bound_temp;
    else
@@ -56,17 +78,17 @@ end
 
 end
 
-function [lower_bound,upper_bound,n_loops] = helper_getLowerBound(obj,t,starting_value)
+function [lower_bound,upper_bound,n_loops] = helper__getLowerBound(obj,t,starting_value,result_obj)
 
 %1) Get lower stimulus options
 %2) Start testing 
 
 testing_values = getLowerStimulusTestingPoints(t,starting_value);
-
+upper_bound    = starting_value;
 for iTest = 1:length(testing_values)
    cur_value = testing_values(iTest);
    r = run_stimulation(obj,cur_value);
-   [lower_bound,temp_upper_bound] = helper__getNewestBounds(obj,r,t,cur_value);
+   [lower_bound,temp_upper_bound] = helper__getNewestBounds(obj,r,t,cur_value,result_obj);
    if isempty(lower_bound)
        upper_bound = temp_upper_bound;
    else
@@ -83,18 +105,18 @@ n_loops = iTest + 1;
 
 end
 
-function [lower_bound,upper_bound,n_loops] = helper__getHigherBound(obj,t,starting_value)
+function [lower_bound,upper_bound,n_loops] = helper__getHigherBound(obj,t,starting_value,result_obj)
 
 %1) Get higher stimulus options
 %2) Start Testing
 %3) We might be able to do predictions based on max potential - test later ...
 
 testing_values = getHigherStimulusTestingPoints(t,starting_value);
-
+lower_bound    = starting_value;
 for iTest = 1:length(testing_values)
    cur_value = testing_values(iTest);
    r = run_stimulation(obj,cur_value);
-   [temp_lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,cur_value);
+   [temp_lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,cur_value,result_obj);
    if isempty(upper_bound)
        lower_bound = temp_lower_bound;
    else
@@ -136,7 +158,14 @@ temp_vm = r.membrane_potential(first_index_end_time:end,:);
 isShort = any(temp_vm(:) > membrane_threshold);
 end
 
-function [lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,tested_value)
+function [lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,tested_value,result_obj)
+%
+%   This is the main function that is responsible for analyzing the
+%   membrane potential and determining whether or not to go higher or lower
+%   with the stimulus ...
+%
+%   OUTPUTS
+%   =======================================================================
 
 lower_bound = [];
 upper_bound = [];
@@ -165,6 +194,7 @@ else
     error('Unhandled case')
 end
 
+result_obj.logResult(tested_value,isempty(lower_bound))
 
 
 end
