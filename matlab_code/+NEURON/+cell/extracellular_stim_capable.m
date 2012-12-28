@@ -51,7 +51,11 @@ classdef extracellular_stim_capable < handle
         
         moveCenter(obj, newCenter) %Needed for getCurrentDistanceCurve
         
-        %createCellInNEURON - abstract of neural_cell, not needed here ...
+        %createCellInNEURON - abstract of neural_cell, not needed here but
+        %recorded here just so it is clear we are relying on this method
+        
+        threshold_info_obj = getThresholdInfo(obj)  %See class: NEURON.cell.threshold_info
+        %This method should return an object of the class threshold_info
     end
     
     methods

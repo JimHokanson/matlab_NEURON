@@ -52,56 +52,57 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         %This is specified by the user in the constructor ...
         
         %.MRG()
-        props_obj   %Class: NEURON.cell.axon.MRG.props
+        props_obj           %Class: NEURON.cell.axon.MRG.props
+        threshold_info_obj  %Class: NEURON.cell.threshold_info
+        spatial_info_obj    %Class: NEURON.cell.axon.MRG.spatial_info
     end
     
     
-    %TEMPORARY SPATIAL INFO ===============================================
-    properties (SetAccess = private)
-        %MAIN METHOD:
-        %   NEURON.cell.axon.MRG.populateSpatialInfo
-        %------------------------------------------------------------------
-        %.populate_section_id_info()
-        section_ids  %ID of each created section in NEURON
-        %               1 - node
-        %               These three together are an internode
-        %               2 - MYSA
-        %               3 - FLUT
-        %               4 - STIN
-        
-        %.populate_section_id_info()
-        center_I     %index into section_ids, L_all, etc that is
-        %the "center" of the axon, this currently indexes into
-        %the center most node
-        
-        %.populate_axon_length_info()
-        L_all        %length of each section ...
-    end
+%     %TEMPORARY SPATIAL INFO ===============================================
+%     properties (SetAccess = private)
+%         %
+%         %   TODO: Would be better to place in class ...
+%         %   .spatial_obj   
+%         
+%         %MAIN METHOD:
+%         %   NEURON.cell.axon.MRG.populateSpatialInfo
+%         %------------------------------------------------------------------
+%         %.populate_section_id_info()
+%         section_ids  %ID of each created section in NEURON
+%         %               1 - node
+%         %               These three together are an internode
+%         %               2 - MYSA
+%         %               3 - FLUT
+%         %               4 - STIN
+%         
+%         %.populate_section_id_info()
+%         center_I     %index into section_ids, L_all, etc that is
+%         %the "center" of the axon, this currently indexes into
+%         %the center most node
+%         
+%         %.populate_axon_length_info()
+%         L_all        %length of each section ...
+%     end
     
-    properties (SetAccess = private)
-        %.populate_xyz()
-        xyz_all     %populate_xyz()
-        
-        avg_node_spacing
-        
-        %.createCellInNEURON()
-        cell_populated_in_NEURON %used by function moveCenter()
-        %to update xyz if other related props are already calculated ...
-        
-        spatial_info_populated = false   %see .getNodeSpacing()
-        
-        %.setEventManagerObject()
-        ev_man_obj   %Class: NEURON.simulation.extracellular_stim.event_manager
-        %IMPORTANT: On changing anything that changes the way the NEURON
-        %simulation would run, the event manager should be told of the
-        %change ...
-        %NOTE: Perhaps we just use a listener instead??????
-    end
-    
-    properties
-        props_populated        = false   %see .populateSpatialInfo()
-        %also props.populateDependentVariables 
-    end
+%     properties (SetAccess = private)
+%         %.populate_xyz()
+%         xyz_all     %populate_xyz()
+%         
+%         avg_node_spacing
+%         
+%         %.createCellInNEURON()
+%         cell_populated_in_NEURON %used by function moveCenter()
+%         %to update xyz if other related props are already calculated ...
+%         
+%         spatial_info_populated = false   %see .getNodeSpacing()
+%         
+%         %.setEventManagerObject()
+%         ev_man_obj   %Class: NEURON.simulation.extracellular_stim.event_manager
+%         %IMPORTANT: On changing anything that changes the way the NEURON
+%         %simulation would run, the event manager should be told of the
+%         %change ...
+%         %NOTE: Perhaps we just use a listener instead??????
+%     end
     
     %INITIALIZATION ====================================================
     methods
@@ -115,18 +116,24 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
             
             obj = obj@NEURON.cell.axon;
             
-            if nargin == 0
-                return
-            end
+            %see method: getThresholdInfo()
+            obj.threshold_info_obj = NEURON.cell.threshold_info;
+            obj.threshold_info_obj.v_rest            = -80; %Can I get this from props?
+            obj.threshold_info_obj.v_rough_threshold = -50;
+            obj.threshold_info_obj.v_ap_threshold    = 0;
             
-            obj.xyz_center  = xyz_center;
-            obj.props_obj   = NEURON.cell.axon.MRG.props(obj);
+            obj.props_obj        = NEURON.cell.axon.MRG.props(obj);
+            obj.spatial_info_obj = NEURON.cell.axon.MRG.spatial_info(obj,xyz_center);
+            obj.props_obj.populateSpatialInfoObj(obj.spatial_info_obj);
+            obj.spatial_info_obj.setPropsObj(obj.props_obj);
         end
     end
     
     %CHANGING METHODS =====================================================
     methods
         function setEventManagerObject(obj,ev_man_obj)
+            %
+            %   ev_man_obj : Class: NEURON.simulation.extracellular_stim.event_manager
             obj.ev_man_obj = ev_man_obj;
         end
         function moveCenter(obj, newCenter)
@@ -169,6 +176,13 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
             
             avg_node_spacing = obj.avg_node_spacing;
 
+        end
+        function threshold_info_obj = getThresholdInfo(obj)
+           %TODO: Document
+           %
+           %    NOTE: I might want to change things ...
+           
+           threshold_info_obj = obj.threshold_info_obj;
         end
     end
     

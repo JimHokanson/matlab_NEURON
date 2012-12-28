@@ -1,4 +1,4 @@
-function populateSpatialInfo(obj)
+function populate_spatialInfo(obj)
 %populateSpatialInfo
 %
 %   Populates spatial info. Ultimately the most important propery this
@@ -6,8 +6,10 @@ function populateSpatialInfo(obj)
 %
 %   KNOWN CALLERS:
 %   =======================================================================
-%   NEURON.simulation.extracellular_stim.event_manager.initSystem
+%   1) NEURON.simulation.extracellular_stim.event_manager.initSystem
 %       => NEURON.cell.axon.MRG.createCellInNEURON
+%   
+%   2) General requests for xyz data from the cell
 %
 %   IMPROVEMENTS
 %   =======================================================================
@@ -16,13 +18,16 @@ function populateSpatialInfo(obj)
 %           that they do regarding the spatial layout of the cell
 %
 %   See Also:
+%
+%   NOTE: These links are out of date
+%
 %       NEURON.cell.axon.MRG.populate_section_id_info
 %       NEURON.cell.axon.MRG.populate_axon_length_info
 %       NEURON.cell.axon.MRG.populate_xyz
 
-if ~obj.props_populated
-    obj.props_obj.populateDependentVariables();
-end
+%NOTE: When spatial props are changed in the props
+%class, this property below is changed to be false
+if ~obj.spatial_info_up_to_date
 
 %NEURON.cell.axon.MRG.populate_section_id_info
 populate_section_id_info(obj)
@@ -35,3 +40,5 @@ populate_xyz(obj)
 
 %node_indices     = find(obj.section_ids == 1);
 obj.avg_node_spacing = abs(mean(diff(obj.xyz_all(obj.section_ids == 1),3)));
+
+end

@@ -21,16 +21,38 @@ classdef threshold_analysis < handle_light
     
     %Threshold analysis options ===========================================
     properties
-        %TODO: Set via options, class automatically created by parent
-        %so we'll change settings via a separate method instead of adding
-        %onto the parent constructor
-        membrane_threshold = 0  %Value above which action potential
-        propogation_index  = 1  %Index to check. Could allow negative values
-        %Negative values not yet implemented ...
+        threshold_info %Class: NEURON.cell.threshold_info
         
-        no_stim_threshold         = Inf;
-        infinite_stim_threshold   = 0;
-        throw_error_for_edge_case = false;
+        %NOTE: This prop is not exposed to the user in a clean way yet ...
+        opt_use_halfway_point_for_threshold = true; %If true, threshold
+        %is not actually tested for threshold but is half way between the
+        %minimum and maximum. In general this will be a more accurate
+        %estimate of threshold but 
+    end
+    
+    properties
+        %.determine_threshold() PROPERTIES NOT YET USED
+        %
+        %   TODO: Finish this documentation
+        %
+        %   The following are edge stimulus cases:
+        %   1) No stimulus. This can occur for a cell
+        %
+        %   Sometimes when testing for a stimulus threshold one may
+        %   encounter no stimulus being applied, or essentially no stimulus
+        %   or an infinite stimulus
+        %   when the cell and electrode are at the same location. In
+        %   general both are not desired but generic thresholds for both
+        %   can be applied.
+        
+        no_stim_threshold         = Inf %With no stimulus (or a very small one)
+        %it would take an infinite stimulus to activate the cell
+        throw_error_no_stimulus   = false
+        infinite_stim_threshold   = 0 %A default of zero suggests that if 
+        %an electrode were truly at the same location as a cell, that it
+        %would require no stimulus, or a very very small stimulus, to
+        %activate the cell.
+        throw_error_inf_stim      = false
     end
     
     properties (Constant, Hidden)
@@ -86,10 +108,15 @@ classdef threshold_analysis < handle_light
             
             max_vm_by_space = max(vm); %i.e. take max over time at each point in space
             
+            t_info = obj.threshold_info;
+            if isempty(t_info)
+                error('Threshold info must be set before calling this class')
+            end
+            
             result_obj.max_membrane_potential = max(max_vm_by_space);
             result_obj.membrane_potential     = vm;
-            result_obj.threshold_crossed      = result_obj.max_membrane_potential > obj.membrane_threshold;
-            result_obj.ap_propogated          = max_vm_by_space(obj.propogation_index) > obj.membrane_threshold;
+            result_obj.threshold_crossed      = result_obj.max_membrane_potential > t_info.v_ap_threshold;
+            result_obj.ap_propogated          = max_vm_by_space(t_info.v_ap_propogation_index) > t_info.v_ap_threshold;
             result_obj.max_vm_per_node        = max_vm_by_space;
         end
     end

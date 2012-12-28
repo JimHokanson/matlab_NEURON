@@ -21,6 +21,8 @@ function result_obj = sim__determine_threshold(obj,starting_value)
 
     %Important call to make sure everything is synced
     initSystem(obj.ev_man_obj)
+    
+    setupThresholdInfo(obj)
 
     result_obj = obj.threshold_analysis_obj.determine_threshold(starting_value);
 end

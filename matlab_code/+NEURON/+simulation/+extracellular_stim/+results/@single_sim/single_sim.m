@@ -5,7 +5,8 @@ classdef single_sim < handle_light
     %   Class: NEURON.simulation.extracellular_stim.results.single_sim;
     
     %TODO:
-    %Add on properties that determined results
+    %Add on the properties that led to these results
+    %=> like the threshold crossing criteria
     
     properties
        %see NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation

@@ -17,6 +17,15 @@ classdef activation_volume < handle
     %1) Allow variation in # of grid points per dimension, currently
     %   everything is done with equal # of points per dimension
     %
+    %   - build in symettry tester ... => based on applied voltage
+    %
+    %       NOTE: From the threshold logger comes natural symmetry handling
+    %       ...
+    %
+    %   - allow expansion of bounds if thresholds are not high enough
+    %
+    %
+    %   - allow 2d or 1d based on bounds being equal ...
     %
     %
     
@@ -42,9 +51,7 @@ classdef activation_volume < handle
     
     %TODO
     %================================================================
-    %   - build in symettry tester ... => based on applied voltage
-    %   - allow expansion of bounds if thresholds are not high enough
-    %   - allow 2d or 1d based on bounds being equal ...
+
     
     properties
        VERSION = 1

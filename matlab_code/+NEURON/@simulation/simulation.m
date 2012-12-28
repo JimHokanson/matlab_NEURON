@@ -39,7 +39,7 @@ classdef simulation < handle
     end
     
     properties
-        run_NEURON = true %Started but not yet suppported ... Goal was to allow calling
+        launch_NEURON_process = true %Started but not yet suppported ... Goal was to allow calling
         %certain methods that didn't need the NEURON environment in order
         %to work, The thought was to really pass this to the NEURON class
         %and specifically to the write method
@@ -52,11 +52,15 @@ classdef simulation < handle
     end
     
     properties
+        %.
         sim_hash    %String for preventing save collisions between concurrent versions of Matlab
         %Created in the constructor.
         %NOTE: This is based upon the process id of Matlab, not
         %the communications process.
-        %IMPORTANT: This is defined in init_neuron.hoc
+        %IMPORTANT: This variable is declared in NEURON in init_neuron.hoc
+        
+        %TODO: Remove references to this variable
+        %go through the command object ...
         n_obj       %(class NEURON)    NOTE: If this is ever invalid we have problems
         %Might become invalid from stack dump
         cmd_obj     %(class NEURON.cmd)
@@ -90,15 +94,15 @@ classdef simulation < handle
             %       NEURON.simulation.extracellular_stim
             %       NEURON.simulation.initNEURON
             
-            in.run_NEURON = true;
-            in.debug      = false;
+            in.launch_NEURON_process = true;
+            in.debug                 = false;
             in = processVarargin(in,varargin);
             
             obj.sim_hash    = ['p' num2str(feature('GetPid'),'%d') '_'];
                         
-            obj.run_NEURON = in.run_NEURON;
+            obj.launch_NEURON_process = in.launch_NEURON_process;
             
-            if obj.run_NEURON
+            if obj.launch_NEURON_process
                 obj.n_obj       = NEURON;
                 obj.n_obj.debug = in.debug;
                 obj.cmd_obj     = NEURON.cmd(obj.n_obj);

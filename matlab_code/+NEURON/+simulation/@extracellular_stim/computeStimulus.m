@@ -5,6 +5,11 @@ function computeStimulus(obj,varargin)
 %
 %   Computes the stimulus that is applied to a cell.
 %
+%   POPULATES
+%   ===============================
+%   obj.t_vec
+%   obj.v_all
+%
 %   OPTIONAL INPUTS
 %   =======================================================================
 %   remove_zero_stim : (default false), if true removes times when there is
@@ -19,10 +24,7 @@ function computeStimulus(obj,varargin)
 %   3) spatial relation between electrodes and cell
 %   4) stimulus pattern for each electrode
 %
-%   POPULATES
-%   ===============================
-%   obj.t_vec
-%   obj.v_all
+%
 %
 %   NOTE: In general this function should be called only by:
 %      NEURON.simulation.extracellular_stim.init__create_stim_info
