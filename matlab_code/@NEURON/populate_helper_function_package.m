@@ -39,6 +39,7 @@ methods = {
     'getCallingFunction'        %formattedWarning()    
     'getCygwinPath'             %NEURON.createNeuronPath()
     'getMyPath'                 %NEURON.paths, initialize.m
+    'goDebug'                   %Jim needs this
     'handle_light'              %NEURON
     'ismember_str'              %processVarargin()
     'processVarargin'           %used everywhere ...
