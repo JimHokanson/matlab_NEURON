@@ -45,7 +45,7 @@ classdef extracellular_stim_capable < handle
     
     methods (Abstract)
         %Should return an object of the class:
-        %
+        %NEURON.simulation.extracellular_stim.sim_logger.cell_log_data
         cell_log_data_obj = getXstimLogData(obj)
         
         getAverageNodeSpacing(obj) %Needed for methods that determine
