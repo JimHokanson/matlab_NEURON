@@ -1,42 +1,39 @@
-classdef extracellular_stim_electrode < handle
-    %estim_electrode - Electrical Stimulation Electrode
+classdef extracellular_stim_electrode < handle_light
     %
-    %  XYZ
-    %  z along electrode, positive goes proximal
-    %  x - medial positive
-    %  y - ventral positive
+    %   CLASS: NEURON.extracellular_stim_electrode
+    %
+    %   This class implements a basic extracellular stimulation electrode 
+    %   for which one can specify times of stimulation and the stimulus
+    %   level at those times.
     %
     %   See Also:
     %       NEURON.simulation.extracellular_stim
-    %
-    %   Class:
-    %       NEURON.extracellular_stim_electrode
-    %
     %   METHODS IN OTHER FILES
-    %   =============================================
+    %   ===================================================================
+    %   NEURON.extracellular_stim_electrode.getMergedStimTimes
+    %   
     
     properties (SetAccess = private)
-        time    = []	%time of transition %See setStimPattern
-        scale   = []    %Scale factor of current
+        %.setStimPattern()
+        %------------------------------------------------------------------
+        time    = []	%Time of stimulus transitions.
+        %NOTE: Currently time(1) should be zero
         
-        %NOTE: The concept of stimulation current amplitude is all
-        %relative in this framework. The problem arises when referring to
-        %stimulation in terms of a fixed stimulus amplitude. Even for a
-        %single electrode, we almost never use a single current amplitude
-        %due to biphasic stimulation, in which we might stimulate at 3 uA,
-        %but what we really might mean is -3 uA followed by 3 uA for charge
-        %balancing. Alternatively we might stimulate at -3 uA followed by
-        %1.5 uA with twice the duration, but we report that all as 3 uA.
-        %Thus the scale factor should be relative to other electrodes. The
-        %solver will solve for threshold using a single factor which is
-        %multiplied by all scales for the electrodes before they are
-        %applied.
-        %Example: Represent a typical -3 followed by 1.5 uA current
-        %
-        %  scale = [1 -0.5], solve for negative current threshold
+        scale   = []    %(Current, uA)
+        %NOTE: Currently scale(1) should be zero
+        %For more information on this variable see
+        %"notes_on_stimulus_amplitude" in the private folder of this class
         
-        xyz     %um  %Changing this during run time is not yet implemented ...
-                %format, row vector
+        is_set = false    %Set true when time and scale have been set 
+    end
+    
+    properties
+        %.Constructor
+        xyz     %(microns, row vector)  %Changing this during run time is not 
+        %yet implemented. Instead we will tend to move the cell and keep
+        %the electrode at a fixed location.
+        %for more info, see "notes_on_reference_frames" in the private
+        %folder of this class
     end
     
     properties (Hidden)
@@ -44,7 +41,31 @@ classdef extracellular_stim_electrode < handle
     end
     
     %INITIALIZATION METHODS =========================================
-    methods
+    methods (Static)
+        function objs = create(xyz)
+            %
+            %    INPUTS
+            %    =============================================
+            %    xyz : [n_electrodes x xyz]
+            
+            %STUPID BUG ...
+            %See http://www.mathworks.com/matlabcentral/answers/51648-unable-to-clear-classes
+            %http://www.mathworks.com/support/bugreports/893538
+            if size(xyz,2) ~= 3
+                error('xyz must be a 3 element vector')
+            end
+            
+            nElecs = size(xyz,1);
+            
+            for iElec = 1:nElecs
+                objs(iElec) = NEURON.extracellular_stim_electrode(xyz(iElec,:)); %#ok<AGROW>
+            end
+        end
+    end
+    
+    methods (Access = private)
+        %Made private to prevent bug
+        %Need to call NEURON.extracellular_stim_electrode.create instead :/
         function obj = extracellular_stim_electrode(xyz)
             %extracellular_stim_electrode
             %
@@ -52,24 +73,11 @@ classdef extracellular_stim_electrode < handle
             %
             %    objs = extracellular_stim_electrode(xyz)
             %
-            %    INPUTS
-            %    =============================================
-            %    xyz : [n_electrodes x xyz]
             
-            if nargin == 0
-                return
-            end
-            
-            if size(xyz,2) ~= 3
-                error('xyz must be a 3 element vector')
-            end
-            
-            nElecs = size(xyz,1);
-            obj(nElecs) = NEURON.extracellular_stim_electrode;
-            for iElec = 1:nElecs
-                obj(iElec).xyz     = xyz(iElec,:);
-            end
+            obj.xyz = xyz;
         end
+    end
+    methods
         function setStimPattern(objs,start_time,phase_durations,phase_amplitudes)
             %setStimPattern
             %
@@ -96,13 +104,52 @@ classdef extracellular_stim_electrode < handle
             nElecs = length(objs);
             for iElec = 1:nElecs
                 %NOTE: We ensure taking care of start times and end times
-                objs(iElec).time  = [0 start_time start_time + cumsum(phase_durations)];
-                objs(iElec).scale = [0 phase_amplitudes 0]; %Start at 0, end at 0
+                objs(iElec).time   = [0 start_time start_time + cumsum(phase_durations)];
+                objs(iElec).scale  = [0 phase_amplitudes 0]; %Start at 0, end at 0
+                objs(iElec).is_set = true;
             end
             
             objectChanged(objs)
         end
     end
+    
+    %FOR OTHERS 
+    %======================================================================
+    methods
+        function [log_data,zero_scales] = getLogData(objs)
+            %getLogData
+            %
+            %   [log_data,zero_scales] = getLogData(objs)
+            %   
+            %   OUTPUTS
+            %   ===========================================================
+            %   log_data : output for sim_logger. Current format is the
+            %   duration of each stimulus and of each break, with the
+            %   exception of the first stimulus break (if present) at time
+            %   t = 0
+            %   zero_scales : (logical), for each stimulus transition time
+            %   this indicates whether or not
+            
+            [t_vec,all_scales] = getMergedStimTimes(objs);
+                
+            zero_scales = all(all_scales == 0,2);
+            
+            if ~zero_scales(end)
+                error('Expected no stimulation specification at the end')
+            end
+            %NOTE: If we stimulate until the end then
+            %we need to include a term that takes into account the length
+            %of the simulation
+            
+            if zero_scales(1)
+                log_data = diff(t_vec);
+            else
+                log_data = diff(t_vec(2:end));
+            end
+            
+        end
+    end
+    
     
     %VISUALIZATION
     %================================================================
@@ -110,14 +157,14 @@ classdef extracellular_stim_electrode < handle
     
     methods
         function xyz_bounds = getXYZBounds(objs)
-           %getXYZBounds
-           %    
-           %    xyz_bounds = getXYZBounds(objs)
-           %
-           all_xyz    = vertcat(objs.xyz);
-           xyz_bounds = zeros(2,3);
-           xyz_bounds(1,:) = min(all_xyz);
-           xyz_bounds(2,:) = max(all_xyz);
+            %getXYZBounds
+            %
+            %    xyz_bounds = getXYZBounds(objs)
+            %
+            all_xyz    = vertcat(objs.xyz);
+            xyz_bounds = zeros(2,3);
+            xyz_bounds(1,:) = min(all_xyz);
+            xyz_bounds(2,:) = max(all_xyz);
         end
     end
     
@@ -128,7 +175,7 @@ classdef extracellular_stim_electrode < handle
                 obj = objs(iObj);
                 if isobject(obj.ev_man_obj)
                     stimElectrodesChanged(obj.ev_man_obj)
-                end 
+                end
             end
         end
         

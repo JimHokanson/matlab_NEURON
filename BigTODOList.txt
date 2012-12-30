@@ -1,4 +1,4 @@
-1) Move everything to GIT - finish dependency moving code
-2) Fix threshold function
-3) Finish moving extracellular stim code out of MRG .hoc code
+1) DONE Move everything to GIT - finish dependency moving code
+2) DONE Fix threshold function
+3) DONE Finish moving extracellular stim code out of MRG .hoc code
 4) On error, stop simulation, don't continue it ... Currently dbquit is usually followed by a lot more code running ...

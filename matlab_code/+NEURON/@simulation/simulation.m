@@ -78,7 +78,11 @@ classdef simulation < handle
     
     methods
         function value = get.path_obj(obj)
-            value = obj.n_obj.path_obj;
+            if isobject(obj.n_obj)
+                value = obj.n_obj.path_obj;
+            else
+                value = [];
+            end
         end
     end
     

@@ -18,22 +18,21 @@ function populate_spatialInfo(obj)
 %           that they do regarding the spatial layout of the cell
 %
 %   See Also:
-%
-%   NOTE: These links are out of date
-%
-%       NEURON.cell.axon.MRG.populate_section_id_info
-%       NEURON.cell.axon.MRG.populate_axon_length_info
+%       NEURON.cell.axon.MRG.spatial_info.populate_sectionIdInfo
+%       NEURON.cell.axon.MRG.spatial_info.populate_axonLengthInfo
 %       NEURON.cell.axon.MRG.populate_xyz
+%
+%   FULL PATH: NEURON.cell.axon.MRG.spatial_info.populate_spatialInfo
 
 %NOTE: When spatial props are changed in the props
 %class, this property below is changed to be false
 if ~obj.spatial_info_up_to_date
 
-%NEURON.cell.axon.MRG.populate_section_id_info
-populate_section_id_info(obj)
+%NEURON.cell.axon.MRG.spatial_info.populate_sectionIdInfo
+obj.populate_sectionIdInfo();
 
-%NEURON.cell.axon.MRG.populate_axon_length_info
-populate_axon_length_info(obj)
+%NEURON.cell.axon.MRG.spatial_info.populate_axonLengthInfo
+populate_axonLengthInfo(obj)
 
 %NEURON.cell.axon.MRG.populate_xyz
 populate_xyz(obj)

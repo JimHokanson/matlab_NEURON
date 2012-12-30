@@ -24,11 +24,17 @@ obj.xyz_all(:,2) = obj.xyz_center(2);
 
 obj.xyz_all(:,3) = cumsum(obj.L_all);
 
+%Nudge over to the center of the object
 %NOTE: L_all is a row vector, make column for adding ...
-obj.xyz_all(:,3) = obj.xyz_all(:,3) + (0.5*obj.L_all)'; %Nudge over to the center of the object
-obj.xyz_all(:,3) = obj.xyz_all(:,3) - obj.xyz_all(obj.center_I,3); %Make it so that the center is now 0
-obj.xyz_all(:,3) = obj.xyz_all(:,3) + obj.xyz_center(3); %With this centered axon, redefine everything
-%so that the center is now at the specified center location
+obj.xyz_all(:,3) = obj.xyz_all(:,3) - (0.5*obj.L_all)'; 
 
+%Make it so that the center is now 0
+obj.xyz_all(:,3) = obj.xyz_all(:,3) - obj.xyz_all(obj.center_I,3); 
+
+%With this centered axon, redefine everything so that the center is now at
+%the specified center location
+obj.xyz_before_shift = obj.xyz_all; %We'll hold
+
+obj.xyz_all(:,3) = obj.xyz_all(:,3) + obj.xyz_center(3); 
 
 end

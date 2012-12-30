@@ -11,7 +11,10 @@ function plot__AppliedStimulus(obj,stim_scale)
 %    1) Allow plotting of multiple time points
 %    as well as the locations of the electrodes relative to the
 %    cell ...
-%
+
+%NOTE: This is currently only accurate for axons
+%It does not handle splits ...
+
 
 obj.computeStimulus;
 
@@ -25,9 +28,17 @@ obj.computeStimulus;
 
 xyz_cell = obj.cell_obj.xyz_all;
 
-keyboard
+squared_diff       = (xyz_cell(2:end,:)-xyz_cell(1:end-1,:)).^2;
+length_btwn_points = sqrt(sum(squared_diff,2))';
+
+dist_along_cell = [0 cumsum(length_btwn_points)];
+
+%NOTE: There is lots of room for improvement here ...
+plot(dist_along_cell./1e3,obj.v_all(2,:)')
+xlabel('Distance Along Axon (mm)')
 
 %dist_along_cell = [0 diff
 
+%plot(v_all
 
 end

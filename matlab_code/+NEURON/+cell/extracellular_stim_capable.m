@@ -44,6 +44,10 @@ classdef extracellular_stim_capable < handle
     end
     
     methods (Abstract)
+        %Should return an object of the class:
+        %
+        cell_log_data_obj = getXstimLogData(obj)
+        
         getAverageNodeSpacing(obj) %Needed for methods that determine
         %activation volume that take into account redundancy via node
         %repetitions in the longitudinal direction ...

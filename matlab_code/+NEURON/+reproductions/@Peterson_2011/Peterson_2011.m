@@ -8,10 +8,14 @@ classdef Peterson_2011
     %EAS
     %MDF
     
-    properties
+    properties (Hidden)
+        
        all_fiber_diameters = 4:20 %microns
        all_pulse_durations = [0.01 0.02 0.05 0.1 0.5 1 2 5] %ms
        %Careful: the stimulus specification code expects microseconds
+       
+       resistivity_transverse = 100/0.083
+       resistivity_longitudinal = 100/0.33
        
        %NOTE: Nodes are 
        mdf2 %pulse duration, diameter, node
@@ -34,19 +38,23 @@ classdef Peterson_2011
            %    obj = NEURON.reproductions.Peterson_2011;
            
         end
-        function options = getElevenElectrodeStimOptions(obj,adjacent_spacing,stim_duration)
+        function options = getDefaultOptions(obj)
+           options = {...
+               'tissue_resistivity', [obj.resistivity_transverse obj.resistivity_transverse obj.resistivity_longitudinal]};
+        end
+        function options = getElevenElectrodeStimOptions(obj,adjacent_spacing,stim_duration,eas)
            %See page 4
            %Adjacent electrode spacing - 400:100:1500 um
            %EAS held at 200 um
            
-           EAS = 200;
+           %EAS = 200;
            STIM_START_TIME = 0.1;
            
            stim_scales  = [0.4 -1 0.7 -1 0.7 -1 0.7 -1 0.7 -1 0.4];
            stim_centers = -adjacent_spacing*5:adjacent_spacing:adjacent_spacing*5;
            
            electrode_locations = zeros(11,3);
-           electrode_locations(:,1) = EAS;
+           electrode_locations(:,1) = eas;
            electrode_locations(:,3) = stim_centers;
            
            options = {...
@@ -59,13 +67,26 @@ classdef Peterson_2011
         function figure7(obj)
            %7a not yet implemented ...
            
+           %10 um diameter fiber
+           %NOTE: I Think at least 7b and 7c, maybe 
+           %7a were done with a 8.7 um diameter fiber or
+           %a 10 um diameter fiber with less than 20 internodes
+           
+           
+           ADJACENT_ELECTRODE_SPACING_7b = 500;
+           ADJACENT_ELECTRODE_SPACING_7c = 1000;
+           EAS = 200;
            
            %FIGURE 7B
            %===============================================================
-           stim_options = getElevenElectrodeStimOptions(obj,500,1);
-           all_options = [stim_options 'cell_center' [0 0 0]];
-           xstim = NEURON.simulation.extracellular_stim.create_standard_sim(all_options{:});
-           xstim.plot__AppliedStimulus(1);
+           adjacent_electrode_spacing = [ADJACENT_ELECTRODE_SPACING_7b ADJACENT_ELECTRODE_SPACING_7c];
+           for iPlot = 1:2
+              subplot(2,1,iPlot)
+              stim_options = getElevenElectrodeStimOptions(obj,adjacent_electrode_spacing(iPlot),1,EAS);
+              all_options = [stim_options obj.getDefaultOptions];
+              xstim = NEURON.simulation.extracellular_stim.create_standard_sim(all_options{:});
+              xstim.plot__AppliedStimulus(1);
+           end
            
         end
     end

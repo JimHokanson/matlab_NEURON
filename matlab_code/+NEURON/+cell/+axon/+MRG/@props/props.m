@@ -17,26 +17,40 @@ classdef props < handle_light
     %   diam   - microns
     %   Ra     - ohm-cm
     %
-    %   NOTE: Most of these props should be private
-    %   with a method that allows changing them
-    %   On change, update simulation dirty bit ...
-    %
     %   IMPROVEMENTS
     %   ===================================================================
     %   1) Documentation
-    %   2) n_segs should be n_internodes
-    %   3) Change properties method
-    %
+    %   2) Change properties method
     
     %DIRTY INFORMATION
     %======================================================================
     %1) props_up_to_date_in_NEURON
     %2) Spatial information changes - notify spatial_obj of changes to
-    %   spatial parameters
+    %   spatial parameters.
+    %   obj.spatial_obj.spatialPropsChanged();
     %3)
     
+    %METHODS IN OTHER FILES
+    %======================================================================
+    %NEURON.cell.axon.MRG.props.getPropertyValuePairing
+    %NEURON.cell.axon.MRG.props.placeVariablesInNEURON
     
-    %NOTE: Values without defaults are calculated based on the dependent variables
+    
+    %PROPERTY CONSISTENCY
+    %NOTE: This is not fully implemented, specifically the property 
+    %changing methods are not implemented
+    %======================================================================
+    %1) Any change to a property that is not dependent on fiber will
+    %   cause a reevaluation of all property dependent variables
+    %   NOTE: Eventually this could be separated out
+    %2) Changing the fiber diameter will cause a reevaluation of all 
+    %   fiber diameter dependent variables
+    %3) To manually change fiber diameter dependent variables, these should
+    %   be changed after any non-fiber diameter dependent variables
+    % 
+    %   IMPORTANT: The goal with this setup is to always have the
+    %   properties be internally consistent, i.e. never needing to call
+    %   populateDependentVariables()
     
     properties (Hidden)
         parent       %Class: NEURON.cell.axon.MRG
@@ -45,9 +59,17 @@ classdef props < handle_light
     
     properties
         props_up_to_date_in_NEURON = false
+        %Set true by placeVariablesIntoNEURON
+        %Set false by:
+        %
+        %
+        
     end
     
     properties (SetAccess = private)
+        %------------------------------------------------------------------
+        %       NOTE: Values without defaults are diameter dependent
+        %------------------------------------------------------------------
         %morphological parameters -----------------------------------------
         fiber_diameter    = 10 %um choose from 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
         node_diameter          %um
@@ -66,9 +88,9 @@ classdef props < handle_light
         space_p2 = 0.004       %um, %PAPER: FLUT periaxonal space width
         space_i	 = 0.004       %um, %PAPER: STIN perixaonal space width
         
-        %DONT CHANGE THIS YET ....
-        %see function create_mrg_axon.hoc
-        n_STIN   = 6      %In this model, each internode is broken up into parts
+        %DONT CHANGE THIS YET, see function create_mrg_axon.hoc
+        n_STIN   = 6      %In this model, each internode is broken up into 
+        %parts instead of a single internode with multiple segments
         
         %NOTE: In general it is desirable to make this even, as this
         %provides an odd number of nodes (given terminating nodes on both
@@ -134,20 +156,24 @@ classdef props < handle_light
     end
     
     methods
-        function obj = props(parent_obj)
+        function obj = props(parent_obj,spatial_info_obj)
             obj.parent = parent_obj;
-            obj.populateDependentVariables(obj)
-        end
-        function populateSpatialInfoObj(obj,spatial_info_obj)
             obj.spatial_obj = spatial_info_obj;
+            obj.populateDependentVariables();
         end
         function changeFiberDiameter(obj,new_fiber_diameter)
            %TODO: Add check on range
            
            obj.fiber_diameter = new_fiber_diameter;
            obj.populateDependentVariables();
+           %NOTE: The dependent variables method will
+           %set all necessary dirty bits
+        end
+        function changeProperty(obj,props_and_values)
+           %NOT YET IMPLEMENTED
+           error('Not yet implemented')
+           
            obj.props_up_to_date_in_NEURON = false;
-           obj.spatial_obj.spatialPropsChanged();
         end
     end
     
@@ -219,7 +245,8 @@ classdef props < handle_light
             
             populateExtracellularParameters(obj)
             
-            obj.props_populated = true;
+            obj.props_up_to_date_in_NEURON = false;
+            obj.spatial_obj.spatialPropsChanged();
         end
         
         function populateExtracellularParameters(obj)

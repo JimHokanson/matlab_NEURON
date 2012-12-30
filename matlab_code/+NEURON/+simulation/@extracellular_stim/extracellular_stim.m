@@ -60,7 +60,7 @@ classdef extracellular_stim < NEURON.simulation
         %.init__create_stim_info()
         %.computeStimulus()
         %--------------------------------------------------------
-        v_all    %stim_times x n_electrodes
+        v_all    %stim_times x stim sites on cell
         t_vec    %1 x stim times
         %NOTE: Stim times is any time in which any stimulus changes, as
         %this will change the electric field that the cell is in. It will
@@ -104,7 +104,10 @@ classdef extracellular_stim < NEURON.simulation
         function set_Electrodes(obj,elec_objs)
             obj.elec_objs = elec_objs;
             stimElectrodesChanged(obj.ev_man_obj);
-            setEventManagerObject(obj.elec_objs,obj.ev_man_obj)
+            n_electrodes = length(elec_objs);
+            for iElectrode = 1:n_electrodes
+                setEventManagerObject(obj.elec_objs(iElectrode),obj.ev_man_obj)
+            end
         end
         function set_CellModel(obj,cell_obj)
             obj.cell_obj = cell_obj;
@@ -114,12 +117,25 @@ classdef extracellular_stim < NEURON.simulation
         end
     end
     
+    %SIMULATION METHODS ===================================================
     methods
+        
+        %sim__determine_threshold
+        %sim__getCurrentDistanceCurve
+        %sim__single_stim
+        
         %This is some code that needs to be updated. Its goal is to
         %determine stimulus threshold in a volume.
         %NOTE: This will be replaced with the sim_logger code
         %and the threshold_analysis object
-        %
+        
+        function sim__create_logging_data(obj)
+           sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
+           sim_logger.initializeLogging;
+           
+           
+        end
+        
         function act_obj = sim__get_activation_volume(obj,file_save_path,x_bounds,y_bounds,z_bounds)
             %TODO: Fix me ...
             act_obj = NEURON.results.xstim.activation_volume.get(obj,file_save_path,x_bounds,y_bounds,z_bounds);
@@ -183,7 +199,7 @@ classdef extracellular_stim < NEURON.simulation
     
     %PLOTTING  ============================================================
     methods
-
+       %NEURON.simulation.extracellular_stim.plot__AppliedStimulus
     end
     
     %TESTING =========================================================
@@ -203,7 +219,7 @@ classdef extracellular_stim < NEURON.simulation
            
             %Simulation properties:
             %----------------------------------------------
-            in.launch_neuron_process = false; %NOT YET IMPLEMENTED
+            in.launch_neuron_process = true; %NOT YET IMPLEMENTED
             in.debug                 = false;
             
             %Tissue properties:
@@ -212,18 +228,20 @@ classdef extracellular_stim < NEURON.simulation
             
             %Cell properties:
             %--------------------------------------------------------
-            in.cell_center           = [0 100 0];
+            in.cell_center           = [0 0 0];
             %in.cell_type             = 'MRG';
             
             %Electrode properties:
             %--------------------------------------------------------
-            in.electrode_locations   = [0 0 0];    %Array, rows are entries ...
+            in.electrode_locations   = [0 100 0];    %Array, rows are entries ...
             in.stim_scales           = {[-1 0.5]}; %Cell array of arrays
             in.stim_durations        = {[0.2 0.4]};%" "  "  "
             in.stim_start_times      = 0.1;      %Array
             in = processVarargin(in,varargin);
             
-            %TODO: Handle simulation properties ...
+            
+            %TODO: add on checks for passed in electrode options ...
+            
             %--------------------------------------------------------------
             obj = NEURON.simulation.extracellular_stim(...
                 'launch_NEURON_process',in.launch_neuron_process,'debug',in.debug);
@@ -231,15 +249,15 @@ classdef extracellular_stim < NEURON.simulation
             set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.tissue_resistivity));
             
             %stimulation electrode ---------------------------------
-            e_obj = NEURON.extracellular_stim_electrode(in.electrode_locations);
-            n_electrodes = length(e_obj);
+            e_objs = NEURON.extracellular_stim_electrode.create(in.electrode_locations);
+            n_electrodes = length(e_objs);
             for iElectrode = 1:n_electrodes
-               setStimPattern(e_obj,...
+               setStimPattern(e_objs(iElectrode),...
                    in.stim_start_times(iElectrode),...
                    in.stim_durations{iElectrode},...
                    in.stim_scales{iElectrode}); 
             end
-            set_Electrodes(obj,e_obj);
+            set_Electrodes(obj,e_objs);
             
             %cell ---------------------------------------------------
             %TODO: Could expand to other cell types ...

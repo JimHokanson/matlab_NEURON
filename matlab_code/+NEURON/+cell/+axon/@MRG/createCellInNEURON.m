@@ -28,13 +28,7 @@ placeVariablesInNEURON(obj.props_obj,c)
 %Run the hoc file
 c.load_file('create_mrg_axon.hoc');
 
-%NEURON.cell.axon.MRG.populateSpatialInfo
-%This will allow us to know things about the 3d spatial setup of the model
-%for applying the correct extracellular stimulus to it later
-
-%NEURON.cell.axon.MRG.populateSpatialInfo
-populateSpatialInfo(obj)
-
-obj.cell_populated_in_NEURON = true;
+%Spatial info - changed so that property requests recompute the spatial
+%info as necessary
 
 end
