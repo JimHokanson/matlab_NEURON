@@ -46,7 +46,7 @@ classdef pathing
            obj.main_table_path = fullfile(obj.root_data_path,'sim_table.mat');
         end
         function data_path = getSavedSimulationDataPath(obj,simulation_number)
-           data_path = fullfile(obj.root_data_path,sprintf('Sim_%3d.mat',simulation_number));
+           data_path = fullfile(obj.root_data_path,sprintf('Sim_%03d.mat',simulation_number));
         end
     end
     

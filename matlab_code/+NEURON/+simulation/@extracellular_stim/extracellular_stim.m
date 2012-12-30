@@ -133,9 +133,11 @@ classdef extracellular_stim < NEURON.simulation
            sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
            sim_logger.initializeLogging(obj);
            
+           keyboard
+           
            sim_logger.getThresholds();
            
-           keyboard
+           
         end
         
         function act_obj = sim__get_activation_volume(obj,file_save_path,x_bounds,y_bounds,z_bounds)

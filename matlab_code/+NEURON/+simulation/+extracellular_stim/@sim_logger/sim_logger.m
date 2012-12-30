@@ -28,7 +28,7 @@ classdef sim_logger < handle_light
        paths_obj
        matcher_obj
        
-       sim_data_obj 
+       simulation_data_obj 
     end
     
     properties
@@ -36,8 +36,6 @@ classdef sim_logger < handle_light
        current_number_data_points = 0 %We can update this as we add more simulations
        %to the run
        current_simulation_number  = 0 %This is the id of the simulation being run
-       
-       simulation_data_obj %Class: NEUON
        
        current_xstim_obj %Class: NEURON.simulation.extracellular_stim.sim_logger.data
     end
@@ -91,8 +89,18 @@ classdef sim_logger < handle_light
                     xstim_obj,index,obj.paths_obj.getSavedSimulationDataPath(index));
            
         end
-        function getThresholds(obj,stimulus_locations,threshold_sign)
-           
+        function getThresholds(obj,cell_locations,threshold_sign)
+           %
+           %    INPUTS
+           %    ===========================================================
+           %    cell_locations
+           %    threshold_sign
+           %
+           %
+           %    See Also:
+           %        NEURON.simulation.extracellular_stim.sim_logger.data.getThresholds
+            
+            
            if obj.current_simulation_number == 0
                error('Simulation must currently be first initiated via initializeLogging')
            end

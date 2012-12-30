@@ -51,6 +51,7 @@ classdef data < handle_light
         VERSION = 1
     end
     
+    %INITIALIZATION =======================================================
     methods
         function obj = data(xstim_obj,simulation_number,data_path)
             %
@@ -83,14 +84,21 @@ classdef data < handle_light
             end
             
             if isempty(index)
-                obj.stimulus_setup_objs(end+1) = stimulus_setup_obj;
+                if isobject(obj.stimulus_setup_objs)
+                    obj.stimulus_setup_objs(end+1) = stimulus_setup_obj;
+                else
+                    obj.stimulus_setup_objs = stimulus_setup_obj;
+                end
                 obj.current_stimulus_setup_id = length(obj.stimulus_setup_objs);
             else
                 obj.current_stimulus_setup_id = index;
             end
-
         end
     end
     
+    %ADDING DATA ==========================================================
+    methods
+
+    end
 end
 
