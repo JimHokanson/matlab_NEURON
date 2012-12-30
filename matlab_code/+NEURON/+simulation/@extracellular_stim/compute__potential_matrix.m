@@ -1,7 +1,7 @@
-function potential_matrix = compute__potential_matrix(obj,x,y,z,varargin)
+function potential_matrix = compute__potential_matrix(obj,x_y_z,varargin)
 %compute__potential_matrix
 %
-%   p_mat = compute__potential_matrix(obj,x,y,z,varargin)
+%   p_mat = compute__potential_matrix(obj,x_y_z,varargin)
 %
 %   NOTE: This function was originally designed to allow analysis of the
 %   potential in a volume of space. In addition to helping with plotting
@@ -11,7 +11,8 @@ function potential_matrix = compute__potential_matrix(obj,x,y,z,varargin)
 %
 %   INPUTS
 %   =========================================================
-%   x,y,z : Arrays over which to compute the applied stimulus potential.
+%   x_y_z : either [samples by xyz] or {x_values y_values z_values}
+%           Arrays over which to compute the applied stimulus potential.
 %           The vectors are combined to form a grid.
 %
 %   OPTIONAL INPUTS
@@ -33,14 +34,32 @@ function potential_matrix = compute__potential_matrix(obj,x,y,z,varargin)
 %
 %   See Also:
 %       NEURON.simulation.extracellular_stim.compute_potential
+%       NEURON.simulation.extracellular_stim.sim_logger.data.getThresholds
+%
+%   Full Path:
+%       NEURON.simulation.extracellular_stim.compute__potential_matrix
 
-in.remove_zero_stim = true;
+
+%CRAP: I need to fix this method ...
+
+%remove_zero_stim_option: 0, nothing, 1 start & end, 2 all
+%returned_data_format: 0, for sim logging, by time in 4th dimension ...
+
+in.remove_zero_stim = false;
+in.remove_start_end_zero_stim = true;
 in.set_inf_to_nan   = true; 
 in = processVarargin(in,varargin);
 
 %Compute x,y,z in grid then linearize for input to computeStimulus
-[X,Y,Z] = meshgrid(x,y,z);
-xyz_use = [X(:) Y(:) Z(:)];
+
+%TODO: Should do error checking on input ...
+if iscell(x_y_z)
+    [X,Y,Z] = meshgrid(x_y_z{:});
+    xyz_use = [X(:) Y(:) Z(:)];
+else
+    xyz_use = x_y_z;
+end
+
 
 %NOTE: This populates v_all, t_vec
 computeStimulus(obj,'remove_zero_stim',in.remove_zero_stim,'xyz_use',xyz_use)

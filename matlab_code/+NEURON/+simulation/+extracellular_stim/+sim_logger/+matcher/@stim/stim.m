@@ -19,6 +19,10 @@ classdef stim < handle_light
     
     methods
         function obj = stim(stim_struct)
+           if nargin == 0
+               %This is essentially an initialization call
+               return
+           end
            obj.data_linearization = stim_struct.data_linearization;
         end
         function I = getMatchingEntries(obj,xstim_obj,current_max_index)

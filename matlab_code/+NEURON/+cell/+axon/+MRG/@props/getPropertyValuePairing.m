@@ -66,5 +66,5 @@ p_v = {...
     'xc_i'              p.xc_i};
 
 if value_array_only
-   p_v = p_v(:,2)'; 
+   p_v = [p_v{:,2}]; 
 end

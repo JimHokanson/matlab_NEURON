@@ -21,6 +21,10 @@ classdef cell_props < handle_light
     
     methods
         function obj = cell_props(cell_props_struct)
+            if nargin == 0
+                %This is essentially an initialization call
+                return
+            end
             obj.cell_type = cell_props_struct.cell_type;
             obj.data_linearization = cell_props_struct.data_linearization;
         end
@@ -43,6 +47,7 @@ classdef cell_props < handle_light
             I1 = find(current_data_local.cell_type == obj.cell_type(indices_to_test));
             
             if isempty(I1)
+                I = [];
                 return 
             end
             
@@ -63,6 +68,7 @@ classdef cell_props < handle_light
                 'data_linearization',{obj.data_linearization},...
                 'version',obj.VERSION,...
                 'cell_type',obj.cell_type);
+        end
     end
     
 end
