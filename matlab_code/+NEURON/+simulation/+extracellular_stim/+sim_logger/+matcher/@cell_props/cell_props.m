@@ -54,12 +54,9 @@ classdef cell_props < handle_light
             temp_cell_type = obj.current_data_instance.cell_type;
             temp_pv_array  = obj.current_data_instance.property_values_array;
             
-            if isempty(obj.cell_type)
-               obj.cell_type = [obj.cell_type temp_cell_type];
-               obj.data_linearization = [obj.data_linearization temp_pv_array];
-           else
-               
-           end
+            obj.cell_type = [obj.cell_type temp_cell_type];
+            obj.data_linearization = [obj.data_linearization temp_pv_array];
+
         end
         function data = getSavingStruct(obj)
             data = struct(...
