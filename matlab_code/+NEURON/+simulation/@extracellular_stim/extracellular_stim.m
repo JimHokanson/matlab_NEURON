@@ -360,7 +360,7 @@ classdef extracellular_stim < NEURON.simulation
             set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.TISSUE_RESISTIVITY));
             
             %stimulation electrode ---------------------------------
-            e_obj = NEURON.extracellular_stim_electrode(in.ELECTRODE_LOCATION);
+            e_obj = NEURON.extracellular_stim_electrode.create(in.ELECTRODE_LOCATION);
             setStimPattern(e_obj,in.STIM_START_TIME,in.STIM_DURATIONS,in.STIM_SCALES);
             set_Electrodes(obj,e_obj);
             
