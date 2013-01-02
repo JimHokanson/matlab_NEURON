@@ -1,26 +1,56 @@
 function groups_of_indices_to_run = getGroups(...
     obj,applied_stimuli,cell_locations,old_stimuli,thresholds,old_locations)
 
-%For right now we'll do a really basic algorithm. This could get fancier at
-%some point ...
+%NOTE: We don't currently use the previous threshold information
+%or location info but we could eventually ...
 
-% A nice algorithm would minimize distances from all points to the nearest
-% selected point
+%==========================================================================
+%QUESTION : Do we peform an initial transform of the input stimulus
+%ANSWER   : I believe we should take 1/x^2, see reasoning below
+%NOTE: An alternative approach would be to compare in differential space
+%***** This might be the most appropriate of all ...
+%NOTE: This is also essentially equivalent to how one predicts the values
+%and ideally these two methods could interact in a learning system
+%==========================================================================
+%The problem with the current solution is that the applied stimulus
+%is not linearly related to threshold, which makes using distance between
+%stimuli a bad metric (although it should suffice for now)
 %
-%i.e. minimize(sum over all points(point - chosen point that is closest)
+%In general it is believed that a rough threshold = I0 + k*r^2 law holds
 %
-%It would do this repeatably, choosing a set of points
+%Stimuli = 1/r
+%
+%Threshold = f(stimuli)?????
+%
+%   NOTE: This is a rough approximation and doesn't take into account
+%   gradients or multiple electrodes changing things
+%
+%THE WORK
+%--------------------------------------------------------------------------
+%r = 1/stimuli
+%
+%   threshold = I0 + k*(1/stimuli)^2
+%
+%   Thus, a hypothesis is that we'll get quicker convergence if we learn
+%   based on a distance that compares 1/stimuli^2 then if we learn over
+%   stimuli to the 2nd.
+%
+%   NOTE: Once we collect the data we could easily test this with
+%   regression.
+%
+%
+%
+%   TODO: Finish this line of thought
+%
+%   GOAL: Essentially we want our distance metric to evenly sample
+%   threshold, which we don't know, but we might be able to make an
+%   intelligent guess about what we don't know
 
-
-%TODO: Reduce data
-%TODO: With lots of samples this could get slow really quickly
-%for the representative input sample we should reduce to a representative
-%set that is maximially different - use clustering techniques????
-
-
-groups_of_indices_to_run = [];
-
-
+%==========================================================================
+%QUESTION:Do we include new group data in subsequent runs
+%ANSWER  : YES!
+%See below for reasoning
+%==========================================================================
 %NOTE: On subsequent runs, when adding new base values, we need
 %to keep previous base values so as to provide valid references
 %example
@@ -39,71 +69,135 @@ groups_of_indices_to_run = [];
 
 
 
-n_new_stimuli = size(applied_stimuli,1);
 
-n_groups_total = ceil(n_new_stimuli/obj.opt__n_sims_per_group);
+%**************************************************************************
+%Things to do before function is done:
+%1) Input transform
+%2) Reduce dimensionality before distance testing
+%3) Try kmeans based approach
+%       - take kmeans with clusters equal to # of points to add
+%       - how does this take into account previous work?????
+%4) Write better code for group sizes, we should start small
+%with only a few points and then increase the relative group size
+%as we progress, then at some point we should throw everything into the
+%remaining group
+%5) Reduce previous data as well into fake previous data
+%   NOTE: This is where the previous threshold data might become useful ...
+%
+
+
+keyboard
+
+
+%For right now we'll do a really basic algorithm. This could get fancier at
+%some point ...
+
+
+
+
+
+
+
+
+n_sims_per_group_local   = obj.opt__n_sims_per_group;
+n_new_stimuli  = size(applied_stimuli,1);
+n_groups_total = ceil(n_new_stimuli/n_sims_per_group_local;
 
 groups_of_indices_to_run = cell(1,n_groups_total);
 
-n_sims_per_group_local = obj.opt__n_sims_per_group;
 
-matched_indices   = [];
+
 unmatched_indices = 1:n_new_stimuli;
 
-current_base_data = old_stimuli;
 
-N_RANDOMIZATIONS = 1000; %We might change this or allow the user to change this eventually
+N_RANDOMIZATIONS = 2000; %We might change this or allow the user to change this eventually
 
-rand_total = zeros(N_RANDOMIZATIONS,obj.opt__n_sims_per_group);
 
-scores     = zeros(1,N_RANDOMIZATIONS);
+distance_between_new     = pdist2(applied_stimuli,applied_stimuli);
+if isempty(old_stimuli)
+    distance_between_new_old = [];
+else
+    distance_between_new_old = pdist2(applied_stimuli,old_stimuli);
+end
 
+min_distance_old = min(distance_between_new_old,[],2);
+
+%How to go from this to the randomization?????
+
+
+min_dist_best_aligned = Inf(n_new_stimuli,1);
+best_score_all = zeros(1,n_groups_total);
 for iGroup = 1:n_groups_total-1
     
-   remaining_data = applied_stimuli(unmatched_indices,:);
+   %remaining_data = applied_stimuli(unmatched_indices,:);
    
    n_remaining = length(unmatched_indices);
    
+   use_as_next_group_mask = false(1,n_remaining);
    
-   
+   score = Inf;
    for iRand = 1:N_RANDOMIZATIONS
+      use_as_next_group_mask(:) = false;
+      use_as_next_group_mask(randperm(n_remaining,n_sims_per_group_local)) = true;
       
-      %NOTE: Do I want to change to writing as a column????
-       
-       test_indices = randperm(n_remaining,n_sims_per_group_local);
+      possible_next_group_indices = unmatched_indices(use_as_next_group_mask);
+      remaining_unmatched_indices = unmatched_indices(~use_as_next_group_mask);
       
-       rand_total(iRand,:) = test_indices;
-       
-      other_indices = 1:n_remaining;
-      other_indices(test_indices) = [];
+      dist_1 = distance_between_new(remaining_unmatched_indices,possible_next_group_indices);
       
-      unmatched_data = remaining_data(other_indices,:);
-      matched_data   = [remaining_data(test_indices,:); current_base_data];
+      min_dist_1 = min(dist_1,[],2);
       
-      D = pdist2(unmatched_data,matched_data);
-      
-      keyboard
-      
-      %scores(iRand) = min(D);
-      
-      %Get distance metric
-      %Update scores
+      if isempty(min_distance_old)
+          temp_score = sum(min_dist_1);
+      else
+          temp_score = sum(min(min_dist_1,min_distance_old(remaining_unmatched_indices)));
+      end
+
+      if temp_score < score
+          score = temp_score;
+          best_use_as_next_group_mask = use_as_next_group_mask;
+          min_dist_best     = min_dist_1;
+      end
    end
    
-   %Take out best solution
-   [~,best_score_index] = min(scores);
-   best_next_indices = rand_total(best_score_index,:);
+   best_score_all(iGroup) = score;
+   
+   %NOTE: These indices are aligned to the indices of
+   %unmatched_indices, not the original values
+   best_next_indices = find(best_use_as_next_group_mask);
    
    groups_of_indices_to_run{iGroup} = unmatched_indices(best_next_indices);
    
    unmatched_indices(best_next_indices) = [];
+
+   min_dist_best_aligned(unmatched_indices) = min_dist_best;
    
-   %current_base_data = [current_base_data; remaining_data
-       
-   
-   
+   if isempty(min_distance_old)
+       min_distance_old = min_dist_best_aligned;
+   else
+       min_distance_old = min(min_dist_best_aligned,min_distance_old);
+   end
    
 end
+
+groups_of_indices_to_run{end} = unmatched_indices;
+
+keyboard
+
+%Some plot testing
+row = zeros(1,n_new_stimuli);
+c = cell_locations;
+for iGroup = 1:n_groups_total
+   row(groups_of_indices_to_run{iGroup}) = iGroup; 
+   i_use = find(row ~= 0);
+   scatter3(c(i_use,1),c(i_use,2),c(i_use,3),100,row(i_use),'filled');
+   axis equal
+   title(sprintf('Run %d',iGroup))
+   pause
+end
+
+
+
 
 
 
