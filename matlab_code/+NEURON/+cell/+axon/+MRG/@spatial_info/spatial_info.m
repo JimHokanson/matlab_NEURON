@@ -36,6 +36,10 @@ classdef spatial_info < handle_light
            obj.populate_spatialInfo();
             avg_node_spacing = obj.avg_node_spacing; 
         end
+        function xyz_nodes = get__XYZnodes(obj)
+           xyz_all = obj.get__xyz_all(); %#ok<PROP>
+           xyz_nodes = xyz_all(obj.section_ids == 1,:); %#ok<PROP>
+        end
     end
     
     %======================================================================

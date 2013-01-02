@@ -61,7 +61,6 @@ classdef cell_props < handle_light
             
             obj.cell_type = [obj.cell_type temp_cell_type];
             obj.data_linearization = [obj.data_linearization temp_pv_array];
-
         end
         function data = getSavingStruct(obj)
             data = struct(...

@@ -24,7 +24,7 @@ classdef extracellular_stim_capable < handle
     %   Class: NEURON.cell.extracellular_stim_capable
     
     properties (Abstract,SetAccess = private)
-        xyz_all %NOTE: This is a [n x 3] vector which should match the 
+        xyz_all %NOTE: This is a [n x 3] vector which should match the
         %spatial layout of the section list defined in the method
         %.create_stim_sectionlist()
     end
@@ -35,12 +35,12 @@ classdef extracellular_stim_capable < handle
         opt__use_local_stim_sectionlist_code = false; %If true code should
         %implement create_stim_sectionlist. If false the default will be
         %used
-        opt__first_section_access_string = 'access node[0]'; %This is the 
+        opt__first_section_access_string = 'access node[0]'; %This is the
         %access statement used when using the default creation of the section list ...
         
         %.create_node_sectionlist
         %-----------------------------------------------------------------
-        opt__use_local_node_sectionlist_code = false; 
+        opt__use_local_node_sectionlist_code = false;
     end
     
     methods (Abstract)
@@ -60,12 +60,19 @@ classdef extracellular_stim_capable < handle
         
         threshold_info_obj = getThresholdInfo(obj)  %See class: NEURON.cell.threshold_info
         %This method should return an object of the class threshold_info
+        
+        xyz_nodes = getXYZnodes(obj) %Written for sim logger where
+        %I want to look at the stimulus applied to the nodes, adding
+        %internodes adds considerable size and is hopefully not
+        %necessary ..
+        
     end
     
+    %Standard Shared Methods ==============================================
     methods
         function create_stim_sectionlist(obj,cmd_obj)
             %create_stim_sectionlist
-            %   
+            %
             %   create_stim_sectionlist(obj,cmd_obj)
             %
             %   NEURON.cell.extracellular_stim_capable.create_stim_sectionlist
@@ -96,7 +103,31 @@ classdef extracellular_stim_capable < handle
                 cmd_obj.run_command('create_node_sectionlist(xstim__node_sectionlist)');
             else
                 cmd_obj.run_command('xstim__create_node_sectionlist(xstim__node_sectionlist)');
-            end 
+            end
+        end
+        function xyz_out = getCellXYZMultipleLocations(obj,cell_locations)
+            %
+            %   Created for use with the sim_logger
+            %
+            %   OUTPUTS
+            %   ===============================
+            %   xyz_out: observations x space x xyz
+            
+            %NOTE: Needs to be node voltages only
+            %=> create special method for cell
+            
+            if iscell(cell_locations)
+                [X,Y,Z] = meshgrid(cell_locations{:});
+                xyz_use = [X(:) Y(:) Z(:)];
+            else
+                xyz_use = cell_locations;
+            end
+            
+            obj.moveCenter([0 0 0]);
+            
+            xyz_cell = obj.getXYZnodes();
+            
+            xyz_out = bsxfun(@plus,permute(xyz_use,[1 3 2]),permute(xyz_cell,[3 1 2]));
         end
     end
     

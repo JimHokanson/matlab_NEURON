@@ -1,19 +1,21 @@
-function computeStimulus(obj,varargin)
+function varargout = computeStimulus(obj,varargin)
 %computeStimulus Computes the stimulus
 %   
-%   computeStimulus(obj,varargin)
+%   varargout = computeStimulus(obj,varargin)
 %
 %   Computes the stimulus that is applied to a cell.
 %
-%   POPULATES
-%   ===============================
+%   POPULATES (unless requested via output, [t_vec,v_all]
+%   ======================================================================
 %   obj.t_vec
 %   obj.v_all
 %
 %   OPTIONAL INPUTS
 %   =======================================================================
-%   remove_zero_stim : (default false), if true removes times when there is
-%                      no stimulus.
+%   remove_zero_stim_option: (default 0)
+%           - 0, remove nothing
+%           - 1, remove start & end zeros
+%           - 2, remove all zero stim times
 %   xyz_use          : (default []), allows passing in different locations, 
 %                       default (i.e. if empty) is to use cell location
 %
@@ -34,7 +36,7 @@ function computeStimulus(obj,varargin)
 %
 %
 
-in.remove_zero_stim = false;
+in.remove_zero_stim_option = 0;
 in.xyz_use          = [];
 in = processVarargin(in,varargin);
 
@@ -49,11 +51,24 @@ end
 [t_vec,all_stim] = getMergedStimTimes(obj.elec_objs);
 %all_stim: columns are electrodes, rows are times
 
-if in.remove_zero_stim
-   %removal of zero stim cases
-   mask = ~any(all_stim,2);
-   all_stim(mask,:) = [];
-   t_vec(mask)      = [];
+switch in.remove_zero_stim_option
+    case 0
+        %Do Nothing
+    case 1
+        mask = false(1,size(all_stim,1));
+        if all(all_stim(1,:) == 0)
+            mask(1) = true;
+        end
+        if all(all_stim(end,:) == 0)
+            mask(end) = true;
+        end
+        all_stim(mask,:) = [];
+        t_vec(mask)      = [];
+    case 2
+        %removal of zero stim cases
+        mask = ~any(all_stim,2);
+        all_stim(mask,:) = [];
+        t_vec(mask)      = [];
 end
 
 %Compute the voltage field
@@ -72,5 +87,11 @@ for iElec = 1:n_electrodes
     end
 end
 
-obj.v_all = v_all;
-obj.t_vec = t_vec;
+%Not super thrilled about this hack ...
+if nargout
+    varargout{1} = t_vec;
+    varargout{2} = v_all;
+else
+    obj.v_all = v_all;
+    obj.t_vec = t_vec;
+end

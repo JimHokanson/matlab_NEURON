@@ -130,13 +130,12 @@ classdef extracellular_stim < NEURON.simulation
         %and the threshold_analysis object
         
         function sim__create_logging_data(obj)
+           %wtf = NEURON.simulation.extracellular_stim.create_standard_sim;
+           %wtf.sim__create_logging_data()
            sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
            sim_logger.initializeLogging(obj);
            
-           keyboard
-           
-           sim_logger.getThresholds();
-           
+           sim_logger.getThresholds({-100:20:100 -100:20:100 -500:20:500},1);
            
         end
         
@@ -217,6 +216,10 @@ classdef extracellular_stim < NEURON.simulation
            %    ===========================================================
            %    tissue_resistivity : (default 500 Ohm-cm, Units: Ohm-cm),
            %        either a 1 or 3 element vector ...
+           %
+           %
+           %    FULL PATH:
+           %    NEURON.simulation.extracellular_stim.create_standard_sim
            %
            %    TODO: Finish documenting optional inputs that are below
            %

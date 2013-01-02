@@ -109,6 +109,9 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     
     %INFO FOR OTHERS ======================================================
     methods
+        function xyz_nodes = getXYZnodes(obj)
+           xyz_nodes = obj.spatial_info_obj.get__XYZnodes();
+        end
         function avg_node_spacing = getAverageNodeSpacing(obj)
             %getAverageNodeSpacing
             %

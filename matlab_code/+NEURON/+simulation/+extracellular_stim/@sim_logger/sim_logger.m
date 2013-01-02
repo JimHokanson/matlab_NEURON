@@ -105,6 +105,8 @@ classdef sim_logger < handle_light
                error('Simulation must currently be first initiated via initializeLogging')
            end
             
+           thresholds = obj.simulation_data_obj.getThresholds(cell_locations,threshold_sign);
+           
            applied_stimuli = [];
            
             

@@ -52,6 +52,11 @@ classdef java_comm_obj < NEURON.comm_obj
     
     methods
         function obj = java_comm_obj(paths_obj)
+            %
+            %   For direct call testing:
+            %   NEURON.comm_obj.java_comm_obj(NEURON.paths);
+            %
+            %
             obj.paths = paths_obj;
             
             if ispc
@@ -64,9 +69,21 @@ classdef java_comm_obj < NEURON.comm_obj
             temp_process_builder = java.lang.ProcessBuilder(cmd_array);
             
             if ispc
+               %For hiding window later ...
                process_array = System.Diagnostics.Process.GetProcessesByName('nrniv'); 
+
+               %For focus management ...
+               mde = com.mathworks.mde.desk.MLDesktop.getInstance;
+               cw = mde.getClient('Command Window');
+               cw_has_focus  = cw.hasFocus;
+%                if ~cw_has_focus
+%                    ed = mde.getGroupContainer('Editor').getTopLevelAncestor;
+%                    ed_has_focus = ed.isActive;
+%                end
             end
             
+            %Starting the process
+            %--------------------------------------------------
             obj.j_process       = temp_process_builder.start();
             
             obj.j_error_stream  = obj.j_process.getErrorStream;
@@ -79,6 +96,15 @@ classdef java_comm_obj < NEURON.comm_obj
             
             hideWindow(obj,process_array)
             
+            %Giving focus back ...
+            if ispc 
+                if cw_has_focus
+                %NOTE: I'm not sure that you lose focus for mac or unix
+                commandwindow
+% %                 elseif ed_has_focus
+% %                    ed.requestFocus; 
+                end
+            end
         end
         function hideWindow(obj,old_process_array)
             if ispc

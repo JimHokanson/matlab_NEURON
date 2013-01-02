@@ -17,17 +17,21 @@ function potential_matrix = compute__potential_matrix(obj,x_y_z,varargin)
 %
 %   OPTIONAL INPUTS
 %   ==============================================================
-%   remove_zero_stim : (default true), if true this removes cases
-%                      in which no stimulus is applied. Generally at the
-%                      beginning of a simulation, the stimulus is
-%                      initialized to zero. This may not be interesting to
-%                      the user who only wants to look at the potential due
-%                      to a stimulus pulse.
-%   set_inf_to_nan   : (default true), If true, this replaces infinite values
-%                       in the potential matrix output with NaN. This would
-%                       occur when the distance betweeen the stimulus and
-%                       the cell is zero.
-%
+%   remove_zero_stim_option: (default 0)
+%           - 0, remove nothing
+%           - 1, remove start & end zeros
+%           - 2, remove all zero stim times
+%   returned_data_format : (default 0)
+%           - 0, samples x space x time
+%           - 1, samples x [space & time], this provides a concatenation
+%                of all space values for a given time, followed by all
+%                space values for the subsequent time
+%           - 2, x by y by z by space x time NOT YET IMPLEMENTED
+%                   only possible if input is in cell array form
+%   change_inf_value : (default NaN), value to change inf to. Values
+%   besides NaN will be signed i.e. if you are at -Inf and you apply a
+%   replacement value of 10000 you will have -10000 in place of -Inf
+%   
 %   OUTPUTS
 %   =========================================================
 %   potential_matrix : Dimensions are x,y,z,stim_time 
@@ -40,15 +44,19 @@ function potential_matrix = compute__potential_matrix(obj,x_y_z,varargin)
 %       NEURON.simulation.extracellular_stim.compute__potential_matrix
 
 
+%JAH NOTE: 12/30/2012 11:15 PM
+%I started rewriting this method without thinking too much about what
+%I was doing, I might eventually revert to an older version and use a
+%different approach or what I was trying to do with the data functions in
+%the sim logger
+
 %CRAP: I need to fix this method ...
 
-%remove_zero_stim_option: 0, nothing, 1 start & end, 2 all
-%returned_data_format: 0, for sim logging, by time in 4th dimension ...
+in.remove_zero_stim_option = 1;
+in.returned_data_format    = 0;
+in.change_inf_value        = NaN;
+in = process_varargin(in,varargin);
 
-in.remove_zero_stim = false;
-in.remove_start_end_zero_stim = true;
-in.set_inf_to_nan   = true; 
-in = processVarargin(in,varargin);
 
 %Compute x,y,z in grid then linearize for input to computeStimulus
 
