@@ -141,6 +141,41 @@ unmatched_indices(groups_of_indices_to_run{1}) = [];
 %--------------------------------------------------------------------
 distance_between_new     = pdist2(applied_stimuli,applied_stimuli);
 
+keyboard
+
+%Matrix, New
+
+%NEW ALGORITHM
+%rows are old points
+%columns are new points
+%
+%
+%Crap, I am missing something ....
+%The question is, which point if I eliminate would reduce
+%the most from the distance of others ...
+%This is nearly a complete thought, I just need more work
+
+%Point to elminate is the one closest to all other points - I think
+%What happens after the first point ...
+
+%Random thought, not sure if useful, points greater than chosen point
+%are replaced with chosen point
+%CRAP: I think this is how the algorithm needs to be run
+%What if for all points, I replace their distances with the guy 
+%that is being chosen, how much does the sum go down for all unmatched
+%points ...
+%
+
+if isempty(old_stimuli)
+   dist_matrix = pdist2(applied_stimuli,applied_stimuli);
+else
+   dist_matrix = pdist2([applied_stimuli; old_stimuli],applied_stimuli); 
+end
+
+sum_dist_matrix = sum(dist_matrix);
+
+
+
 %Old distance will be the combination of the first group + 
 %the old stimuli (if present)
 
