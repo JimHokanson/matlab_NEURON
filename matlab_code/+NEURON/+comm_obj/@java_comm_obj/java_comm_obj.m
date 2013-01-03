@@ -94,10 +94,11 @@ classdef java_comm_obj < NEURON.comm_obj
             obj.j_reader        = NEURON_reader(obj.j_input_stream,...
                 obj.j_error_stream,obj.j_process);
             
-            hideWindow(obj,process_array)
-            
-            %Giving focus back ...
             if ispc 
+                % hide window
+                hideWindow(obj,process_array)
+                
+                %Giving focus back ...
                 if cw_has_focus
                 %NOTE: I'm not sure that you lose focus for mac or unix
                 commandwindow
