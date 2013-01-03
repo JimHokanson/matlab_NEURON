@@ -66,10 +66,18 @@ classdef paths < handle
             getCompilePaths(obj)
         end
         function getCompilePaths(obj)
-            obj.c_root_install   = fileparts(fileparts(obj.exe_path));
-            obj.c_bash           = fullfile(obj.c_root_install,'bin','bash');
-            obj.c_bashStartFile  = fullfile(obj.c_root_install,'lib','bshstart.sh');
-            obj.c_mknrndll       = fullfile(obj.c_root_install,'lib','mknrndll.sh');
+            if ispc
+                obj.c_root_install   = fileparts(fileparts(obj.exe_path));
+                obj.c_bash           = fullfile(obj.c_root_install,'bin','bash');
+                obj.c_bashStartFile  = fullfile(obj.c_root_install,'lib','bshstart.sh');
+                obj.c_mknrndll       = fullfile(obj.c_root_install,'lib','mknrndll.sh');
+            else % mac, possibly for unix too, untested
+                if ~ismac
+                    warning('non-mac unix has not been tested.')
+                end
+                obj.c_root_install = fileparts(fileparts(fileparts(fileparts(obj.exe_path))));
+                obj.c_mknrndll = fullfile(obj.c_root_install,'nrn','i386','bin','nrnivmodl');
+            end
         end
     end
 

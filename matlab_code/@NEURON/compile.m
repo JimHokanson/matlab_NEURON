@@ -19,12 +19,12 @@ function compile(mod_dir_path)
 %   See Also:
 %       NEURON.paths
 
-if ~ispc
-    error('Code needs to be modified for non-windows systems')
-end
+%if ~ispc
+%    error('Code needs to be modified for non-windows systems')
+%end
 
 np = NEURON.paths;
-
+if ispc
 %EXAMPLE PATHS
 %================================================
 %          c_root_install: 'C:\nrn72'
@@ -46,3 +46,21 @@ temp = [bash_path ' --rcfile ' bash_start_file ' -c "cd ' mod_dir_path ' && ' mk
 fprintf(2,'------------------  Compiling mod functions  ------------------\n');
 dos(temp,'-echo');
 fprintf(2,'------------------  Compile End  ------------------\n');
+
+elseif ismac %may work for all unix systems, but untested
+    mknrndll = np.c_mknrndll;
+    NEURON_root = np.c_root_install;
+    NEURON_bin = fileparts(mknrndll);
+    
+    %temp = ['cd ' mod_dir_path ' && ' mknrndll ' ' NEURON_root ];
+        %temp = ['cd ' mod_dir_path ' && ' mknrndll ' && ' NEURON_bin];
+        temp = ['cd ' mod_dir_path '&& ' mknrndll];
+
+    
+    fprintf(2,'------------------  Compiling mod functions  ------------------\n');
+    unix(temp);
+    fprintf(2,'------------------  Compile End  ------------------\n');
+    
+else
+    error('Code needs to be modified for non-windows systems')
+end

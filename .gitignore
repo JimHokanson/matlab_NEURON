@@ -2,3 +2,6 @@
 *.bin
 *.o
 *.m~
+
+HOC_CODE/models/axon_models/mod_files/i386/*
+HOC_CODE/models/MRG_Axon/mod_files/i386/*

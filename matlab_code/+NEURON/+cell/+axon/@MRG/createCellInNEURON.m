@@ -18,7 +18,13 @@ cdToModelDirectory(obj)
 c = obj.cmd_obj; %Class: Neuron.cmd
 
 %This allows us to insert the MRG channel dynamics
-c.load_dll('mod_files/nrnmech.dll');
+if ispc
+    c.load_dll('mod_files/nrnmech.dll');
+elseif ismac
+    c.load_dll('mod_files/i386/.libs/libnrnmech.so');
+else
+   error('Non-Mac Unix systems are not yet supported.') 
+end
 
 %This puts all of the variables that are specific to the MRG model into
 %NEURON, so that the hoc code below works.
