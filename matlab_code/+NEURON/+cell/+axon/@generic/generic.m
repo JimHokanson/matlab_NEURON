@@ -144,7 +144,7 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
            threshold_info_obj = obj.threshold_info_obj;
         end
         function cell_log_data_obj = getXstimLogData(obj)
-           %NEURON.cell.axon.MRG.props.getPropertyValuePairing
+           %NEURON.cell.axon.generic.props.getPropertyValuePairing
            [pv,pv_version] = obj.props_obj.getPropertyValuePairing(true);
            cell_log_data_obj = NEURON.simulation.extracellular_stim.sim_logger.cell_log_data(...
                obj,[pv_version pv]);
