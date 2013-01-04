@@ -1,10 +1,29 @@
-classdef props < handle
+classdef props < handle_light
     %
     %
     %   Class: NEURON.cell.axon.generic.props
+    %
+    % Relevant NEURON files:
+    % create_generic_axon.hoc - see method
+    % NEURON.cell.axon.generic.createCellInNeuron()
+    %
+    %   NEURON UNITS
+    %   =================================================
+    %   Section Units
+    %   L      - microns
+    %   diam   - microns
+    %   Ra     - ohm-cm
+    
     
     properties (Hidden)
-        parent
+        parent %Class: NEURON.cell.axon.generic
+        spatial_obj %Class: NEURON.cell.axon.generic.spatial_info
+    end
+    
+    properties
+        props_up_to_date_in_NEURON = false
+        %Set true by placeVariablesIntoNEURON
+        %Set false by?
     end
     
     %Initial properties based loosely on McNeal 1976
@@ -45,6 +64,12 @@ classdef props < handle
     end
     
     methods 
+        function obj = props(parent_obj,spatial_info_obj)
+           obj.parent = parent_obj;
+           obj.spatial_obj = spatial_info_obj;
+           obj.populateDependentVariables();
+        end
+        
         function set.fiber_diameter(obj,value)
            obj.fiber_diameter = value;
            populateDependentVariables(obj);
@@ -72,9 +97,6 @@ classdef props < handle
                    error('Option not yet implemented')
            end
         end
-        function obj = props(parent_obj)
-            obj.parent = parent_obj;
-        end
     end
     
     
@@ -85,7 +107,9 @@ classdef props < handle
                 error('membrane_dynamics invalid')
             end
             
-            obj.parent.props_populated = true;
+           obj.props_up_to_date_in_NEURON = false;
+           obj.spatial_obj.spatialPropsChanged();
+           obj.parent.props_populated = true;
         end
     end
     

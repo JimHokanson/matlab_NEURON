@@ -6,15 +6,23 @@ cdToModelDirectory(obj) % NEURON.neural_cell.cdToModelDirectory cd's to model HO
 
 c = obj.cmd_obj;
 
-dynamics = obj.props_obj.node_membrane_dynamics;
-dll_path = fullfile('mod_files',[dynamics '.dll']);
-c.load_dll(dll_path); % place channel dynamics dll here
+%dynamics = obj.props_obj.node_membrane_dynamics;
+%dll_path = fullfile('mod_files',[dynamics '.dll']);
+%c.load_dll(dll_path);
+
+if ispc
+    c.load_dll('mod_files/nrnmech.dll');
+elseif ismac
+    c.load_dll('mod_files/i386/.libs/libnrnmech.so');
+else
+   error('Non-Mac Unix systems are not yet supported.') 
+end
+
 
 placeVariablesInNEURON(obj.props_obj,c) % NEURON.cell.axon.generic.props.placeVariablesInNEURON
 
 c.load_file('create_generic_axon.hoc');
 
 
-populateSpatialInfo(obj)
-
-obj.cell_populated_in_NEURON = true;
+%populateSpatialInfo(obj) % should be able to remove when spatial_info class is completed
+%obj.cell_populated_in_NEURON = true;

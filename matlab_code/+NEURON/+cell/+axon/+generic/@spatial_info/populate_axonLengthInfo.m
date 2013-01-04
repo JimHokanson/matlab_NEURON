@@ -1,16 +1,13 @@
-% to be deleted and replace by spatial_info class
-
-function populate_axon_length_info(obj)
+function populate_axonLengthInfo(obj)
 %
 %   Goal is to calculate the length of each segment
 %
+% Populates: 
+%  .L_all
+%
 %   NOTE: This could be simplified a bit
 %   1 - node
-%   2 - myeline
-%   3 - FLUT - paranode 2
-%   4 - n??? - STIN (see n_STIN
-%   n+1 FLUT
-%   MYSA
+%   2 - myelin
 %   repeat
 %   cap with a node
 %

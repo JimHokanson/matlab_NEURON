@@ -1,3 +1,5 @@
+% to be deleted and replace by spatial_info class
+
 function populate_xyz(obj)
 %populate_xyz
 %

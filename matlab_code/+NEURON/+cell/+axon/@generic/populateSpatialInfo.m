@@ -1,3 +1,5 @@
+% to be deleted and replaced by spatial_info class
+
 function populateSpatialInfo(obj)
 %populateSpatialInfo
 %

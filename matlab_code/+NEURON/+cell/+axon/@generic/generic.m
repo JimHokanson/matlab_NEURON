@@ -52,17 +52,20 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         HOC_CODE_DIRECTORY = 'axon_models';
     end
     
-    
-    properties
+    properties (SetAccess = private)
         xyz_center %Location of the axon center in global space
         props_obj %Class NEURON.cell.axon.generic.props
+        threshold_info_obj %Class: NEURON.cell.threshold_info
+        spatial_info_obj %Class: NEURON.cell.axon.generic.spatial_info
+        
+        xstim_event_manager_obj
         xyz_all   % populate_xyz()
     end
     
     properties (Hidden)
         cell_populated_in_NEURON % .createCellInNeuron, used by moveCenter
         props_populated = false; % props.populateDependentVariables
-        ev_man_obj;
+        %ev_man_obj;
         
         section_ids % ID of sections, see populate_section_id_info
         center_I % index into node that is center of axon
@@ -81,8 +84,10 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
                 return
             end
             
-            obj.xyz_center = xyz_center;
-            obj.props_obj = NEURON.cell.axon.generic.props(obj);
+            %obj.xyz_center = xyz_center;
+            obj.spatial_info_obj = NEURON.cell.axon.generic.spatial_info(obj,xyz_center);
+            obj.props_obj = NEURON.cell.axon.generic.props(obj,obj.spatial_info_obj);
+            obj.spatial_info_obj.setPropsObj(obj.props_obj);
         end  
     end
     
@@ -90,7 +95,7 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     % CHANGING METHODS
     methods
        function setEventManagerObject(obj,ev_man_obj)
-           obj.ev_man_obj = ev_man_obj;
+           obj.xstim_event_manager_obj = ev_man_obj;
         end
         function moveCenter(obj, newCenter)
             obj.xyz_center = newCenter;
@@ -105,6 +110,7 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     
     % INFO FOR OTHERS
     methods
+        %{
         function node_spacing = getNodeSpacing(obj)
            %What a mess ...
            if ~obj.spatial_info_populated
@@ -115,7 +121,36 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
            I = find(obj.section_ids == 1);
            node_spacing = obj.xyz_all(I(2),3) - obj.xyz_all(I(1),3); %NOTE: Might want to do distance instead
            %also might want to do the average diff
-        end 
+        end
+        %}
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%
+        function xyz_nodes = getXYZnodes(obj)
+           xyz_nodes = obj.spatial_info_obj.get__XYZnodes();
+        end
+        function avg_node_spacing = getAverageNodeSpacing(obj)
+            %getAverageNodeSpacing
+            %
+            %   Written For ...
+            
+            avg_node_spacing = obj.spatial_info_obj.get__avg_node_spacing;
+
+        end
+        function threshold_info_obj = getThresholdInfo(obj)
+           %TODO: Document
+           %
+           %    NOTE: I might want to change things ...
+           
+           threshold_info_obj = obj.threshold_info_obj;
+        end
+        function cell_log_data_obj = getXstimLogData(obj)
+           %NEURON.cell.axon.MRG.props.getPropertyValuePairing
+           [pv,pv_version] = obj.props_obj.getPropertyValuePairing(true);
+           cell_log_data_obj = NEURON.simulation.extracellular_stim.sim_logger.cell_log_data(...
+               obj,[pv_version pv]);
+        end
+        
+        
     end
     
     

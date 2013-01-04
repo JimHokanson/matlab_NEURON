@@ -1,6 +1,4 @@
-% to be deleted and replace by spatial_info class
-
-function populate_section_id_info(obj)
+function populate_sectionIdInfo(obj)
 %populate_section_id_info
 %
 %   Section IDs refer to values which distinguish

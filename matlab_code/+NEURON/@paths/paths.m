@@ -71,12 +71,11 @@ classdef paths < handle
                 obj.c_bash           = fullfile(obj.c_root_install,'bin','bash');
                 obj.c_bashStartFile  = fullfile(obj.c_root_install,'lib','bshstart.sh');
                 obj.c_mknrndll       = fullfile(obj.c_root_install,'lib','mknrndll.sh');
-            else % mac, possibly for unix too, untested
-                if ~ismac
-                    warning('non-mac unix has not been tested.')
-                end
+            elseif ismac
                 obj.c_root_install = fileparts(fileparts(fileparts(fileparts(obj.exe_path))));
                 obj.c_mknrndll = fullfile(obj.c_root_install,'nrn','i386','bin','nrnivmodl');
+            else
+                warning('Compiling .mod files on non-mac Unix systems is not yet supported.')
             end
         end
     end
