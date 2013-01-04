@@ -31,6 +31,7 @@ function result_obj = determine_threshold(obj,starting_value)
 %1) No applied stimulus 
 %   - this can come in if exactly half way between two opposite signed stimuli
 %2) Infinite applied extracellular voltage????
+%   - this is fixed when computing the stimulus ...
 
 %TODO: Check applied stimulus ...
 
@@ -191,7 +192,7 @@ if isempty(first_index_end_time)
     error('See code')
 end
 temp_vm = r.membrane_potential(first_index_end_time:end,:);
-isShort = any(temp_vm(:) > membrane_threshold);
+isShort = any(temp_vm(:) > r.vm_threshold);
 end
 
 function [lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,tested_value,result_obj)
@@ -202,6 +203,11 @@ function [lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,tested_valu
 %   This is the main function that is responsible for analyzing the
 %   membrane potential and determining whether or not to go higher or lower
 %   with the stimulus ...
+%
+%   INPUTS
+%   =======================================================================
+%   r : NEURON.simulation.extracellular_stim.results.single_sim
+%
 %
 %   OUTPUTS
 %   =======================================================================
@@ -239,7 +245,7 @@ else
 end
 
 
-result_obj.logResult(tested_value,isempty(lower_bound),r.max_membrane_potential)
+result_obj.logResult(tested_value,isempty(lower_bound),r.max_membrane_potential,r.membrane_potential)
 
 
 end

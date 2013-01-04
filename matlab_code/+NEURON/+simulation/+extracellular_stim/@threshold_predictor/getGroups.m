@@ -1,300 +1,198 @@
-function groups_of_indices_to_run = getGroups(...
+function [groups_of_indices_to_run,repetition_indices] = getGroups(...
     obj,applied_stimuli,cell_locations,old_stimuli,thresholds,old_locations)
-
-%NOTE: We don't currently use the previous threshold information
-%or location info but we could eventually ...
-
-%==========================================================================
-%QUESTION : Do we peform an initial transform of the input stimulus
-%ANSWER   : I believe we should take 1/x^2, see reasoning below
-%NOTE: An alternative approach would be to compare in differential space
-%***** This might be the most appropriate of all ...
-%NOTE: This is also essentially equivalent to how one predicts the values
-%and ideally these two methods could interact in a learning system
-%==========================================================================
-%The problem with the current solution is that the applied stimulus
-%is not linearly related to threshold, which makes using distance between
-%stimuli a bad metric (although it should suffice for now)
-%
-%In general it is believed that a rough threshold = I0 + k*r^2 law holds
-%
-%Stimuli = 1/r
-%
-%Threshold = f(stimuli)?????
-%
-%   NOTE: This is a rough approximation and doesn't take into account
-%   gradients or multiple electrodes changing things
-%
-%THE WORK
-%--------------------------------------------------------------------------
-%r = 1/stimuli
-%
-%   threshold = I0 + k*(1/stimuli)^2
-%
-%   Thus, a hypothesis is that we'll get quicker convergence if we learn
-%   based on a distance that compares 1/stimuli^2 then if we learn over
-%   stimuli to the 2nd.
-%
-%   NOTE: Once we collect the data we could easily test this with
-%   regression.
 %
 %
+%   [groups_of_indices_to_run,repetition_indices] = getGroups(...
+%    obj,applied_stimuli,cell_locations,old_stimuli,thresholds,old_locations)
 %
-%   TODO: Finish this line of thought
+%   OUTPUTS
+%   =======================================================================
+%   groups_of_indices_to_run : cell array of arrays, values in the arrays
+%   are the indices of the passed in data to test together before running
+%   another prediction algorithm
 %
-%   GOAL: Essentially we want our distance metric to evenly sample
-%   threshold, which we don't know, but we might be able to make an
-%   intelligent guess about what we don't know
-
-%==========================================================================
-%QUESTION:Do we include new group data in subsequent runs
-%ANSWER  : YES!
-%See below for reasoning
-%==========================================================================
-%NOTE: On subsequent runs, when adding new base values, we need
-%to keep previous base values so as to provide valid references
-%example
-%Consider the numbers 1:100, and say we grab 3 values on each run
-%The numbers 1:100 represent numbers in some higher dimensional space
-%but where the distance is easily interepreted as the different between
-%two numbers
-%Round 1
-%1    50     100
-%Round 2
-%If we keep the previous values
-%1 25 50 65 75 100 %Possibly outcome, not the best
-%If we don't keep the previous values
-%2 51 99  likely outcome, we esentially try and replicate Round 1
-%which is not desirable
-
-
-
-
-%**************************************************************************
-%Things to do before function is done:
-%1) Input transform
-%2) Reduce dimensionality before distance testing
-%3) Try kmeans based approach
-%       - take kmeans with clusters equal to # of points to add
-%       - how does this take into account previous work?????
-%4) Write better code for group sizes, we should start small
-%with only a few points and then increase the relative group size
-%as we progress, then at some point we should throw everything into the
-%remaining group
-%5) Reduce previous data as well into fake previous data
-%   NOTE: This is where the previous threshold data might become useful ...
+%   repetition_indices       : Indices of stimuli that have prior repeats.
 %
+%           example, consider single number stimuli:
+%                           4 8 7 9 4 5 8 3 2 
+%           with indices    1 2 3 4 5 6 7 8 9
+%
+%   This method would return back, repetition_indices = [5 7], to indicate
+%   that indices 5 & 7 are repeats, if we know the thresholds to, in this
+%   case, indices 1 and 2, then we know the thresholds to 5 and 7
+%
+%   Our request may have duplicate stimuli, such as would occur if we asked
+%   for the stimulus from an equidistant point on opposite sides of the
+%   axon.
+%
+%   GOAL
+%   =======================================================================
+%   The goal is to specify testing order for groups of stimuli. The goal is
+%   to start by testing points, that once we know their threshold, we will
+%   be able to more accurately predict their neighbors. 
+%
+%   ALGORITHM
+%   =======================================================================
+%   I had originally started with an algorithm that tried to choose points
+%   so that for the chosen point, it would make it so that all unknown
+%   points as close as possible to it or previously chosen points. A bad
+%   choice for a point would not reduce the overall distance between known
+%   and unknown points. While explaining this to Lee he suggested that what
+%   it sounded like I wanted was to choose points which were furthest from
+%   other points. Although this is a slightly different formalism and not
+%   necessarily as suited for the goal (a single far away point does little
+%   to help prediction of a cluster of unknowns that are all close to each
+%   other and not much else), the implementation is much easier.
+%
+%
+%   IMPLEMENTATION NOTES:
+%   =======================================================================
+%   1) We currently don't use threshold or location information but we
+%   might do this eventually. It is not critical that this method be
+%   constant as it only serves to help create data. The output from this
+%   method is not the output we save.
+%   2) The input data is currently not reduced to provide efficient
+%   searching. This isn't a huge concern at this point but it might
+%   eventualy be desireable to downsample the old stimuli before running
+%   the main algorithm.
+%   3) This algorithm relies on differences (literally distance) between applied stimuli.
+%   It attempts to sample the stimuli in an efficient way so as to minimize
+%   the distance from any untested point to a given tested point. Ideally
+%   this distance metric would be threshold based, but this is not possible
+%   without more information. A multi-pass approach could be used to just
+%   differences in threshold, but this would require a bit more work on the
+%   implementation side.
+%   4) The first group is chosen to span the entirety of reduced dimension
+%   data. The following groups are chosen to represent certain fractions of
+%   distance (TODO: Could describe this more)
+%
+%   YET TO IMPLEMENT
+%   =======================================================================
+%   1) If the testing space is sufficiently small, just test everything in
+%   a single group.
+%   2) Expose hardcoded constants as options for class.
+%   3) Perhaps populate some results of this back into class:
+%       - coefficients of pca
+%       - anything else????
+%
+%   See Also:
+%      NEURON.simulation.extracellular_stim.sim_logger.data.getThresholds 
 
 %Transform to make data bit more linear in threshold distance ...
+%Delay until later if at all ...
 %---------------------------------------------------------------------
 % % % applied_stimuli = 1./applied_stimuli; %Two looked bad, going back to 1
 % % % %NOTE: 2 might have been bad due to not carrying the sign when squaring
 % % % old_stimuli     = 1./old_stimuli;
 
+%TODO: Define these and document, perhaps move to class properties
 
 
-PC_THRESHOLD = 0.99; %Weird threshold definition, see implementation below
+TESTING_PERCENTAGE_SPACING = 0.05; 
+
 
 %Dimensionality Reduction
 %--------------------------------------------------------------------------
-n_new_stimuli  = size(applied_stimuli,1);
+n_new_stimuli = size(applied_stimuli,1);
 
-if isempty(old_stimuli)
-    [~,score,latent] = princomp(applied_stimuli,'econ');
-else
-    [~,score,latent] = princomp([applied_stimuli; old_stimuli],'econ');
-end
-
-csl = cumsum(latent) - latent(1);
-I = find(csl./csl(end) > PC_THRESHOLD,1);
-
-if isempty(old_stimuli)
-    applied_stimuli = score(:,1:I);
-else
-    applied_stimuli = score(1:n_new_stimuli,1:I);
-    old_stimuli     = score(n_new_stimuli+1:end,1:I);
-end
-
-
-%NEW GROUPING STRATEGY
+[applied_stimuli,old_stimuli] = obj.reduceDimensions(applied_stimuli,old_stimuli);
 %--------------------------------------------------------------------------
-%1) Group 1, all extremes ... of low dim space
-%2) From their build at some rate, we'll go with two for now ...
-%3) At some point it would be good to cut things off ..., when max distance
-%is some value -> sure, let's finish this ...
 
-%DESIGN DECISION - log2
-max_groups = floor(log2(n_new_stimuli));
 
-groups_of_indices_to_run = cell(1,max_groups);
-
+%First grouping stratgey
+%--------------------------------------------------------------------------
 [~,I_min] = min(applied_stimuli);
 [~,I_max] = max(applied_stimuli);
 
-groups_of_indices_to_run{1} = unique([I_min I_max]);
+first_group = unique([I_min I_max]);
+
+n_first_group = length(first_group);
+
+chosen_stimuli = applied_stimuli(first_group,:);
+%--------------------------------------------------------------------------
 
 
-unmatched_indices = 1:n_new_stimuli;
-unmatched_indices(groups_of_indices_to_run{1}) = [];
-
-%Distance initialization
-%--------------------------------------------------------------------
-distance_between_new     = pdist2(applied_stimuli,applied_stimuli);
-
-keyboard
-
-%Matrix, New
-
-%NEW ALGORITHM
-%rows are old points
-%columns are new points
-%
-%
-%Crap, I am missing something ....
-%The question is, which point if I eliminate would reduce
-%the most from the distance of others ...
-%This is nearly a complete thought, I just need more work
-
-%Point to elminate is the one closest to all other points - I think
-%What happens after the first point ...
-
-%Random thought, not sure if useful, points greater than chosen point
-%are replaced with chosen point
-%CRAP: I think this is how the algorithm needs to be run
-%What if for all points, I replace their distances with the guy 
-%that is being chosen, how much does the sum go down for all unmatched
-%points ...
-%
-
+%Initialization of distance metrics and loop variables
+%--------------------------------------------------------------------------
 if isempty(old_stimuli)
-   dist_matrix = pdist2(applied_stimuli,applied_stimuli);
+    dist_matrix_old = pdist2(applied_stimuli,chosen_stimuli);
 else
-   dist_matrix = pdist2([applied_stimuli; old_stimuli],applied_stimuli); 
+    dist_matrix_old = pdist2(applied_stimuli,[chosen_stimuli; old_stimuli]);
 end
+smallest_distance_to_known_point = min(dist_matrix_old,[],2);
 
-sum_dist_matrix = sum(dist_matrix);
-
-
-
-%Old distance will be the combination of the first group + 
-%the old stimuli (if present)
-
-%This variable will represent the closest point from the original
-%set to each point in the unmatched set. It is only valid
-%for points that are currently unset.
-min_dist_best_aligned = Inf(n_new_stimuli,1);
-min_dist_best_aligned(unmatched_indices) = ...
-    min(distance_between_new(unmatched_indices,groups_of_indices_to_run{1}),[],2);
+dist_matrix_new = pdist2(applied_stimuli,applied_stimuli);
 
 
-%NOTE: This is only for debugging ...
-best_score_all = zeros(1,max_groups);
-
-
-
-if isempty(old_stimuli)
-    min_distance_old = min_dist_best_aligned;
-else
-    min_distance_old = min(pdist2(applied_stimuli,old_stimuli),[],2);
-    min_distance_old = min(min_dist_best_aligned,min_distance_old);
-end
-
-best_score_all(1) = sum(min_distance_old(unmatched_indices))/length(unmatched_indices);
-
-N_RANDOMIZATIONS = 200; %We might change this or allow the user to change this eventually
-
-
-next_set_size = 16; %Start with some multiple of 2, this seems reasonable
-%HARDCODED ...
-n_remaining = length(unmatched_indices);
-iGroup = 1;
-while next_set_size < n_remaining
-   
-   iGroup = iGroup + 1;
-   
-   %Initialization of mask for local loop
-   use_as_next_group_mask = false(1,n_remaining);
-   
-   %=======================================================================
-   % LOCAL LOOP -  
-   %=======================================================================
-   best_local_score = Inf;
-   for iRand = 1:N_RANDOMIZATIONS
-      use_as_next_group_mask(:) = false;
-      use_as_next_group_mask(randperm(n_remaining,next_set_size)) = true;
-      
-      %possible_next_group_indices = unmatched_indices(use_as_next_group_mask);
-      remaining_unmatched_indices = unmatched_indices(~use_as_next_group_mask);
-      
-      %NOTE: This is a really slow line :/
-      %dist_1 = distance_between_new(remaining_unmatched_indices,possible_next_group_indices);
-      %Is this faster?????
-      dist_1 = distance_between_new(~use_as_next_group_mask,use_as_next_group_mask);
-      
-      
-      %This is also a slow line ...
-      min_dist_1 = min(dist_1,[],2);
-
-      temp_score = sum(min(min_dist_1,min_distance_old(remaining_unmatched_indices)));
- 
-      if temp_score < best_local_score
-          best_local_score = temp_score;
-          best_use_as_next_group_mask = use_as_next_group_mask;
-          min_dist_best     = min_dist_1;
-      end
+%Main algorithm
+%--------------------------------------------------------------------------
+chosen_points          = zeros(1,n_new_stimuli);
+max_dist_avg           = zeros(1,n_new_stimuli);
+repetitions_present    = false;
+n_actually_new_stimuli = n_new_stimuli;
+for iPoint = n_first_group+1:n_new_stimuli
+   [maxValue,I] = max(smallest_distance_to_known_point); %Get point furthest from all old points
+   if I == 1 && maxValue == 0 
+      %This indicates repetitions in the stimulus space ...   
+      repetitions_present = true;
+      n_actually_new_stimuli = iPoint - 1;
+      break
    end
    
-   best_score_all(iGroup) = best_local_score/(length(unmatched_indices)-next_set_size);
-   
-   %NOTE: These indices are aligned to the indices of
-   %unmatched_indices, not the original values
-   best_next_indices                        = find(best_use_as_next_group_mask);
-   groups_of_indices_to_run{iGroup}         = unmatched_indices(best_next_indices);
-   
-   unmatched_indices(best_next_indices) = [];
-   
-   min_dist_best_aligned(unmatched_indices) = min_dist_best;
-   
-   %Update unmatched points
-   
-   
-   if isempty(min_distance_old)
-       min_distance_old = min_dist_best_aligned;
-   else
-       min_distance_old = min(min_dist_best_aligned,min_distance_old);
-   end
-   
-   next_set_size = 2*next_set_size;
-   n_remaining   = length(unmatched_indices);
-   
-   
+   chosen_points(iPoint) = I;
+   smallest_distance_to_known_point     = min(smallest_distance_to_known_point,dist_matrix_new(:,I));
+   max_dist_avg(iPoint)  = mean(smallest_distance_to_known_point);
 end
 
-%Put everyone in a final group & quit
-groups_of_indices_to_run{iGroup} = unmatched_indices;
-groups_of_indices_to_run(iGroup+1:end) = [];
+if repetitions_present
+    max_dist_avg = max_dist_avg(1:n_actually_new_stimuli);
+    repetition_indices = find(~ismember(1:n_new_stimuli,[first_group chosen_points]));
+else
+    repetition_indices = [];
+end
 
-%groups_of_indices_to_run{end} = unmatched_indices;
+%Using this information to form groups
+%--------------------------------------------------------------------------
+normalized_contributions = cumsum(max_dist_avg)./sum(max_dist_avg);
 
-best_score_all(iGroup+1:end) = [];
+N = histc(normalized_contributions(n_first_group+1:end),0:TESTING_PERCENTAGE_SPACING:1);
 
-keyboard
+%To handle only matching < 1, not <= 1
 
-%Some plot testing
-% row = zeros(1,n_new_stimuli);
-% c = cell_locations;
-% for iGroup = 1:n_groups_total
-%    row(groups_of_indices_to_run{iGroup}) = iGroup; 
-%    i_use = find(row ~= 0);
-%    scatter3(score(i_use,1),score(i_use,2),score(i_use,3),100,row(i_use),'filled');
-%    axis equal
-%    title(sprintf('Run %d',iGroup))
-%    pause
-% end
+N(end) = n_actually_new_stimuli - sum(N(1:end-1)) - n_first_group;
 
+last_used_index  = n_first_group;
+non_empty_groups = find(N ~= 0);
 
+n_non_empty_groups = length(non_empty_groups);
+n_groups_total     = n_non_empty_groups+1;
 
+all_groups = cell(1,n_groups_total);
+all_groups{1} = first_group;
 
+for iGroup = 1:n_non_empty_groups
+    cur_group_N = N(non_empty_groups(iGroup));
+    
+    %NOTE: offset by 1 is to account for first_group set
+    all_groups{iGroup+1} = chosen_points(last_used_index+1:last_used_index+cur_group_N);
+    last_used_index = last_used_index + cur_group_N;
+end
+
+groups_of_indices_to_run = all_groups;
+
+% % % %Some plot testing
+% % % row = zeros(1,n_new_stimuli);
+% % % c = cell_locations;
+% % % for iGroup = 2:n_groups_total
+% % %    row(all_groups{iGroup}) = iGroup; 
+% % %    i_use = find(row ~= 0);
+% % %    scatter3(score(i_use,1),score(i_use,2),score(i_use,3),100,row(i_use),'filled');
+% % %    %axis equal
+% % %    view(0,90)
+% % %    title(sprintf('Run %d',iGroup))
+% % %    pause
+% % % end
+% % % 
 
 
 end

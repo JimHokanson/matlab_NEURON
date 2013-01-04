@@ -22,6 +22,8 @@ classdef threshold_testing_history < handle_light
         tested_stimuli  = zeros(1,20) %
         ap_propogated   = false(1,20) %(logical array)
         max_vm          = zeros(1,20)
+        
+        last_threshold_vm = []
     end
     
     properties (Dependent)
@@ -43,8 +45,12 @@ classdef threshold_testing_history < handle_light
            obj.threshold_info = threshold_info;
            
         end
-        function logResult(obj,tested_value,ap_fired,max_vm)
+        function logResult(obj,tested_value,ap_fired,max_vm,vm)
            n_local = obj.n_loops + 1;
+           
+           if ap_fired
+              obj.last_threshold_vm = vm; 
+           end
            
            obj.tested_stimuli(n_local) = tested_value;
            obj.ap_propogated(n_local)  = ap_fired;

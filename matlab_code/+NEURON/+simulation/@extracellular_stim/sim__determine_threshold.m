@@ -24,5 +24,6 @@ function result_obj = sim__determine_threshold(obj,starting_value)
     
     setupThresholdInfo(obj)
 
+    %NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
     result_obj = obj.threshold_analysis_obj.determine_threshold(starting_value);
 end

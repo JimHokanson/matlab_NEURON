@@ -9,6 +9,13 @@ classdef single_sim < handle_light
     %=> like the threshold crossing criteria
     
     properties
+       vm_threshold             %Threshold that needed to be crossed to consider
+                                %AP at local point
+       ap_propogation_index     %index that needed to cross threshold
+       %for considering propogation to have occurred
+    end
+    
+    properties
        %see NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
        success                  %Result ran without error
        %NOTE: Currently if this is false it indicates that the tissue is

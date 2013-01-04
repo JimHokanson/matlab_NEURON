@@ -133,7 +133,10 @@ classdef data < handle_light
             
             n_new = size(new_applied_stimuli,1);
             
-            [is_matched,matched_location] = ismember(new_applied_stimuli,obj.applied_stimulus_matrix(:,1:obj.current_index),'rows');
+            %TODO: Consider loose equivalency ...
+            %Use distance metric ...
+            
+            [is_matched,matched_location] = ismember(new_applied_stimuli,obj.applied_stimulus_matrix(1:obj.current_index,:),'rows');
             thresholds = NaN(1,n_new);
             thresholds(is_matched) = threshold_sign.*obj.threshold_values(matched_location(is_matched));
         end

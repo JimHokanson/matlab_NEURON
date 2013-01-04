@@ -10,6 +10,9 @@ function addResults(obj,applied_stimuli,thresholds,xyz_centers)
 %   FULL PATH:
 %   
 
+%Retrieving subsets of the data got confusing, transitioning to auto grow
+%...
+
 %???? - Should I always just append or waist time
 %saving and loading empty entries?????
 %Not sure ...
@@ -18,22 +21,21 @@ function addResults(obj,applied_stimuli,thresholds,xyz_centers)
 %Growth, if necessary
 %--------------------------------------------------------------
 n_entries = length(thresholds);
-if n_entries + obj.current_index > obj.n_entries_allocated
-    obj.n_entries_allocated = obj.n_entries_allocated + obj.GROW_SIZE;
-    %TODO: Finish this part ...
-    
-    obj.applied_stimulus_matrix = [obj.applied_stimulus_matrix; zeros(obj.GROW_SIZE,size(applied_stimuli,2))];
-    obj.threshold_values        = [obj.threshold_values         zeros(1,obj.GROW_SIZE)];
-    obj.xyz_center              = [obj.xyz_center;              zeros(obj.GROW_SIZE,3)];
-    obj.creation_time           = [obj.creation_time            zeros(1,obj.GROW_SIZE)];
-    obj.stimulus_setup_id       = [obj.stimulus_setup_id        zeros(1,obj.GROW_SIZE)];
-    
-end
+% if n_entries + obj.current_index > obj.n_entries_allocated
+%     obj.n_entries_allocated = obj.n_entries_allocated + obj.GROW_SIZE;
+%     %TODO: Finish this part ...
+%     
+%     obj.applied_stimulus_matrix = [obj.applied_stimulus_matrix; zeros(obj.GROW_SIZE,size(applied_stimuli,2))];
+%     obj.threshold_values        = [obj.threshold_values         zeros(1,obj.GROW_SIZE)];
+%     obj.xyz_center              = [obj.xyz_center;              zeros(obj.GROW_SIZE,3)];
+%     obj.creation_time           = [obj.creation_time            zeros(1,obj.GROW_SIZE)];
+%     obj.stimulus_setup_id       = [obj.stimulus_setup_id        zeros(1,obj.GROW_SIZE)];
+%     
+% end
 
 %Updating results
 %--------------------------------------------------------------
-new_indices = obj.current_index+1:obj.current_index+n_entries;
-
+new_indices = obj.current_index+1:obj.current_index + n_entries;
 
 obj.applied_stimulus_matrix(new_indices,:) = applied_stimuli;
 obj.creation_time(new_indices)             = now;
@@ -46,7 +48,9 @@ obj.xyz_center(new_indices,:)              = xyz_centers;
 %asdfkjasdkfjaksdfjslkdfj
 n_points_per_cell       = obj.n_points_per_cell; %#ok<*NASGU>
 
+obj.current_index       = obj.current_index + n_entries;
 current_index           = obj.current_index;
+
 n_entries_allocated     = obj.n_entries_allocated;
 
 applied_stimulus_matrix = obj.applied_stimulus_matrix;
@@ -58,7 +62,10 @@ creation_time           = obj.creation_time;
 stimulus_setup_id       = obj.stimulus_setup_id;
 stimulus_setup_objs     = obj.stimulus_setup_objs;
 
+VERSION = obj.VERSION;
+
 save(obj.data_path,...
+    'VERSION',...
     'n_points_per_cell',...
     'current_index',...
     'n_entries_allocated',...

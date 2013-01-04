@@ -113,6 +113,9 @@ classdef threshold_analysis < handle_light
                 error('Threshold info must be set before calling this class')
             end
             
+            result_obj.vm_threshold            = t_info.v_ap_threshold;
+            result_obj.ap_propogation_index = t_info.v_ap_propogation_index;
+            
             result_obj.max_membrane_potential = max(max_vm_by_space);
             result_obj.membrane_potential     = vm;
             result_obj.threshold_crossed      = result_obj.max_membrane_potential > t_info.v_ap_threshold;
