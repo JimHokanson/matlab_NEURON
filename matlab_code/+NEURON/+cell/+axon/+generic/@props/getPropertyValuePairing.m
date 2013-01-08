@@ -30,7 +30,7 @@ end
 p = obj;
 
 p_v = {...
-    'number_internodes'                  p.number_internodes
+    'number_internodes'             p.number_internodes
     'node_length'                   p.node_length
     'node_diameter'                 p.node_diameter
     'myelin_n_segs'                 p.myelin_n_segs
