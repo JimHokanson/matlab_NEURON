@@ -25,10 +25,30 @@ node_dynamics = $1
 // for lookup table, see constant property MEMBRANE_DYNAMICS_OPTIONS in NEURON.cell.axon.generic.props, indexing starts at 1
 //1 = FH, 2 = HH
 // the keyword after insert corresponds to the SUFFIX of the mod file
-if (node_dynamics == 1) insert fh
- else{ 
-	if (node_dynamics == 2) insert hh2
+if (node_dynamics == 1) {
+	insert fh
+} else if (node_dynamics == 2){
+	insert hh2
 }	
 
 
 }
+
+
+/*
+PROBLEM CODE - fix java reader
+if (node_dynamics == 1) 	insert fh
+else {
+	if (node_dynamics == 2) insert hh2
+}	
+
+
+
+*/
+
+/*
+
+
+
+
+*/
