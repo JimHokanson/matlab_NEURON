@@ -42,7 +42,6 @@ classdef props < handle_light
     %======================================================================
     %1) Any change to a property that is not dependent on fiber will
     %   cause a reevaluation of all property dependent variables
-    %   NOTE: Eventually this could be separated out
     %2) Changing the fiber diameter will cause a reevaluation of all 
     %   fiber diameter dependent variables
     %3) To manually change fiber diameter dependent variables, these should
@@ -192,36 +191,47 @@ classdef props < handle_light
                 error('Unable to find specifications for given fiber size')
             end
             
-            %FROM TABLE 1 - MODEL GEOMETRIC PARAMETERS =================================================
-            internode_length_all     = [500      750     1000    1150    1250    1350    1400    1450    1500];
-            number_lemella_all       = [80       100     110     120     130     135     140     145     150];
-            %node_length             CONSTANT
-            node_diameter_all        = [1.9      2.4     2.8     3.3     3.7     4.2     4.7     5.0     5.5];
-            %paranode_length_1       CONSTANT
-            paranode_diameter_1_all  = [1.9      2.4     2.8     3.3     3.7     4.2     4.7     5.0     5.5];
-            %space_p1                CONSTANT
-            paranode_length_2_all    = [35       38      40      46      50      54      56      58      60];
-            paranode_diameter_2_all  = [3.4      4.6     5.8     6.9     8.1     9.2     10.4    11.5    12.7];
-            %space_p2                CONSTANT
-            %STIN LENGTH             DEPENDENT - delta_x_all,paranode_length_1,paranode_length_2_all,n_STIN
-            axon_diameter_all        = [3.4      4.6     5.8     6.9     8.1     9.2     10.4    11.5    12.7];
-            %space_i                 CONSTANT
+            fiber_diameter_local = obj.fiber_diameter;
             
+            fiber_poly_2 = [fiber_diameter_local^2 fiber_diameter_local 1]';
+            
+            
+            %TODO: value is from Matt, could look at my own version ...
+            obj.number_lemella       = 65.897*log(fiber_diameter_local)-32.66;
+            
+            
+            obj.node_diameter       = [0.006304 0.2071 0.5339]*fiber_poly_2;
+            obj.paranode_diameter_1 = obj.node_diameter;
+            
+            obj.axon_diameter       = [0.0188 0.4787 0.1204]*fiber_poly_2;
+            obj.paranode_diameter_2 = obj.axon_diameter;
+            
+            
+            %These weights match their data, why did they choose what they
+            %chose, it doesn't match the original source ...
+            %in_weights_match = [-828.99  -71.39   2929]
+            
+            %5 year fit from original source ...
+            %This does not match what is used in the paper ...
+            internode_length_weights = [-91.1 -20.2 1745.9];
+            diameter_weights         = [l   obj.obj.axon_diameter  log10(obj.axon_diameter)]';
+            obj.internode_length     = internode_length_weights*diameter_weights;
+            
+            
+            
+            
+            paranode_length_2_all    = [35       38      40      46      50      54      56      58      60];
             
             %Not used even though defined ... ?????
             %g_all                    = [0.605    0.630   0.661   0.690  	0.700   0.719   0.739   0.767   0.791];
             
-            
-            obj.internode_length     = internode_length_all(FIBER_INDEX);
-            obj.number_lemella       = number_lemella_all(FIBER_INDEX);
-            obj.node_diameter        = node_diameter_all(FIBER_INDEX);
-            obj.paranode_diameter_1  = paranode_diameter_1_all(FIBER_INDEX);
             obj.paranode_length_2    = paranode_length_2_all(FIBER_INDEX);
-            obj.paranode_diameter_2  = paranode_diameter_2_all(FIBER_INDEX);
-            obj.stin_seg_length      = (obj.internode_length - obj.node_length - 2*obj.paranode_length_1 - 2*obj.paranode_length_2)/obj.n_STIN;
-            obj.axon_diameter        = axon_diameter_all(FIBER_INDEX);
             
-            %Electrical parameters  %---------------------------------------
+            obj.stin_seg_length      = (obj.internode_length - obj.node_length - 2*obj.paranode_length_1 - 2*obj.paranode_length_2)/obj.n_STIN;
+
+            
+            %Electrical parameters  %--------------------------------------
+            %--------------------------------------------------------------
             
             %NOTE: I have to think about this ...
             f_OVER_a__diameter_ratio  = obj.fiber_diameter/obj.axon_diameter;

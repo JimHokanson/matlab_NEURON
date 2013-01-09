@@ -29,6 +29,10 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     %   excitability of mammalian nerve fibers: influence of
     %   afterpotentials on the recovery cycle. Journal of neurophysiology
     %   87:995–1006.
+    %
+    %   See Also:
+    %   ===================================================================
+    %   NEURON.cell.axon.MRG.props
     
     
     %   PROPERTIES
