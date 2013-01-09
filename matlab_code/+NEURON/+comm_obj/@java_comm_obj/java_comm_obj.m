@@ -69,17 +69,17 @@ classdef java_comm_obj < NEURON.comm_obj
             temp_process_builder = java.lang.ProcessBuilder(cmd_array);
             
             if ispc
-               %For hiding window later ...
-               process_array = System.Diagnostics.Process.GetProcessesByName('nrniv'); 
-
-               %For focus management ...
-               mde = com.mathworks.mde.desk.MLDesktop.getInstance;
-               cw = mde.getClient('Command Window');
-               cw_has_focus  = cw.hasFocus;
-%                if ~cw_has_focus
-%                    ed = mde.getGroupContainer('Editor').getTopLevelAncestor;
-%                    ed_has_focus = ed.isActive;
-%                end
+                %For hiding window later ...
+                process_array = System.Diagnostics.Process.GetProcessesByName('nrniv');
+                
+                %For focus management ...
+                mde = com.mathworks.mde.desk.MLDesktop.getInstance;
+                cw = mde.getClient('Command Window');
+                cw_has_focus  = cw.hasFocus;
+                %                if ~cw_has_focus
+                %                    ed = mde.getGroupContainer('Editor').getTopLevelAncestor;
+                %                    ed_has_focus = ed.isActive;
+                %                end
             end
             
             %Starting the process
@@ -94,16 +94,16 @@ classdef java_comm_obj < NEURON.comm_obj
             obj.j_reader        = NEURON_reader(obj.j_input_stream,...
                 obj.j_error_stream,obj.j_process);
             
-            if ispc 
+            if ispc
                 % hide window
                 hideWindow(obj,process_array)
                 
                 %Giving focus back ...
                 if cw_has_focus
-                %NOTE: I'm not sure that you lose focus for mac or unix
-                commandwindow
-% %                 elseif ed_has_focus
-% %                    ed.requestFocus; 
+                    %NOTE: I'm not sure that you lose focus for mac or unix
+                    commandwindow
+                    % %                 elseif ed_has_focus
+                    % %                    ed.requestFocus;
                 end
             end
         end
@@ -111,14 +111,14 @@ classdef java_comm_obj < NEURON.comm_obj
             if ispc
                 process_array = System.Diagnostics.Process.GetProcessesByName('nrniv');
                 
-% % %                 %TODO: I need to fix this.
-% % %                 %The problem is knowing which windows process corresponds 
-% % %                 %to the process that the java object is communicating with
-% % %                 if process_array.Length ~= 1
-% % %                    %NOTE: Eventually this might be more than 2 ...
-% % %                    error('Expecting singular process match')
-% % %                 end
-
+                % % %                 %TODO: I need to fix this.
+                % % %                 %The problem is knowing which windows process corresponds
+                % % %                 %to the process that the java object is communicating with
+                % % %                 if process_array.Length ~= 1
+                % % %                    %NOTE: Eventually this might be more than 2 ...
+                % % %                    error('Expecting singular process match')
+                % % %                 end
+                
                 %NOTE: This could hide visible NEURON windows
                 %but that should be fine
                 
@@ -137,7 +137,7 @@ classdef java_comm_obj < NEURON.comm_obj
                 %nrniv - if only one instance
                 %for multiple instances 2nd index is nrniv#1, 3rd is nrniv#2
                 %Not sure how slow this is but it is the way to do it
-                %without using dll calls, 
+                %without using dll calls,
                 
                 
                 %NEARLY FINAL CODE
@@ -160,19 +160,19 @@ classdef java_comm_obj < NEURON.comm_obj
                 %NOTE: This is a temporary fix and wouldn't work
                 %with multiple environments
                 if process_array.Length > 1
-                   old_ids = zeros(1,old_process_array.Length);
-                   new_ids = zeros(1,process_array.Length);
-                   
-                   for iOld = 1:length(old_ids)
-                      old_ids(iOld) = old_process_array(iOld).Id;
-                   end
-                   for iNew = 1:length(new_ids)
-                      new_ids(iNew) = process_array(iNew).Id; 
-                   end
-                   process_index_use = find(~ismember(new_ids,old_ids));
-                   if length(process_index_use) ~= 1
-                       error('Unable to find singular match')
-                   end
+                    old_ids = zeros(1,old_process_array.Length);
+                    new_ids = zeros(1,process_array.Length);
+                    
+                    for iOld = 1:length(old_ids)
+                        old_ids(iOld) = old_process_array(iOld).Id;
+                    end
+                    for iNew = 1:length(new_ids)
+                        new_ids(iNew) = process_array(iNew).Id;
+                    end
+                    process_index_use = find(~ismember(new_ids,old_ids));
+                    if length(process_index_use) ~= 1
+                        error('Unable to find singular match')
+                    end
                 end
                 
                 p = process_array(process_index_use);
@@ -217,7 +217,7 @@ classdef java_comm_obj < NEURON.comm_obj
             out = obj.j_output_stream;
             %NOTE: To every string we add on a newline.
             str = java.lang.String([str_to_write char(10)]);
-            %On writing we need to pass in a byte array. Hence the use of 
+            %On writing we need to pass in a byte array. Hence the use of
             %a Java string above and using the getBytes method
             out.write(str.getBytes,0,length(str));
             
@@ -249,32 +249,38 @@ classdef java_comm_obj < NEURON.comm_obj
                 end
             end
             
+            %NOTE: Success indicates that the terminal string
+            %which we write after our command has been transmitted.
+            %It is possible for error messages to be successes
             success = r.success_flag;
             
             %Success processing
             %--------------------------------------------------
-            if ~success
-                process_running =  r.process_running;
-                if ~process_running
+            results = char(r.result_str);
+            if success
+                if ~isempty(results) && results(end) == char(10);
+                    results(end) = [];
+                end
+            else
+                if ~r.process_running
+                    fprintf(2,'\nLAST ERROR BEFORE PROCESS CLOSED:\n\n%s\n',results);
                     error('Process is no longer running')
-                end
-                
-                stackdump_present = r.stackdump_present;
-                if stackdump_present
+                elseif r.stackdump_present
+                    fprintf(2,'\nLAST NEURON ERROR BEFORE STACKDUMP:\n\n%s\n',results);
                     error('Stackdump detected');
-                end
-                
-                read_timeout = r.read_timeout;
-                if read_timeout
+                elseif r.read_timeout
+                    %JAH TODO: Need to create methods for returning
+                    %either character array (in or err) instead of
+                    %result_str
                     error('Read timeout');
+                else
+                   %If this runs I must have added an extra case
+                   %which would cause this to error
+                   error('Unhandled java comm error case, see code') 
                 end
-                
             end
             
-            results = char(r.result_str);
-            if ~isempty(results) && results(end) == char(10);
-                results(end) = [];
-            end
+            
         end
     end
     
