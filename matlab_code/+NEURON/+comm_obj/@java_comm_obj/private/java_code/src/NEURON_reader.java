@@ -34,6 +34,7 @@ public class NEURON_reader {
 	long wait_time_nanoseconds;
 	boolean debug;
 	boolean allow_timeout;
+	boolean ran_once_after_process_exiting; 
 
 	//We start everything in Matlab and pass in the relevant objects here ...
 	public NEURON_reader(BufferedInputStream pin, FileInputStream perr, Process p) {
@@ -64,8 +65,11 @@ public class NEURON_reader {
 		debug = debug_input;
 		allow_timeout = wait_time_seconds != -1;
 		wait_time_nanoseconds = (long) (wait_time_seconds*1e9);
+		ran_once_after_process_exiting = false;
 	}
 
+	//MAIN FUNCTION
+	//=======================================================================
 	public boolean read_result() throws IOException
 	{
 
@@ -92,14 +96,27 @@ public class NEURON_reader {
 		//I don't know of any other way to ask if the process is still valid ...
 		try {
 			p.exitValue();
-			process_running = false;
-			System.err.println("NEURON process Exited");
-			return true;
+			if (ran_once_after_process_exiting){
+				process_running = false;
+				System.err.println("NEURON process Exited");
+				
+				//Finalize error string if present
+				//NOTE: Unfortunately we don't expose the non-error string :/
+				//Might change public access fields ...
+				result_str = error_data.toString();
+				
+				return true;
+			}
+			else {
+				//This mod should allow flushing of the buffers
+				//before we throw an error that the system exited ...
+				ran_once_after_process_exiting = true;
+			}
 		} catch (IllegalThreadStateException e) {
 			process_running = true;
 		}
 
-		//TIME CHECKING
+		//TIME CHECKING - did we time out?
 		//---------------------------------------------------
 		if (allow_timeout && ((System.nanoTime() - start_time) > wait_time_nanoseconds)) {
 			read_timeout = true;
@@ -112,7 +129,7 @@ public class NEURON_reader {
 		n_bytes_available = perr.available();
 		if (n_bytes_available > 0){
 			perr.read(temp_data,0,n_bytes_available);
-			readStream(n_bytes_available, debug, false);
+			readStream(n_bytes_available, debug, false); //false indicates error stream
 			//NOTE: We'll never get the terminal string from the error stream
 			//Don't assign variable from function call..
 		}
