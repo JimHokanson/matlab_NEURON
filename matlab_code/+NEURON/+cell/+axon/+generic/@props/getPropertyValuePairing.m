@@ -33,6 +33,7 @@ p_v = {...
     'number_internodes'             p.number_internodes
     'node_length'                   p.node_length
     'node_diameter'                 p.node_diameter
+    'node_capacitance'              p.node_capacitance
     'myelin_n_segs'                 p.myelin_n_segs
     'myelin_length'                 p.myelin_length
     'fiber_diameter'                p.fiber_diameter

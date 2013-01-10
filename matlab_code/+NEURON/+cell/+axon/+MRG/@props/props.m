@@ -214,7 +214,7 @@ classdef props < handle_light
             %5 year fit from original source ...
             %This does not match what is used in the paper ...
             internode_length_weights = [-91.1 -20.2 1745.9];
-            diameter_weights         = [l   obj.obj.axon_diameter  log10(obj.axon_diameter)]';
+            diameter_weights         = [1   obj.axon_diameter  log10(obj.axon_diameter)]';
             obj.internode_length     = internode_length_weights*diameter_weights;
             
             
