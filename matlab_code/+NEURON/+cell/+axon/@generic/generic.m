@@ -73,6 +73,12 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         spatial_info_populated = false % .getNodeSpacing()
     end
     
+    methods
+        function value = get.xyz_all(obj)
+            value = obj.spatial_info_obj.get__xyz_all;
+        end
+    end
+    
     % INITIALIZATION
     methods
         function obj = generic(xyz_center) % constructor
