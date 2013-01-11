@@ -39,7 +39,7 @@ in.tissue_resistivity    = 500;
 %Cell properties:
 %--------------------------------------------------------
 in.cell_center           = [0 0 0];
-%in.cell_type             = 'MRG';
+in.cell_type             = 'MRG';
 
 %Electrode properties:
 %--------------------------------------------------------
@@ -71,8 +71,14 @@ end
 set_Electrodes(obj,e_objs);
 
 %cell ---------------------------------------------------
-%TODO: Could expand to other cell types ...
-set_CellModel(obj,NEURON.cell.axon.MRG(in.cell_center))
+switch in.cell_type   
+    case 'MRG'
+        set_CellModel(obj,NEURON.cell.axon.MRG(in.cell_center))
+    case 'generic'
+        set_CellModel(obj,NEURON.cell.axon.generic(in.cell_center));
+    otherwise
+        error('Unhandled cell type')
+end
 
 end
 
