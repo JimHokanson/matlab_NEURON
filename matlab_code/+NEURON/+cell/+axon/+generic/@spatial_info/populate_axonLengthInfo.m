@@ -2,6 +2,17 @@ function populate_axonLengthInfo(obj)
 %
 %   Goal is to calculate the length of each segment
 %
+%
+%
+%   FULL PATH
+%       NEURON.cell.axon.generic.spatial_info.populate_axonLengthInfo
+%
+%
+%   See Also:
+%       NEURON.cell.axon.generic.props
+%       NEURON.cell.axon.generic.spatial_info.
+%   
+%
 % Populates: 
 %  .L_all
 %
@@ -18,6 +29,19 @@ function populate_axonLengthInfo(obj)
 
 %START OF CLEANER APPROACH
 %repeat_n = 5 + p.n_STIN
+
+%{
+sid_node_internode = repmat([1 2*ones(1,p.n_segs_myelin)]);
+
+sid_total = [repmat(sid_node_internode,[1 p.n_internodes]) 1];
+
+1 2 2 2 2 2 2 2     1 2 2 2 2 2 2       1
+
+L(sid_total == 1) = p.node_length;
+L(sid_total == 2) = p.myelin_length;
+
+%}
+
 
 
 section_ids_local = obj.section_ids;

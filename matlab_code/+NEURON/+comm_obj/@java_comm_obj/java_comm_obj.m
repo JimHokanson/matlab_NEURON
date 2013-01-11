@@ -276,6 +276,9 @@ classdef java_comm_obj < NEURON.comm_obj
                 else
                    %If this runs I must have added an extra case
                    %which would cause this to error
+                   
+                   fprintf(2,'\nERROR MSG (might be empty)\n%s\n',results);
+                   
                    error('Unhandled java comm error case, see code') 
                 end
             end

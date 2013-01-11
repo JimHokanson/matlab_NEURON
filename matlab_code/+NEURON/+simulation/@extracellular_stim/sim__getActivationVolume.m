@@ -19,7 +19,7 @@ Step 3:
 
 %}
 
-act_obj
+act_obj = NEURON.simulation.extracellular_stim.results.activation_volume;
 
 
 end
