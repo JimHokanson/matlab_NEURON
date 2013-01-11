@@ -42,8 +42,8 @@ classdef extracellular_stim < NEURON.simulation
     properties (SetAccess = private)
         %Populate by using the set methods
         tissue_obj   %(Subclass of NEURON.tissue)
-        %  NEURON.tissue.homogeneous_anisotropic
-        %  NEURON.tissue.homogeneous_isotropic
+        %                   NEURON.tissue.homogeneous_anisotropic
+        %                   NEURON.tissue.homogeneous_isotropic
         elec_objs    %(Class NEURON.extracellular_stim_electrode)
         cell_obj     %(Class neural_cell), singular
     end
@@ -54,10 +54,11 @@ classdef extracellular_stim < NEURON.simulation
         %--------------------------------------------------------
         v_all    %stim_times x stim sites on cell
         t_vec    %1 x stim times
-        %NOTE: Stim times is any time in which any stimulus changes, as
-        %this will change the electric field that the cell is in. It will
-        %also include a time at zero (NOTE: Might change) to indicate that
-        %at time zero there is generally no stimulus.
+        %NOTE: Stim times is any time in which any stimulus changes (i.e.
+        %from any electrode), as this will change the electric field that
+        %the cell is in. It will also include a time at zero (NOTE: This
+        %night change) to indicate that at time zero there is generally no
+        %stimulus.
     end
     
     %INITIALIZATION METHODS ==============================================
@@ -84,82 +85,7 @@ classdef extracellular_stim < NEURON.simulation
     end
     
     methods (Static)
-        function obj = create_standard_sim(varargin)
-            %
-            %   This static method will initialize all objects necessary to
-            %   run a simulation of extracellular stimulation.
-            %
-            %    obj = create_standard_sim(varargin)
-            %
-            %    OPTIONAL INPUTS
-            %    ===========================================================
-            %    Simulation:
-            %    -----------------------------------------------------------
-            %    launch_neuron_process : (default true), if false the NEURON
-            %        process will not be started, which can save some time if
-            %        only executing functions locally in Matlab
-            %    debug                 : (default false), if true all
-            %        communication with NEURON will be printed
-            %
-            %    Tissue:
-            %    -----------------------------------------------------------
-            %    tissue_resistivity : (default 500 Ohm-cm, Units: Ohm-cm),
-            %        either a 1 or 3 element vector ...
-            %
-            %
-            %    FULL PATH:
-            %    NEURON.simulation.extracellular_stim.create_standard_sim
-            %
-            %    TODO: Finish documenting optional inputs that are below
-            %
-            
-            %Simulation properties:
-            %----------------------------------------------
-            in.launch_neuron_process = true;
-            in.debug                 = false;
-            
-            %Tissue properties:
-            %--------------------------------------------------------
-            in.tissue_resistivity    = 500;
-            
-            %Cell properties:
-            %--------------------------------------------------------
-            in.cell_center           = [0 0 0];
-            %in.cell_type             = 'MRG';
-            
-            %Electrode properties:
-            %--------------------------------------------------------
-            in.electrode_locations   = [0 100 0];       %Array, rows are entries ...
-            in.stim_scales           = {[-1 0.5]};      %Cell array of arrays
-            in.stim_durations        = {[0.2 0.4]};     %" "  "  "
-            in.stim_start_times      = 0.1;             %Array
-            in = processVarargin(in,varargin);
-            
-            
-            %TODO: add on checks for passed in electrode options ...
-            
-            %--------------------------------------------------------------
-            obj = NEURON.simulation.extracellular_stim(...
-                'launch_NEURON_process',in.launch_neuron_process,'debug',in.debug);
-            
-            set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.tissue_resistivity));
-            
-            %stimulation electrode ---------------------------------
-            e_objs = NEURON.extracellular_stim_electrode.create(in.electrode_locations);
-            n_electrodes = length(e_objs);
-            for iElectrode = 1:n_electrodes
-                setStimPattern(e_objs(iElectrode),...
-                    in.stim_start_times(iElectrode),...
-                    in.stim_durations{iElectrode},...
-                    in.stim_scales{iElectrode});
-            end
-            set_Electrodes(obj,e_objs);
-            
-            %cell ---------------------------------------------------
-            %TODO: Could expand to other cell types ...
-            set_CellModel(obj,NEURON.cell.axon.MRG(in.cell_center))
-            
-        end
+       obj = create_standard_sim(varargin)  
     end
     
     %EVENT HANDLING  ======================================================
@@ -199,13 +125,30 @@ classdef extracellular_stim < NEURON.simulation
         %NOTE: This will be replaced with the sim_logger code
         %and the threshold_analysis object
         
-        function sim__create_logging_data(obj)
+        function sim__create_logging_data(obj,varargin)
+            %
+            %
+            %   sim__create_logging_data(obj,varargin)
+            %
+            %   OPTIONAL INPUTS
+            %   ===========================================================
+            
+            
+            
+            
             %wtf = NEURON.simulation.extracellular_stim.create_standard_sim;
             %wtf.sim__create_logging_data()
+            
+            in.cell_locations = {-100:20:100 -100:20:100 -500:20:500};
+            in = processVarargin(in,varargin);
+            
             sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
+            
+            %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
             sim_logger.initializeLogging(obj);
             
-            sim_logger.getThresholds({-100:20:100 -100:20:100 -500:20:500},1);
+            %NEURON.simulation.extracellular_stim.sim_logger.getThresholds
+            sim_logger.getThresholds(in.cell_locations,1);
             
         end
         

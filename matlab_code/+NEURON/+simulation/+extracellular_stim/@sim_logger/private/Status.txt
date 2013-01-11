@@ -1,0 +1,15 @@
+%{
+
+Things left to implement:
+-----------------------------------------------
+1) Tightening of prediction methods
+2) 
+
+1/9/2013
+---------------------------------------------------------
+The code is basically finished but is very rough.
+
+
+
+
+%}

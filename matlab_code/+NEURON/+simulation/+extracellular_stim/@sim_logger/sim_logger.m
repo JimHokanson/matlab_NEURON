@@ -5,30 +5,27 @@ classdef sim_logger < handle_light
     %
     %   IMPROVEMENTS
     %   ===================================================================
-    %   1) Create backup system - take structure and send to zip
-    %   
+    %   1) Create backup system  - take structure and send to zip
+    %   2) Create merging system - allow combining of data from multiple computers 
     
     %   LONG TERM
     %   ===================================================================
     %   We could eventually log other types of simualations as well. This
     %   class would need to move up the package hierarchery ...
-    
-    
-    %matcher - has this sim been done before
-    %data    - responsible for loading and saving data, as well as 
-    %          handling interactions ...
-    %
-    %FOR LATER
-    %----------------------------------------------------------------------
-    %predictor - given current data, predict next threshold 
-    %merger  - this class would allow merging of results from different
-    %          computers
+
     
     properties
-       paths_obj
-       matcher_obj
+       paths_obj    %Class: NEURON.simulation.extracellular_stim.sim_logger.pathing
+       matcher_obj  %Class: NEURON.simulation.extracellular_stim.sim_logger.matcher
+       %The main function of this object is to serve as a place to query
+       %matches for simulations that match the current simulation setup. I
+       %don't like the current implementation because it doesn't rely on
+       %the classes themselves for version comparison, instead the
+       %comparison is done here. Ideally I will eventually move the
+       %comparison classes to be in the subpackages of the objects they
+       %represent.
        
-       simulation_data_obj 
+       simulation_data_obj  %Class: 
     end
     
     properties
@@ -43,6 +40,7 @@ classdef sim_logger < handle_light
     methods
         
         %NOTE: Do I want to keep this is in the memory of xstim????
+        %Currently it is not ...
         function obj = sim_logger()
             
            import NEURON.simulation.extracellular_stim.sim_logger.* 
@@ -93,7 +91,7 @@ classdef sim_logger < handle_light
            %
            %    INPUTS
            %    ===========================================================
-           %    cell_locations
+           %    cell_locations : see .data.getThresholds
            %    threshold_sign
            %
            %

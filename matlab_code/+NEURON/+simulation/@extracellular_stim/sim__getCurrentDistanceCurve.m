@@ -21,7 +21,8 @@ function t_all = sim__getCurrentDistanceCurve(obj,distance_steps,dim,starting_va
 %
 %   See Also:
 %       
-%
+
+error('This function is out of date and needs up be updated')
 
 elec_obj_local      = obj.elec_objs;
 threshold_obj_local = obj.threshold_cmd_obj;
