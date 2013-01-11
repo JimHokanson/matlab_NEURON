@@ -96,6 +96,7 @@ classdef threshold_analysis < handle_light
                 if ~result_obj.tissue_fried
                    error(result_str) 
                 else
+                   result_obj.setFriedTissueValues();
                    return
                 end
             end

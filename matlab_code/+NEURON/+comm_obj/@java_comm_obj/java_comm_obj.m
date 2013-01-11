@@ -249,24 +249,22 @@ classdef java_comm_obj < NEURON.comm_obj
                 end
             end
             
-            %NOTE: Success indicates that the terminal string
-            %which we write after our command has been transmitted.
-            %It is possible for error messages to be successes
-            success = r.success_flag;
+            error_flag = r.error_flag;
+            success    = r.success_flag;
             
             %Success processing
             %--------------------------------------------------
             results = char(r.result_str);
-            if success
+            if ~error_flag
                 if ~isempty(results) && results(end) == char(10);
                     results(end) = [];
                 end
             else
                 if ~r.process_running
-                    fprintf(2,'\nLAST ERROR BEFORE PROCESS CLOSED:\n\n%s\n',results);
+                    fprintf(2,'\nLAST ERROR BEFORE PROCESS CLOSED:\n%s\n\n',results);
                     error('Process is no longer running')
                 elseif r.stackdump_present
-                    fprintf(2,'\nLAST NEURON ERROR BEFORE STACKDUMP:\n\n%s\n',results);
+                    fprintf(2,'\nLAST NEURON ERROR BEFORE STACKDUMP:\n%s\n\n',results);
                     error('Stackdump detected');
                 elseif r.read_timeout
                     %JAH TODO: Need to create methods for returning
@@ -277,7 +275,7 @@ classdef java_comm_obj < NEURON.comm_obj
                    %If this runs I must have added an extra case
                    %which would cause this to error
                    
-                   fprintf(2,'\nERROR MSG (might be empty)\n%s\n',results);
+                   fprintf(2,'\nERROR MSG (might be empty)\n%s\n\n',results);
                    
                    error('Unhandled java comm error case, see code') 
                 end

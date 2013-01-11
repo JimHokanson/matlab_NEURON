@@ -23,6 +23,7 @@ public class NEURON_reader {
 
 	//Set by class 
 	public boolean success_flag           = false;   //aka 'result' or 'success flag'
+	public boolean error_flag 		 	  = false; 	 //Set true when error occurs ...
 	public boolean detected_end_statement = false;   //Set true if we detect the terminal string
 	public boolean stackdump_present      = false; 	 //Set true if stackdump detected
 	public boolean process_running        = false;   //Set false if process is no longer running
@@ -104,7 +105,7 @@ public class NEURON_reader {
 				//NOTE: Unfortunately we don't expose the non-error string :/
 				//Might change public access fields ...
 				result_str = error_data.toString();
-				
+				error_flag = true;
 				return true;
 			}
 			else {
@@ -121,6 +122,7 @@ public class NEURON_reader {
 		if (allow_timeout && ((System.nanoTime() - start_time) > wait_time_nanoseconds)) {
 			read_timeout = true;
 			System.err.println("Reading from NEURON timed out");
+			error_flag = true;
 			return true;
 		}
 
@@ -180,6 +182,7 @@ public class NEURON_reader {
 			stackdump_present     = possible_error_string.lastIndexOf("Dumping stack trace to") != -1;
 			if (stackdump_present){
 				System.err.printf("STACKDUMP ERROR MESSAGE:\n%s\n",possible_error_string);
+				error_flag = true;
 			}
 		}
 
