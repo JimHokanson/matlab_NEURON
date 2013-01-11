@@ -89,20 +89,38 @@ axon_diameter_all        = [3.4      4.6     5.8     6.9     8.1     9.2     10.
 
 
 %--------------------------------------------------------------------------
+%               INTERNODE LENGTH
 %--------------------------------------------------------------------------
+%
+%   SOURCE A: See Table 5, pg 82 
+%
+%   Nilsson I, Berthold CH (1988) Axon classes and internodal growth in the
+%   ventral spinal root L7 of adult and developing cats. Journal of Anatomy
+%   156:71–96.
+%
+%   Summary: Data seems to be fairly different from claimed source
+%
+%
 subplot(3,2,1)
 plot(axon_diameter_all,internode_length_all,'-o')
 title('Internode Length')
 
+
+%Year 5 from source
+%---------------------------------------
 p_orig_fit = [-91.1 -20.2 1745.9];
+%p_orig_fit = [ -20.2 1745.9];
 orig_fit = p_orig_fit(1) + p_orig_fit(2).*axon_diameter_fit + p_orig_fit(3).*log10(axon_diameter_fit);
 
-
+%Year 1 from source
+%--------------------------------------
 p_y1       = [-117.5 -126 2753];
 y1         = p_y1(1) + p_y1(2).*axon_diameter_fit + p_y1(3).*log10(axon_diameter_fit);
 
+%Matt's version
+%-------------------------------------
 p_in_fit = polyfit(log(axon_diameter_all),internode_length_all,1);
-in_fit = polyval(p_in_fit,log(axon_diameter_fit));
+in_fit   = polyval(p_in_fit,log(axon_diameter_fit));
 
 X_1 = [log10(axon_diameter_all(:)) axon_diameter_all(:) ones(length(axon_diameter_all),1)];
 X_2 = [log10(axon_diameter_fit(:)) axon_diameter_fit(:) ones(length(axon_diameter_fit),1)];
@@ -116,12 +134,13 @@ plot(axon_diameter_fit,y1,'g')
 plot(axon_diameter_fit,in_fit,'k')
 plot(axon_diameter_fit,alt_fit,'c')
 hold off
-legend('MRG','Best 5y From Source','Best 1y from source','Linear Fit MRG','Jim fit to MRG data')
+legend('MRG','Best 5y From Source','Best 1y from source','Matt fit MRG','Jim fit to MRG data')
 
 
 
 
 %--------------------------------------------------------------------------
+%               NUMBER LAMELLA
 %--------------------------------------------------------------------------
 subplot(3,2,2)
 plot(fiber_diameter_all,number_lemella_all,'-o')

@@ -22,7 +22,7 @@ function obj = create_standard_sim(varargin)
 %
 %
 %    FULL PATH:
-%    NEURON.simulation.extracellular_stim.create_standard_sim
+%       NEURON.simulation.extracellular_stim.create_standard_sim
 %
 %    TODO: Finish documenting optional inputs that are below
 %

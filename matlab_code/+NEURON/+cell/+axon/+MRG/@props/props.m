@@ -184,6 +184,8 @@ classdef props < handle_light
             
             %NOTE: Matt has replaced this with regression equations ...
             
+            %See determineFiberEquations
+            
             fiber_diameter_all       = [5.7      7.3     8.7     10      11.5    12.8    14      15      16];
             
             FIBER_INDEX = find(fiber_diameter_all == obj.fiber_diameter,1);
