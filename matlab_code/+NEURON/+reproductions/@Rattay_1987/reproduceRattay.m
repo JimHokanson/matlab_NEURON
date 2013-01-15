@@ -1,12 +1,15 @@
-function reproduceRattay
+function reproduceRattay(varargin)
 
+% Attempt to reproduce figure from Rattay 1987.
 
 % 100us square pulse (What about charge-balancing????)
 % resistivity 300ohm-cm
 % figure uses range -10mA-10mA for  38.4um diameter, and -5mA-5mA for 9.6
 % um.
 
-debug = false;
+in.debug = false;
+in.local_debug = false;
+in = processVaragin(in,varargin);
 
 minStim = -5; maxStim = 5; stimStep = .5; % -5 to 5 mA (corresponds to fiber diameter 9.6um, tested for distances ~ .05 to 1.7 mm)
 stimAmps = [minStim:stimStep:maxStim]*1000; 
@@ -58,11 +61,13 @@ end
 firedPts = firedPts(1:nAPs,:);
 
 figure % rattay figure
-plot(firedPts(:,1),firedPts(:,2)/1000,'.') % convert distance from micro to milli
-xlabel('Stim Current')
-ylabel('Electrode Distance')
+plot(firedPts(:,1)/1000,firedPts(:,2)/1000,'.') % convert distance from micro to milli
+xlabel('Stim Current (mA)')
+ylabel('Electrode Distance (mm)')
 %set(gca,'XLim',[-5 5],'YLim',[0 maxAxonDist/1000])
 set(gca,'XLim',[minStim maxStim],'YLim',[0 maxAxonDist/1000])
+if in.local_debug
+    keyboard
+end
 
-keyboard
 end
