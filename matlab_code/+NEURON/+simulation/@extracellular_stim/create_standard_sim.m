@@ -124,6 +124,7 @@ function value_out = helper2__handleStimCellArrayOption(value_in,prop_name,n_ele
          %TODO: Improve
          error('Mismatch in length for prop: %s',prop_name);
       end
+      value_out = value_in;
    elseif size(value_in,1) == 1
       %replicate 
       if n_electrodes == 1
