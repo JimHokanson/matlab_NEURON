@@ -9,7 +9,7 @@ function reproduceRattay(varargin)
 
 in.debug = false;
 in.local_debug = false;
-in = processVaragin(in,varargin);
+in = processVarargin(in,varargin);
 
 minStim = -5; maxStim = 5; stimStep = .5; % -5 to 5 mA (corresponds to fiber diameter 9.6um, tested for distances ~ .05 to 1.7 mm)
 stimAmps = [minStim:stimStep:maxStim]*1000; 
@@ -36,7 +36,7 @@ nAPs = 0;
 % create extracellular_stim object, as well as tissue, electrode, and cell.
 obj = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resistivity',TISSUE_RESISTIVITY,...
     'cell_type','generic','cell_options',{'paper',propsPaper},'stim_scales',STIM_SCALES,'stim_durations',STIM_DURATIONS,...
-    'stim_start_times',STIM_START_TIME,'debug',debug);
+    'stim_start_times',STIM_START_TIME,'debug',in.debug);
 
 for iStim = 1:nStimAmps
 STIM_AMP = stimAmps(iStim);

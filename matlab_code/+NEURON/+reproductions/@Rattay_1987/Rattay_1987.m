@@ -17,7 +17,7 @@ classdef Rattay_1987
     end
     
     methods(Static)
-       reproduceRattay 
+       reproduceRattay(varargin)
     end
     
 end
