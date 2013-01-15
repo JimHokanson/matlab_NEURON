@@ -1,4 +1,5 @@
-function reproduceRattay
+function reproduceRattayV1
+% not functional, this is a draft and can be deleted soon.
 % Reproduce Rattay fig. 5 (current-distance)
 
 % see
@@ -83,10 +84,10 @@ end
 firedPts = firedPts(1:nAPs,:);
 
 figure % rattay figure
-plot(firedPts(:,1),firedPts(:,2)/1000,'.')
-xlabel('Stim Current')
-ylabel('Electrode Distance')
-set(gca,'XLim',[-5 5],'YLim',[0 maxAxonDist/1000])
+plot(firedPts(:,1)/1000,firedPts(:,2)/1000,'.')
+xlabel('Stim Current (mA)')
+ylabel('Electrode Distance (mm)')
+%set(gca,'XLim',[-5 5],'YLim',[0 maxAxonDist/1000])
 
 % figure % McIntyre
 % plot(axon_distance,threshold,'o')

@@ -8,6 +8,10 @@ classdef single_sim < handle_light
     %Add on the properties that led to these results
     %=> like the threshold crossing criteria
     
+    % JMW note: correct spelling is propagation (spelled wrong in
+    % ap_propogation_index and ap_propogated). I won't correct it now so as
+    % to not break anything relying on these properties.
+    
     properties
        vm_threshold             %Threshold that needed to be crossed to consider
                                 %AP at local point

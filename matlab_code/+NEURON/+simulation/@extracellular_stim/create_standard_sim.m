@@ -40,6 +40,7 @@ in.tissue_resistivity    = 500;
 %--------------------------------------------------------
 in.cell_center           = [0 0 0];
 in.cell_type             = 'MRG';
+in.cell_options          = {};
 
 %Electrode properties:
 %--------------------------------------------------------
@@ -75,7 +76,14 @@ switch in.cell_type
     case 'MRG'
         set_CellModel(obj,NEURON.cell.axon.MRG(in.cell_center))
     case 'generic'
-        set_CellModel(obj,NEURON.cell.axon.generic(in.cell_center));
+        set_CellModel(obj,NEURON.cell.axon.generic(in.cell_center))
+        options.paper = [];
+        options = processVarargin(options,in.cell_options);
+        if isempty(options.paper)
+            error('Must define paper to pull cell properties from')
+        else
+           setPropsByPaper(obj.cell_obj.props_obj,options.paper)
+        end
     otherwise
         error('Unhandled cell type')
 end
