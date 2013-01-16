@@ -12,7 +12,7 @@ in.local_debug = false;
 in = processVarargin(in,varargin);
 
 minStim = -5; maxStim = 5; stimStep = .5; % -5 to 5 mA (corresponds to fiber diameter 9.6um, tested for distances ~ .05 to 1.7 mm)
-stimAmps = [minStim:stimStep:maxStim]*1000; 
+stimAmps = [minStim:stimStep:maxStim]*1000;
 %stimAmps = [-10:.5:10]*1000; % -10mA-10mA
 %stimAmps = [-5:.5:5]*1000; % -5mA-5mA
 TISSUE_RESISTIVITY = 300; % isotropic 300 ohm cm
@@ -30,38 +30,48 @@ maxAxonDist = 2.5*1000;  % 1.65 mm
 
 nStimAmps = length(stimAmps);
 N_FIBERS = 50;
-firedPts = zeros(nStimAmps*N_FIBERS,2); % nAPs x2, (current,distance)
-nAPs = 0;
+stimData = zeros(nStimAmps*N_FIBERS,3); % (current,distance,fired?)
+iSimTotal = 0;
 
 % create extracellular_stim object, as well as tissue, electrode, and cell.
 obj = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resistivity',TISSUE_RESISTIVITY,...
     'cell_type','generic','cell_options',{'paper',propsPaper},'stim_scales',STIM_SCALES,'stim_durations',STIM_DURATIONS,...
     'stim_start_times',STIM_START_TIME,'debug',in.debug);
+obj.celsius = 27;
+obj.changeSimulationVariables;
+
 
 for iStim = 1:nStimAmps
-STIM_AMP = stimAmps(iStim);
-
-axon_distance = minAxonDist + (maxAxonDist-minAxonDist)*rand(1,N_FIBERS);
-node_spacing = obj.cell_obj.getAverageNodeSpacing;
-parallel_distance = 0.5*node_spacing*rand(1,N_FIBERS);
-for iSim = 1:N_FIBERS %should probably rename iSim to avoid confusion with iStim
-   new_xyz = [0 axon_distance(iSim) parallel_distance(iSim)];
-   moveElectrode(obj.elec_objs,new_xyz)
-   result_obj = sim__single_stim(obj,STIM_AMP);
-   % includes properties such as ap_propogated (bool) and
-   % membrane_potential (time x space), which can be plotted using mesh()
-   
-   if result_obj.ap_propogated % note mispelling, if that's fixed, need to change here
-        nAPs = nAPs + 1;
-        firedPts(nAPs,:) = [STIM_AMP,axon_distance(iSim)];  
-   end
-end
+    STIM_AMP = stimAmps(iStim);
+    
+    axon_distance = minAxonDist + (maxAxonDist-minAxonDist)*rand(1,N_FIBERS);
+    node_spacing = obj.cell_obj.getAverageNodeSpacing;
+    parallel_distance = 0.5*node_spacing*rand(1,N_FIBERS);
+    for iSim = 1:N_FIBERS %should probably rename iSim to avoid confusion with iStim
+        new_xyz = [0 axon_distance(iSim) parallel_distance(iSim)];
+        moveElectrode(obj.elec_objs,new_xyz)
+        result_obj = sim__single_stim(obj,STIM_AMP);
+        % includes properties such as ap_propogated (bool) and
+        % membrane_potential (time x space), which can be plotted using mesh()
+        
+        iSimTotal = iSimTotal + 1;
+        apFired = result_obj.ap_propogated; % note mispelling, if that's fixed, need to change here
+        stimData(iSimTotal,:) = [STIM_AMP,axon_distance(iSim),apFired];
+        
+    end
     
 end
-firedPts = firedPts(1:nAPs,:);
+
+% separate points that fired or did not fire, and convert units from micro
+% to milli
+firedPts = stimData(stimData(:,3) == 1,1:2)./1000;
+nullPts = stimData(stimData(:,3) == 0,1:2)./1000;
 
 figure % rattay figure
-plot(firedPts(:,1)/1000,firedPts(:,2)/1000,'.') % convert distance from micro to milli
+plot(firedPts(:,1),firedPts(:,2),'rx')
+hold on
+plot(nullPts(:,1),nullPts(:,2),'k.','markerSize',0.5)
+legend('Activated','Not Activated')
 xlabel('Stim Current (mA)')
 ylabel('Electrode Distance (mm)')
 %set(gca,'XLim',[-5 5],'YLim',[0 maxAxonDist/1000])
