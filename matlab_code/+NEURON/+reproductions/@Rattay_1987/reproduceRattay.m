@@ -36,9 +36,9 @@ iSimTotal = 0;
 % create extracellular_stim object, as well as tissue, electrode, and cell.
 obj = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resistivity',TISSUE_RESISTIVITY,...
     'cell_type','generic','cell_options',{'paper',propsPaper},'stim_scales',STIM_SCALES,'stim_durations',STIM_DURATIONS,...
-    'stim_start_times',STIM_START_TIME,'debug',in.debug);
-obj.celsius = 27;
-obj.changeSimulationVariables;
+    'stim_start_times',STIM_START_TIME,'debug',in.debug,'celsius',27);
+%obj.celsius = 27;
+%obj.changeSimulationVariables;
 
 
 for iStim = 1:nStimAmps
