@@ -19,13 +19,13 @@ TISSUE_RESISTIVITY = 300; % isotropic 300 ohm cm
 STIM_START_TIME    = 0.1;
 STIM_DURATIONS      = 0.1;   % 100us duration, square pulse
 STIM_SCALES = 1;
-propsPaper = 'McNeal_1976'; % get properties from this paper, for now. %TODO: get properties used in Rattay_1987.
-
+propsPaper = 'Rattay_1987'; % get properties from this paper, for now. %TODO: get properties used in Rattay_1987.
+TEMP_CELSIUS = 27;
 
 %minAxonDist = 0.1*1000; % 0.1 mm min dist from electrode to axon
 %maxAxonDist = 3.25*1000; % 3.25 mm max dist from electrode to axon
 minAxonDist = 0.01*1000; % 0.01 mm
-maxAxonDist = 2.5*1000;  % 1.65 mm
+maxAxonDist = 3.5*1000;  % 3.5 mm
 
 
 nStimAmps = length(stimAmps);
@@ -36,9 +36,7 @@ iSimTotal = 0;
 % create extracellular_stim object, as well as tissue, electrode, and cell.
 obj = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resistivity',TISSUE_RESISTIVITY,...
     'cell_type','generic','cell_options',{'paper',propsPaper},'stim_scales',STIM_SCALES,'stim_durations',STIM_DURATIONS,...
-    'stim_start_times',STIM_START_TIME,'debug',in.debug,'celsius',27);
-%obj.celsius = 27;
-%obj.changeSimulationVariables;
+    'stim_start_times',STIM_START_TIME,'debug',in.debug,'celsius',TEMP_CELSIUS);
 
 
 for iStim = 1:nStimAmps
@@ -74,7 +72,6 @@ plot(nullPts(:,1),nullPts(:,2),'k.','markerSize',0.5)
 legend('Activated','Not Activated')
 xlabel('Stim Current (mA)')
 ylabel('Electrode Distance (mm)')
-%set(gca,'XLim',[-5 5],'YLim',[0 maxAxonDist/1000])
 set(gca,'XLim',[minStim maxStim],'YLim',[0 maxAxonDist/1000])
 if in.local_debug
     keyboard
