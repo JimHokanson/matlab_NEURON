@@ -13,7 +13,7 @@ classdef simulation < handle
     %   =========================================================
     %   	NEURON.simulation.extracellular_stim
     %
-    %   NEURON VARIABLES
+    %   NEURON VARIABLES === MOVED TO NEURON.simulation.props
     %   =========================================================
     %   celsius
     %   tstop
@@ -21,11 +21,10 @@ classdef simulation < handle
     %
     
     properties
-        %TODO: Eventually expand into a class
+        %TODO:
         %Could incorporate solution method ... discrete integration, event based with dynamic steps ...
-        celsius = 37      %
-        tstop   = 1.2;    %(units - ms), stopping time for the simulation
-        dt      = 0.005;  %(units - ms),
+
+        props_obj
     end
     
     properties (Dependent)
@@ -34,7 +33,7 @@ classdef simulation < handle
     
     methods 
         function value = get.time_vector(obj)
-           value = 0:obj.dt:obj.tstop;
+           value = 0:obj.props_obj.dt:obj.props_obj.tstop;
         end
     end
     
@@ -112,6 +111,8 @@ classdef simulation < handle
                 obj.cmd_obj     = NEURON.cmd(obj.n_obj);
                 initNEURON(obj);
             end
+            
+            obj.props_obj = NEURON.simulation.props(obj);
         end
     end
     
@@ -134,35 +135,31 @@ classdef simulation < handle
             
             DONT_CARE_TIME_DIFF = 0.001; %ms
             
-            t_diff = obj.tstop - (lastEventTime + obj.opt__TIME_AFTER_LAST_EVENT);
+            t_diff = obj.props_obj.tstop - (lastEventTime + obj.opt__TIME_AFTER_LAST_EVENT);
             
             if abs(t_diff) < DONT_CARE_TIME_DIFF
                 return
             end
             
-            old_tstop = obj.tstop;
-            obj.tstop = lastEventTime + obj.opt__TIME_AFTER_LAST_EVENT;
+            old_tstop = obj.props_obj.tstop;
+            new_tstop = lastEventTime + obj.opt__TIME_AFTER_LAST_EVENT;
             if t_diff < 0
                 %Need more time ...
                 formattedWarning('Changing simulation time from %0g to %0g, to account for event at %0g',...
-                    old_tstop,obj.tstop,lastEventTime)
+                    old_tstop,new_tstop,lastEventTime)
             else
                 %Trying to save time ...
                 formattedWarning('Changing simulation time from %0g to %0g, to save time, last event at %0g',...
-                    old_tstop,obj.tstop,lastEventTime)
+                    old_tstop,new_tstop,lastEventTime)
             end
             
-            changeSimulationVariables(obj)
+            changeProps(obj.props_obj,'tstop',new_tstop)
         end
     end
     
     %METHODS THAT INTERACT WITH NEURON ===================
-    methods
-        function changeSimulationVariables(obj)
-            values = {obj.celsius   obj.tstop  obj.dt};
-            props  = {'celsius'     'tstop'    'dt'};
-            obj.cmd_obj.writeNumericProps(props,values);
-        end
+    methods 
+        
         function initNEURON(obj)
             %initNEURON Initializes the NEURON environment
             %
@@ -175,7 +172,9 @@ classdef simulation < handle
             cmd = obj.cmd_obj;
             cmd.cd_set(obj.path_obj.hoc_code_root);
             cmd.load_file('init_neuron.hoc');
-            changeSimulationVariables(obj)
+            %changeSimulationVariables(obj)
+            % do the simulation variables need to be sent to NEURON before
+            % the next line? If so, I may be breaking this right now.
             
             obj.cmd_obj.writeStringProps({'sim_hash'},{obj.sim_hash});
             

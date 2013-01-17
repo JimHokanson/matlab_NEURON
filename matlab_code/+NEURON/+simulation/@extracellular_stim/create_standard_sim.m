@@ -56,9 +56,10 @@ obj = NEURON.simulation.extracellular_stim(...
     'launch_NEURON_process',in.launch_neuron_process,'debug',in.debug);
 
 % if celsius is changed, must be changed in both the sim obj and in NEURON
-if obj.celsius ~= in.celsius
-   obj.celsius = in.celsius;
-   obj.changeSimulationVariables;
+if obj.props_obj.celsius ~= in.celsius
+   changeProps(obj.props_obj,'celsius',in.celsius);
+    %obj.celsius = in.celsius;
+   %obj.changeSimulationVariables;
 end
 
 set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.tissue_resistivity));
