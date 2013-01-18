@@ -23,11 +23,7 @@ function result_obj = sim__single_stim(obj,scale)
 %   Class: NEURON.simulation.extracellular_stim
 
 %Important call to make sure everything is synced
-initSystem(obj.ev_man_obj)
-
-%Initialize threshold info
-%TODO: Move into event manager????
-setupThresholdInfo(obj)
+obj.init__simulation();
 
 %NEURON.simulation.extracellular_stim.threshold_analysis
 result_obj = obj.threshold_analysis_obj.run_stimulation(scale);

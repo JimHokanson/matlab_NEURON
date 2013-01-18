@@ -95,7 +95,7 @@ TESTING_PERCENTAGE_SPACING = 0.05;
 %--------------------------------------------------------------------------
 n_new_stimuli = size(applied_stimuli,1);
 
-[applied_stimuli,old_stimuli] = obj.reduceDimensions(applied_stimuli,old_stimuli);
+[applied_stimuli,old_stimuli] = obj.rereduceDimensions(applied_stimuli,old_stimuli);
 %--------------------------------------------------------------------------
 
 
@@ -132,9 +132,11 @@ repetitions_present    = false;
 n_actually_new_stimuli = n_new_stimuli;
 for iPoint = n_first_group+1:n_new_stimuli
    [maxValue,I] = max(smallest_distance_to_known_point); %Get point furthest from all old points
-   if I == 1 && maxValue == 0 
-      %This indicates repetitions in the stimulus space ...   
-      repetitions_present = true;
+   if maxValue == 0 
+      %This indicates repetitions in the stimulus space ...  
+      %NOTE: Why wouldn't a maxValue of 0 always indicate repetition
+      % - I think it does, the question is 
+      repetitions_present    = true;
       n_actually_new_stimuli = iPoint - 1;
       break
    end
@@ -145,6 +147,8 @@ for iPoint = n_first_group+1:n_new_stimuli
 end
 
 if repetitions_present
+    %error('Repetitions shouldn''t be present due to filtering before hand')
+    %NOTE: With projections we might get more repetitions ...
     max_dist_avg = max_dist_avg(1:n_actually_new_stimuli);
     repetition_indices = find(~ismember(1:n_new_stimuli,[first_group chosen_points]));
 else

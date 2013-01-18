@@ -11,6 +11,8 @@ classdef threshold_options < handle_light
     
     properties
         threshold_accuracy         = 0.1  %How fine to get when determining threshold
+        %TODO: Allow percentage based accuracy ...
+        
         guess_amounts              = 2.^(1:8)
         throw_error_on_no_solution = true %otherwise NaN returned
         make_init_guess_by_voltage = false; %If true, make the start scale 
@@ -30,6 +32,13 @@ classdef threshold_options < handle_light
     end
     
     methods 
+        function changeGuessAmount(obj,guess_unit,varargin)
+           in.scaling   = 2;
+           in.n_guesses = length(obj.guess_amounts);
+           in = processVarargin(in,varargin);
+           
+           obj.guess_amounts = abs(guess_unit)*in.scaling.^(1:in.n_guesses);
+        end
         function testing_values = getLowerStimulusTestingPoints(obj,starting_value)
            %getLowerStimulusTestingPoints
            %

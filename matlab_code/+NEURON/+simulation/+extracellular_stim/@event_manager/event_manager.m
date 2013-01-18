@@ -5,6 +5,11 @@ classdef event_manager < handle_light
     %   track of the things needed to run an extracellular stimulation
     %   and the required order of all processes ...
     %
+    %
+    %   NEW GOAL:
+    %   -------------------------------------------------------------------
+    %   I would like to get rid of this class ...
+    %
     %   Class: NEURON.simulation.extracellular_stim.event_manager
     
     %STEPS
@@ -40,9 +45,11 @@ classdef event_manager < handle_light
     end
     
     methods
+        %TODO: phasing this method out ...
         function cellLocationChanged(obj)
            obj.stim_info_set = false; 
         end
+        
         function stimElectrodesChanged(obj)
            obj.stim_info_set = false; 
         end
@@ -70,83 +77,44 @@ classdef event_manager < handle_light
            %Class: NEURON.simulation.extracellular_stim;
            p       = obj.parent;
            
-           %Class: NEURON.cmd;
-           cmd_obj = p.cmd_obj;
-           
-           
            %PROPER INITIALIZATION CHECK
            %===============================================================
            %Verify that all objects are linked to the simulation ...
            if ~obj.ran_init_once
               init__verifyAssignedObjects(p)
-              
-              
-              %IMPROVEMENT:
-              %============================================================
-              %NOTE: Do we want to change to the directory and do
-              %initial setups here ...
-              %i.e. 
-              %1) cd to model directory
-              %2) load driver
-              %3) load function definitions
-              
+
               obj.ran_init_once = true;
            end
            
-           %CELL DEFINITION
-           %===============================================================
-           %Place code here that should be run if the cell changes
-           %NOTE: The analysis of whether or not each function in this
-           %section is needed given any given change of the cell isn't
-           %critical. In other words, if we update the fiber diamter, we
-           %don't need to create a new stim section list, since the # of
-           %sections didn't change, but that optimization isn't critical
-           %---------------------------------------------------------------
-           if ~obj.cell_definition_set
-               
-              %Make sure relevant 
-               
-               
-              %Create cell in NEURON
-              %
-              %Example: NEURON.cell.axon.MRG.createCellInNEURON
-              p.cell_obj.createCellInNEURON;
-              
-              %NOTE: Currently this needs to follow the previous
-              %statement as the previous one cds into the proper directory
-              %
-              %NEURON.cell.extracellular_stim_capable.create_stim_sectionlist
-              p.cell_obj.create_stim_sectionlist(cmd_obj);
-              
-              %RECORDING STUFF ....
-              %------------------------------------------------------------
-              p.cell_obj.create_node_sectionlist(cmd_obj);
-              
-              %Record membrane potential ...
-              NEURON.lib.sim_logging.record_membrane_voltages(...
-                    cmd_obj,'xstim__node_sectionlist','xstim__node_vm_hist')
-              
-              %TODO: Could prove an optional recording hook here
-              %p.cell_obj.setup_optional_recording_info(cmd_obj);
-              
-              obj.cell_definition_set = true;
-              
-              %Make the assumption that the playback vector needs to be
-              %recreated ...
-              cmd_obj.run_command('xstim__cell_setup_changed_since_last_playback_initialization = 1');
+           p.cell_obj.createExtracellularStimCell();
            
-              %Make sure relevant save paths exist for data transfer
-              p.data_transfer_obj.initializeDataSavingPaths();
+           p.init__create_stim_info();
            
-           end
            
-           %SETUP OF STIMULATION INFO
-           %===============================================================
-           if ~obj.stim_info_set
-              %NEURON.simulation.extracellular_stim.init__create_stim_info
-              init__create_stim_info(p)
-              obj.stim_info_set = true;
-           end
+           
+           %TODO: return value which specifies whether or not the cell
+           %thinks the applied stimulus would change, based on cell
+           %properties changing ...
+           
+                      
+% % %            if ~cell_obj.props_up_to_date_in_NEURON || ...
+% % %                    ~cell_obj.spatial_props_up_to_date
+% % %                
+% % % %               p.cell_obj.createCellInNEURON;
+% % % %               p.cell_obj.create_stim_sectionlist(cmd_obj);
+% % % %               p.cell_obj.create_node_sectionlist(cmd_obj);
+% % % %               NEURON.lib.sim_logging.record_membrane_voltages(...
+% % % %                     cmd_obj,'xstim__node_sectionlist','xstim__node_vm_hist')
+% % % %               cmd_obj.run_command('xstim__cell_setup_changed_since_last_playback_initialization = 1');
+% % %            end
+           
+% % % %            %SETUP OF STIMULATION INFO
+% % % %            %===============================================================
+% % % %            if ~obj.stim_info_set || cell_stim_info_changed
+% % % %               %NEURON.simulation.extracellular_stim.init__create_stim_info
+% % % %               init__create_stim_info(p)
+% % % %               obj.stim_info_set = true;
+% % % %            end
 
         end
     end

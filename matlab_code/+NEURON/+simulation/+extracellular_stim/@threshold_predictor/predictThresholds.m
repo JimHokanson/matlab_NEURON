@@ -22,6 +22,10 @@ end
 
 %TODO: How many points are needed for this to work?????
 
+%TODO: Remove this sort, and this silly function
+%I could keep my inputs sorted ...
+[low_d_old,IA] = unique(low_d_old,'rows');
+old_thresholds = old_thresholds(IA);
 
 predicted_thresholds = griddatan(low_d_old,old_thresholds',low_d_new);
 
@@ -32,6 +36,8 @@ if ~isempty(I_NaN)
     ft = 'linearinterp';
     opts = fitoptions( ft );
     opts.Normalize = 'on';
+    
+    %YIKES: This will also lead to potential duplicates ...
     
     fitresult = fit(low_d_old(:,1:2), old_thresholds', ft,opts);
     predicted_thresholds(I_NaN) = feval(fitresult,low_d_new(I_NaN,1:2));

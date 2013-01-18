@@ -4,10 +4,6 @@
 create node[axonnodes], MYSA[paranodes1], FLUT[paranodes2], STIN[axoninter]
 access node[0]
 
-//NOTE: This needs to be moved to a different method ...
-//objref node_list
-//node_list = new SectionList()
-
 proc MRG__init_axon() {
 	for i=0,axonnodes-1 {
 		node[i]{

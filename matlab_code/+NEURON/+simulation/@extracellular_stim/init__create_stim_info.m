@@ -11,8 +11,22 @@ function init__create_stim_info(obj)
 %   NEURON.simulation.extracellular_stim.init__create_stim_info
 %   
 
+[new_tissue_configuration,obj.tissue_configuration] = ...
+    obj.tissue_obj.hasConfigurationChanged(obj.tissue_configuration);
+
+[new_electrode_configuration,obj.electrode_configuration] = ...
+    obj.elec_objs.hasConfigurationChanged(obj.electrode_configuration);
+
+
+[new_cell_configuration,obj.cell_configuration] = hasSpatialInformationChanged(obj.cell_obj,obj.cell_configuration);
+
+if ~(new_tissue_configuration || new_electrode_configuration || new_cell_configuration)
+    return
+end
+
 %Compute stimulus information - populates t_vec and v_all
-computeStimulus(obj)
+%   NEURON.simulation.extracellular_stim.computeStimulus
+obj.computeStimulus();
 
 t_vec = obj.t_vec;
 v_all = obj.v_all;

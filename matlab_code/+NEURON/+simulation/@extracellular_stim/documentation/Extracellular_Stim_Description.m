@@ -2,9 +2,10 @@
 Extracellular Stim
 -----------------------------------------------------------------
 
-TODO: Finish documentation of this aspect
-An extracellular 
+RELEVANT CLASSES:
 
+
+Extracellular stimulation TODO: Finish documentation
 
 
 

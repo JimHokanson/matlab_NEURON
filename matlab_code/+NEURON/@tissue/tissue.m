@@ -11,6 +11,7 @@ classdef tissue < handle
     %   NEURON.tissue.homogeneous_isotropic
     
     properties
+       configuration = 1;
     end
     
     %MAIN ACCESS METHOD
@@ -30,6 +31,17 @@ classdef tissue < handle
         %transfer function class, it connects the electrode and the cell
         %together...
         v_ext = computeAppliedVoltageToCellFromElectrode(obj,cell_xyz_all,elec_xyz,I_stim)
+    end
+    
+    methods
+        function [hasChanged,latest_configuration] = hasConfigurationChanged(obj,lastConfiguration)
+           latest_configuration = obj.configuration;
+           if isempty(lastConfiguration)
+               hasChanged = true;
+           else
+               hasChanged = obj.configuration ~= lastConfiguration;
+           end
+        end
     end
     
 end

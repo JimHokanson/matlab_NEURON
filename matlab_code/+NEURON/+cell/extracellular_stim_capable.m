@@ -65,6 +65,10 @@ classdef extracellular_stim_capable < handle
         %I want to look at the stimulus applied to the nodes, adding
         %internodes adds considerable size and is hopefully not
         %necessary ..
+        %
+        %   NOTE: In the event of multiple segments per node section, or
+        %   even multiple sections per nodes, this should only return a
+        %   single representative sample.
         
     end
     
@@ -107,6 +111,9 @@ classdef extracellular_stim_capable < handle
         end
         function xyz_out = getCellXYZMultipleLocations(obj,cell_locations)
             %
+            %
+            %   TODO:
+            %
             %   Created for use with the sim_logger
             %
             %   OUTPUTS
@@ -128,6 +135,24 @@ classdef extracellular_stim_capable < handle
             xyz_cell = obj.getXYZnodes();
             
             xyz_out = bsxfun(@plus,permute(xyz_use,[1 3 2]),permute(xyz_cell,[3 1 2]));
+        end
+        function runDefaultXstimSetup(obj,cmd_obj)
+            
+            %NOTE: current directory should point to cell
+            %TODO: Add on check mechanism that ensures this ...
+            %simulation property - current_neuron_directory
+            %   cmd obj - query this before changing
+            
+            %NEURON.cell.extracellular_stim_capable.create_stim_sectionlist
+            obj.create_stim_sectionlist(cmd_obj);
+            
+            obj.create_node_sectionlist(cmd_obj);
+            
+            NEURON.lib.sim_logging.record_membrane_voltages(...
+                cmd_obj,'xstim__node_sectionlist','xstim__node_vm_hist')
+            
+            cmd_obj.run_command('xstim__cell_setup_changed_since_last_playback_initialization = 1');
+            
         end
     end
     

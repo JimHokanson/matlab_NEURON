@@ -102,6 +102,7 @@ axon_diameter_all        = [3.4      4.6     5.8     6.9     8.1     9.2     10.
 %
 %
 subplot(3,2,1)
+%plot(node_diameter_all,internode_length_all,'-o')
 plot(axon_diameter_all,internode_length_all,'-o')
 title('Internode Length')
 

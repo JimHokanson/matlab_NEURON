@@ -45,10 +45,10 @@ classdef spatial_info < handle_light
     %======================================================================
     
     %IMPORTANT: These were made private to respect the property:
-    %spatial_info_up_to_date
+    %   .spatial_info_up_to_date
     %
     %In general these are never accessed directly, unless in the method
-    %populate_spatialInfo()
+    %   .populate_spatialInfo()
     properties (Access = private)
         %.spatial_info()   %Constructor
         %.moveCenter
@@ -74,19 +74,39 @@ classdef spatial_info < handle_light
     end
     
     properties
-        %Dirty bits
-        %-------------------------------------------------------------------
+        %This needs to be changed ...
+        
+        %Things that could change with respect to spatial information:
+        %------------------------------------------------------------------
+        %1) sections 
+        %       - need new section lists
+        %       - need to recompute xyz
+        %       - need to recompute applied stimulus
+        %2) # segments, lengths of any section, position of cell in 3d 
+        %       - need to recompute xyz
+        %       - need to recompute applied stimulus
+        
+        
+        %METHODS
+        %--------------------------------------------
         %.spatialPropsChanged() - set false
+        %.moveCenter()
+        
         spatial_info_up_to_date = false %When properties change, we need to
         %set this to be false. This indicates that the spatial properties
         %need to be recomputed. Any access to variables should first query
         %this before returning values.
+        spatial_configuration = 1;
     end
     
     properties
         props_obj %Class: NEURON.cell.axon.MRG.props
+        %Reference to props object for retrieving information needed to 
+        %handle spatial properties ...
     end
     
+    %Constructor and Initialization
+    %----------------------------------------------------------------------
     methods
         function obj = spatial_info(parent,xyz_center)
             obj.parent     = parent;
@@ -95,20 +115,35 @@ classdef spatial_info < handle_light
         function setPropsObj(obj,props_obj)
             obj.props_obj = props_obj;
         end
+    end
+    
+    %Configuration/Dirty Status -------------------------------------------
+    methods
+        function [hasChanged,current_config] = hasConfigurationChanged(obj,previous_config)
+           current_config = obj.spatial_configuration;
+           if isempty(previous_config)
+               hasChanged = true;
+           else
+               hasChanged = current_config ~= previous_config;
+           end
+        end
         function spatialPropsChanged(obj)
             %Method called by props_obj
             obj.spatial_info_up_to_date = false;
+            
+            %NOTE: For now we'll update this here.
+            %The value doesn't hold much meaning, otehr than being
+            %different
+            obj.spatial_configuration = obj.spatial_configuration + 1;
         end
         function moveCenter(obj,newCenter)
             
             obj.xyz_center = newCenter;
-            
-            if isobject(obj.xstim_event_manager_obj)
-                obj.xstim_event_manager_obj.cellLocationChanged();
-            end
-            
+
             if obj.spatial_info_up_to_date
-                obj.xyz_all = obj.xyz_before_shift + newCenter;
+                obj.xyz_all = bsxfun(@plus,obj.xyz_before_shift,newCenter);
+                obj.spatial_configuration = ...
+                    obj.spatial_configuration + 1;
             end
         end
     end

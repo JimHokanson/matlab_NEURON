@@ -8,6 +8,8 @@ classdef props < handle_light
     %   create_mrg_axon.hoc - see method ....MRG.createCellInNEURON()
     %
     %
+
+    %
     %TODO: Still finishing this class
     %
     %   NEURON UNITS
@@ -58,18 +60,22 @@ classdef props < handle_light
     
     properties
         props_up_to_date_in_NEURON = false
-        %Set true by placeVariablesIntoNEURON
-        %Set false by:
+        %Set true by: 
+        %   .placeVariablesIntoNEURON()
+        %Set false by: 
+        %   .changeProperty()
         %
         %
-        
     end
     
     properties (SetAccess = private)
         %------------------------------------------------------------------
         %       NOTE: Values without defaults are diameter dependent
         %------------------------------------------------------------------
+        
+        %==================================================================
         %morphological parameters -----------------------------------------
+        %==================================================================
         fiber_diameter    = 10 %um choose from 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
         node_diameter          %um
         paranode_diameter_1    %um
@@ -96,16 +102,38 @@ classdef props < handle_light
         %ends) which allows for a "center" node
         %NOTE: This parameter is CRUCIAL in terms of execution time
         n_internodes   = 20     %# of internodes
-        %n_nodes = n_internodes + 1
+        %NOTE: n_nodes = n_internodes + 1
         
         %Electrical Parameters --------------------------------------------
         %NOTE: Careful about changing this since the model dynamics
         %will impose force this to be v_rest, given sufficient time
-        v_init      = -80     %mV       %PAPER: Rest Potential
+        v_init         = -80   %mV              %PAPER: Rest Potential
         
-        cap_nodal      = 2     %uF/cm2         %PAPER: Nodal capicitance
-        cap_internodal = 2     %uF/cm2         %PAPER: Internodal capicitance
-        cap_myelin     = 0.1   %uF/cm2/lamella %PAPER: Myelin capacitance
+        
+        %NOTE: No specified sources for these values ...
+        %NOTE: Raspopovic 2011 cites Frijins 1995
+        
+        
+        rho_periaxonal = 70    %Ohm-cm   %PAPER: Periaxonal Resistivity
+        
+        rho_axial_node = 70    %Ohm-cm   %PAPER: Axoplasmic Resistivity
+        rho_axial_i            %Ohm-cm
+        rho_axial_1            %Ohm-cm
+        rho_axial_2            %Ohm-cm
+        
+        
+        
+        cap_nodal      = 2     %uF/cm2          %PAPER: Nodal capicitance
+        %Frankenhaeuser & Huxley, 1964
+        
+        cap_internodal = 2     %uF/cm2          %PAPER: Internodal capicitance
+        %Bostock & Sears 1978 
+        
+        cap_myelin     = 0.1   %uF/cm2/lamella  %PAPER: Myelin capacitance
+        
+        cm_i         %uF/cm2
+        cm_1         %uF/cm2
+        cm_2         %uF/cm2
         
         g_myelin    = 0.001;   %S/cm2   %PAPER: Myelin conductance
         g_1         = 0.001;   %S/cm2   %PAPER: MYSA conductance
@@ -116,18 +144,6 @@ classdef props < handle_light
     
     %Fiber Diameter Dependent Variables ==============================
     properties
-        %morphological parameters -----------------------------
-        
-        %electrical parameters ----------------------------------
-        rho_axial_node = 70    %Ohm-cm   %PAPER: Axoplasmic Resistivity
-        rho_periaxonal = 70    %Ohm-cm   %PAPER: Periaxonal Resistivity
-        rho_axial_i            %Ohm-cm
-        rho_axial_1            %Ohm-cm
-        rho_axial_2            %Ohm-cm
-        
-        cm_i         %uF/cm2
-        cm_1         %uF/cm2
-        cm_2         %uF/cm2
         
         %PASSIVE MECHANISM VARIABLES -----------------------------
         g_pas_i
@@ -168,11 +184,33 @@ classdef props < handle_light
            %NOTE: The dependent variables method will
            %set all necessary dirty bits
         end
-        function changeProperty(obj,props_and_values)
-           %NOT YET IMPLEMENTED
-           error('Not yet implemented')
+        function changeProperty(obj,varargin)
+           %
+           %    INPUTS
+           %    ===========================================
+           %    props_and_values
+           
+           props = varargin(1:2:end);
+           values = varargin(2:2:end);
+           
+           if length(props) ~= length(values)
+               error('# of properties must equal the # of values')
+           end
+           
+           %TODO: Need to separate order into fiber dependent
+           %& non-fiber dependent variables ....
+           
+           for iProp = 1:length(props)
+              cur_prop  = props{iProp};
+              cur_value = values{iProp};
+              obj.(cur_prop) = cur_value;
+           end
+           
            
            obj.props_up_to_date_in_NEURON = false;
+           obj.populateDependentVariables();
+           %TODO: Need to conditionally call this method ...
+           
         end
     end
     
@@ -193,67 +231,156 @@ classdef props < handle_light
                 error('Unable to find specifications for given fiber size')
             end
             
-            fiber_diameter_local = obj.fiber_diameter;
+            %ROUGH DIAMETER OUTLINE
+            %--------------------------------------------------------------
+            %FIBER DIAMETER > AXON DIAMETER > NODE DIAMETER
+            %AXON DIAMETER = FLUT DIAMETER (PARANODE 2)
+            %NODE DIAMETER = MYSA DIAMETER (PARANODE 1)
             
+            
+            internode_length_all     = [500      750     1000    1150    1250    1350    1400    1450    1500];
+            number_lemella_all       = [80       100     110     120     130     135     140     145     150];
+            %node_length             CONSTANT
+            node_diameter_all        = [1.9      2.4     2.8     3.3     3.7     4.2     4.7     5.0     5.5];
+            %paranode_length_1       CONSTANT
+            paranode_diameter_1_all  = [1.9      2.4     2.8     3.3     3.7     4.2     4.7     5.0     5.5];
+            %space_p1                CONSTANT
+            paranode_length_2_all    = [35       38      40      46      50      54      56      58      60];
+            paranode_diameter_2_all  = [3.4      4.6     5.8     6.9     8.1     9.2     10.4    11.5    12.7];
+            %space_p2                CONSTANT
+            %STIN LENGTH             DEPENDENT - delta_x_all,paranode_length_1,paranode_length_2_all,n_STIN
+            axon_diameter_all        = [3.4      4.6     5.8     6.9     8.1     9.2     10.4    11.5    12.7];
+            
+            obj.internode_length     = internode_length_all(FIBER_INDEX);
+            obj.number_lemella       = number_lemella_all(FIBER_INDEX);
+            obj.node_diameter        = node_diameter_all(FIBER_INDEX);
+            obj.paranode_diameter_1  = paranode_diameter_1_all(FIBER_INDEX);
+            obj.paranode_length_2    = paranode_length_2_all(FIBER_INDEX);
+            obj.paranode_diameter_2  = paranode_diameter_2_all(FIBER_INDEX);
+            obj.stin_seg_length      = (obj.internode_length - obj.node_length - 2*obj.paranode_length_1 - 2*obj.paranode_length_2)/obj.n_STIN;
+            obj.axon_diameter        = axon_diameter_all(FIBER_INDEX);
+
+
+            %{
+            
+            NOTE: I'm working on this code but it at least
+            some of the data doesn't match the references cited
+            
+            %SOME NEW CODE:
+            %--------------------------------------------------------------
+            fiber_diameter_local = obj.fiber_diameter;
             fiber_poly_2 = [fiber_diameter_local^2 fiber_diameter_local 1]';
             
-            
-            %TODO: value is from Matt, could look at my own version ...
-            obj.number_lemella       = 65.897*log(fiber_diameter_local)-32.66;
-            
-            
-            obj.node_diameter       = [0.006304 0.2071 0.5339]*fiber_poly_2;
-            obj.paranode_diameter_1 = obj.node_diameter;
-            
-            obj.axon_diameter       = [0.0188 0.4787 0.1204]*fiber_poly_2;
-            obj.paranode_diameter_2 = obj.axon_diameter;
-            
-            
-            %These weights match their data, why did they choose what they
-            %chose, it doesn't match the original source ...
-            %in_weights_match = [-828.99  -71.39   2929]
-            
-            %5 year fit from original source ...
-            %This does not match what is used in the paper ...
             internode_length_weights = [-91.1 -20.2 1745.9];
             diameter_weights         = [1   obj.axon_diameter  log10(obj.axon_diameter)]';
             obj.internode_length     = internode_length_weights*diameter_weights;
             
             
-            
-            
-            paranode_length_2_all    = [35       38      40      46      50      54      56      58      60];
-            
-            %Not used even though defined ... ?????
-            %g_all                    = [0.605    0.630   0.661   0.690  	0.700   0.719   0.739   0.767   0.791];
-            
-            obj.paranode_length_2    = paranode_length_2_all(FIBER_INDEX);
-            
-            obj.stin_seg_length      = (obj.internode_length - obj.node_length - 2*obj.paranode_length_1 - 2*obj.paranode_length_2)/obj.n_STIN;
-
-            
-            %Electrical parameters  %--------------------------------------
+            %LOCAL FITS ONLY
             %--------------------------------------------------------------
+            obj.number_lemella       = 65.897*log(fiber_diameter_local)-32.66;
+            
+            obj.node_diameter       = [0.006304 0.2071 0.5339]*fiber_poly_2;
+            obj.paranode_diameter_1 = obj.node_diameter;
+            
+            obj.axon_diameter       = [0.0188 0.4787 0.1204]*fiber_poly_2;
+            obj.paranode_diameter_2 = obj.axon_diameter;         
+            
+            %}
+            
+            %Electrical parameters
+            %--------------------------------------------------------------
+            %See extracellular_stim_mechanism.m in extracellular_stim documentation
             
             %NOTE: I have to think about this ...
-            f_OVER_a__diameter_ratio  = obj.fiber_diameter/obj.axon_diameter;
+            f_OVER_a___diameter_ratio = obj.fiber_diameter/obj.axon_diameter;
             f_OVER_p1__diameter_ratio = obj.fiber_diameter/obj.paranode_diameter_1;
             f_OVER_p2__diameter_ratio = obj.fiber_diameter/obj.paranode_diameter_2;
             
-            obj.rho_axial_i = obj.rho_axial_node*f_OVER_a__diameter_ratio^2;
-            obj.rho_axial_1 = obj.rho_axial_node*f_OVER_p1__diameter_ratio^2;
-            obj.rho_axial_2 = obj.rho_axial_node*f_OVER_p2__diameter_ratio^2;
             
-            %NOTE: I don't think these are right,
-            obj.cm_i  = obj.cap_internodal/f_OVER_a__diameter_ratio;
+            %Internal axial resistance
+            %--------------------------------------------------------------
+            %This is a property of section ...
+            %
+            %Units: Ohm-cm
+            %We are using rho for the node as our basis.
+            %Then we assume that the underlying resistivity is the same.
+            %NOTE: rho = R*A/L
+            %R_node = R_others
+            %
+            %This suggests that if we want to get a unit length
+            %value, we need to simply correct for area differences
+            %rho_node/A_node = rho_others/A_others
+            %
+            %rho_others = rho_node*A_others/A_node
+            %
+            %
+            % LIKELY ERRORS:
+            %   1) fiber diameter used instead of other diameters
+            %       for the diameters in in the create cell code
+            %       instead of the other diameters
+            %   2) This code below also uses the fiber diameter
+            %      for rho_axial values
+            %   3) 
+            %
+            %   Default values from MRG
+            %   node: 70
+            %   FLUT: 642
+            %   MYSA: 147
+            %   INTR: 147
+            
+            %CURRENT STATUS: matches MRG, not sure if they are right
+            rho_axial_local = obj.rho_axial_node;
+            obj.rho_axial_i = rho_axial_local*f_OVER_a___diameter_ratio^2;
+            obj.rho_axial_1 = rho_axial_local*f_OVER_p1__diameter_ratio^2;
+            obj.rho_axial_2 = rho_axial_local*f_OVER_p2__diameter_ratio^2;
+            
+            %Axonal Membrane Capacitance
+            %--------------------------------------------------------------
+            %http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/mech.html#capacitance
+            %Capacitance Mechansims - auto-inserted into every sectin
+            %Let's assume e_r*e_0/d is constant for all of the axon
+            %
+            %   C1/A1 = C2/A2
+            %   
+            %   C2 = A2/A1*C1
+            %
+            %   A = length*diameter*pi
+            %   A => diameter (lengths specified in model, pi cancels)
+            %   
+            %   C2 = d2/d1*C1
+            %
+            %   QUESTIONS?
+            %       1) Shouldn't the ratios be flipped?
+            %              They are, as written in my code it is a bit
+            %              confusing - 1/(A1/A2) = A2/A1
+            %       2) Why is this referenced to fiber diameter and not to
+            %       axon diameter?
+            
+            obj.cm_i  = obj.cap_internodal/f_OVER_a___diameter_ratio;
             obj.cm_1  = obj.cap_internodal/f_OVER_p1__diameter_ratio; %Should this use nodal????
             obj.cm_2  = obj.cap_internodal/f_OVER_p2__diameter_ratio;
             
+            %Axonal Membrane Conductance
+            %--------------------------------------------------------------
             %http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/mech.html#pas
-            %NOTE: Why the scaling factor?????
-            obj.g_pas_i = obj.g_i/f_OVER_a__diameter_ratio;
+            %
+            %   g (Units S/cm^2)
+            %
+            %   g = factor*A
+            %
+            %   g1/A1 = g2/A2 (equivalent factors)
+            %
+            %   g2 = g1*A2/A1
+            %
+            %   Question:
+            %       1) This already varies by section, why do a correction
+            %       for diameter here? Uh-oh, why are we doing a correction
+            %       for anything????
+            
+            obj.g_pas_i = obj.g_i/f_OVER_a___diameter_ratio;
             obj.g_pas_1 = obj.g_1/f_OVER_p1__diameter_ratio;  %NOTE using node ...
-            obj.g_pas_2 = obj.g_2/f_OVER_a__diameter_ratio;
+            obj.g_pas_2 = obj.g_2/f_OVER_a___diameter_ratio;
             
             populateExtracellularParameters(obj)
             
@@ -276,19 +403,34 @@ classdef props < handle_light
             %    I get multiply by 100 ...
             
             %Static function calls ...
+            %
+            %This computes the difference in circular area between the
+            %axon and the axon plus some small space
             node_space_area = obj.calcSpaceArea(obj.node_diameter,obj.space_p1); %NOTE use of space p1
+            %The use of the extracellular mechansism is a bit confusing at
+            %the node
+            
             p1_space_area   = obj.calcSpaceArea(obj.paranode_diameter_1,obj.space_p1);
             p2_space_area   = obj.calcSpaceArea(obj.paranode_diameter_2,obj.space_p2);
             i_space_area    = obj.calcSpaceArea(obj.axon_diameter,obj.space_i);
             
+            %Axial resistance in perixaxonal space
+            %--------------------------------------------------------------
             %PARAMETER: xraxial MOhm/cm
-            %NOTE: Not sure why I am scaling this, need to think about this ...
+            %
+            %   NOTE: Here the model only has a concept of length, so we
+            %   must handle providing diameter cues
+            %
             obj.xraxial_node = 100*obj.rho_periaxonal/node_space_area;
             obj.xraxial_1    = 100*obj.rho_periaxonal/p1_space_area;
             obj.xraxial_2    = 100*obj.rho_periaxonal/p2_space_area;
             obj.xraxial_i    = 100*obj.rho_periaxonal/i_space_area;
             
+            
+            %"Membrane" conductance in periaxonal space
+            %--------------------------------------------------------------
             %PARAMETER: xg S/cm2
+            %
             %NOTE: This doesn't know thickness, so we have to correct for it
             %The x2 seems to be double correcting for the area
             %Since the model is assuming a cylinder ...
@@ -296,7 +438,16 @@ classdef props < handle_light
             obj.xg_2 = obj.xg_1;
             obj.xg_i = obj.xg_1;
             
+            %"Membrane" capacitance in periaxonal space
+            %--------------------------------------------------------------
             %PARAMETER: xc uF/cm2
+            %
+            %   Hmm, this seems to instead include the myelin as well
+            %   
+            %   NOTE: We are not actually using the extracellular
+            %   mechanism with two additional layers, only 1. This is
+            %   obvious if looking closely at Figure 1 in the MRG paper.
+            %
             obj.xc_1 = obj.cap_myelin/(obj.number_lemella*2);
             obj.xc_2 = obj.xc_1;
             obj.xc_i = obj.xc_1;

@@ -2,69 +2,96 @@ classdef data < handle_light
     %
     %   Class: NEURON.simulation.extracellular_stim.sim_logger.data
     %
-
-    %METHODS IN OTHER FILES
-    %---------------------------------------------------------------------
-    %NEURON.simulation.extracellular_stim.sim_logger.data.addResults
-    %NEURON.simulation.extracellular_stim.sim_logger.data.getThresholds
-    
+    %   METHODS IN OTHER FILES
+    %   -------------------------------------------------------------------
+    %   NEURON.simulation.extracellular_stim.sim_logger.data.addResults
+    %   NEURON.simulation.extracellular_stim.sim_logger.data.getThresholds
+    %   NEURON.simulation.extracellular_stim.sim_logger.data.fixRedundantOldData
+    %
+    %   DOCUMENTATION (see private folder)
+    %   -------------------------------------------------------------------
+    %   Threshold Sign
+    %   Design Notes
     
     properties
         xstim_obj
-        data_path
+        data_path   %path of where to save this class between calls
     end
     
     properties
-        %.data()
-        simulation_number
-        current_stimulus_setup_id = 0
-        stimulus_setup_objs
+        current_stimulus_setup_id = 0   %index of which stimulus setup object
+        %is appropriate (matches) given the extracellular_stim simulation object specified
         
-        %.getThresholds()
-        n_points_per_cell       = 0
+        stimulus_setup_objs %Class: NEURON.simulation.extracellular_stim.sim_logger.stimulus_setup
+        %These are meant to log the stimuli that led to the results
+        %observed. In other words for each result we can index back into
+        %this to know what stimulus led to the observed result.
+        %
+        %BUG: I think I don't save the tissue properties which makes this
+        %incomplete for complete knowledge of how things were run
+        %
+        %BUG: This is also inaccurate since I need to save the simulation
+        %class parameters, specifically the temperature ...
+        %
+        %IMPROVEMENT: Ideally we would have an extracellular_stim
+        %recreation class that would instantiate an instance from a
+        %previously saved version, and also a class that allows for
+        %comparison ... As is the classes that exist are a bit artificial
         
-        current_index           = 0
-        n_entries_allocated     = 0
         
-        applied_stimulus_matrix = []
-        threshold_values        = []
-        xyz_center              = []
-        creation_time           = []
-        stimulus_setup_id       = []
+        %.setNewAppliedStimulus()
+        n_points_per_cell       = 0 %This currently indicates how many
+        %nodes are present 
+    end
+    
+    properties
+        %INDIVIDUAL RESULTS
+        %------------------------------------------------------------------
+        applied_stimulus_matrix = []    %sims x [points by time]
+        threshold_values        = []    %1 x sims
+        xyz_center              = []    %sims x xyz
+        creation_time           = []    %1 x sims, matlab time (double)
+                                        %of when the entry was created
+        stimulus_setup_id       = []    %
         
-        %Stimulus Setup :/ Blah!
+        %NEW STIMULI
+        %------------------------------------------------------------------
+        %.getThresholds
+        desired_threshold_sign
+        new_cell_locations
+        predictor_obj  %Class: NEURON.simulation.extracellular_stim.threshold_predictor
         
-        
-        
+        %.setNewAppliedStimulus()
+        %NOTE: These stimuli have been corrected so that the threshold
+        %to be found is a positive one
+        new_stimuli_matrix      = []
         
     end
     
     properties (Constant)
         VERSION   = 1
-        GROW_SIZE = 10000
     end
     
     %INITIALIZATION =======================================================
     methods
-        function obj = data(xstim_obj,simulation_number,data_path)
+        function obj = data(xstim_obj,data_path)
             %
-            %   TODO: Clean up and document
+            %   obj = data(xstim_obj,simulation_number,data_path)
             %
+            %   IMPROVEMENTS
+            %   ===================================================
+            %   Break this down into sub methods
             
-            obj.simulation_number = simulation_number;
             obj.xstim_obj = xstim_obj;
             obj.data_path = data_path;
-            
+
             if exist(data_path,'file')
                 h = load(data_path);
                 if h.VERSION ~= obj.VERSION
                     error('Unhandled version mismatch')
                 end
                 obj.n_points_per_cell       = h.n_points_per_cell;
-                
-                obj.current_index           = h.current_index;
-                obj.n_entries_allocated     = h.n_entries_allocated;
-                
+                                
                 obj.applied_stimulus_matrix = h.applied_stimulus_matrix;
                 obj.threshold_values        = h.threshold_values;
                 obj.xyz_center              = h.xyz_center;
@@ -100,16 +127,30 @@ classdef data < handle_light
     
     %ADDING DATA ==========================================================
     methods
-        function [applied_stimulus,samples_per_time] = getAppliedStimulus(obj,cell_locations,threshold_sign)
+        function setNewAppliedStimulus(obj)
             %
+            %   This function computes the applied stimulus 
             %
-            %   OUTPUTS
+            %   setNewAppliedStimulus(obj)
+            %
+            %   See Also:
+            %      NEURON.cell.extracellular_stim_capable.getCellXYZMultipleLocations  
+            %   
+            %   IMPROVEMENT
             %   ===========================================================
-            %   applied_stimulus
-            
+            %   NOTE: I don't like how indirect this calling is. I would
+            %   prefer that the first part of this code be handled in a
+            %   class that specifically handles this.
+            %
+            %   Current call chain
+            %      getCellXYZMultipleLocations 
+            %           - get node only locations (cell_obj)
+            %               (made abstract by xstim capable)
+            %           - computeStimulus (xstim_obj)
+            %      followed by some additional logic here
             
             %NEURON.cell.extracellular_stim_capable.getCellXYZMultipleLocations
-            xyz_out = obj.xstim_obj.cell_obj.getCellXYZMultipleLocations(cell_locations);
+            xyz_out = obj.xstim_obj.cell_obj.getCellXYZMultipleLocations(obj.new_cell_locations);
             
             sz = size(xyz_out);
             
@@ -121,23 +162,56 @@ classdef data < handle_light
             
             applied_stimulus = reshape(v_all,[sz(1) sz(2)*size(v_all,2)]);
             
-            if threshold_sign < 0
+            %See Threshold Sign documentation for a little bit more on this ...
+            if obj.desired_threshold_sign < 0
                 applied_stimulus = -1.*applied_stimulus;
             end
             
+            obj.new_stimuli_matrix = applied_stimulus;
+            
+            
             samples_per_time = size(applied_stimulus,2)/length(t_vec);
+            
+            if isempty(obj.n_points_per_cell)
+                obj.n_points_per_cell = samples_per_time;
+            elseif obj.n_points_per_cell ~= samples_per_time
+                error('Code error, change to stimulus setup detected')
+            end
+                
+            
+            
         end
-        function [is_matched,thresholds] = getPreviousMatches(obj,new_applied_stimuli,threshold_sign)
+        function [is_matched,thresholds] = getPreviousMatches(obj)
+            %
+            %
+            %   [is_matched,thresholds] = getPreviousMatches(obj)
+            %
+            %   OUTPUTS
+            %   ===========================================================
+            %   is_matched : (logical array, sims x 1), whether or not the
+            %       stimuli "match" previous stimuli with known threshold
+            %       values
+            %   thresholds : (default NaN array)
+            
             %How to do equivalency testing?????
             %For right now we'll do exact equivalency ...
             
-            n_new = size(new_applied_stimuli,1);
+            n_new      = size(new_applied_stimuli,1);
+            thresholds = NaN(1,n_new);
+            
+            if isempty(obj.applied_stimulus_matrix)
+                is_matched = false(1,n_new);
+                return
+            end
+
+            
             
             %TODO: Consider loose equivalency ...
             %Use distance metric ...
+            [is_matched,matched_location] = ismember(new_applied_stimuli,obj.applied_stimulus_matrix,'rows');
             
-            [is_matched,matched_location] = ismember(new_applied_stimuli,obj.applied_stimulus_matrix(1:obj.current_index,:),'rows');
-            thresholds = NaN(1,n_new);
+            %Note on 
+            
             thresholds(is_matched) = threshold_sign.*obj.threshold_values(matched_location(is_matched));
         end
         

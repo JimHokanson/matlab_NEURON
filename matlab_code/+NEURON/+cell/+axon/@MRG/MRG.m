@@ -50,11 +50,6 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     end
     
     properties (SetAccess = private)
-        %.moveCenter(), .MRG()
-        xyz_center %User specified, location of the axon center in global space
-        %This is important for stimulation with electrodes.
-        %This is specified by the user in the constructor ...
-        
         %.MRG()
         props_obj           %Class: NEURON.cell.axon.MRG.props
         threshold_info_obj  %Class: NEURON.cell.threshold_info
@@ -64,6 +59,24 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     properties (SetAccess = private)
        xstim_event_manager_obj 
        xyz_all 
+    end
+    
+    
+    %??? - Do I want to move this to a separate class
+    %DESIGN NOTE FOR DIRTY BITS
+    %----------------------------------------------------------------------
+    %Goal is to go into more specific classes and grab values
+    %not to keep track of this here
+    %
+    %NOTE: event manager should be obsolete with this approach ...
+    
+    properties (SetAccess = private)
+       %.createCellInNEURON()
+       cell_initialized_in_neuron_at_least_once = false;
+    
+       %Other sub properties:
+       %    props_obj.props_up_to_date_in_NEURON
+       %    spatial_info_obj.spatial_props_up_to_date
     end
     
     methods
@@ -99,6 +112,12 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     
     %CHANGING METHODS =====================================================
     methods
+        function [hasChanged,new_config] = hasSpatialInformationChanged(obj,previous_config)
+            %TODO: Make this an abstract method of
+            %extracellular_stim_capable
+            
+           [hasChanged,new_config] = obj.spatial_info_obj.hasConfigurationChanged(previous_config); 
+        end
         function setEventManagerObject(obj,ev_man_obj)
             %
             %   ev_man_obj : Class: NEURON.simulation.extracellular_stim.event_manager

@@ -1,6 +1,6 @@
 classdef data_transfer < handle_light
     %
-    %
+    %   Class:
     %   NEURON.simulation.extracellular_stim.data_transfer
     %
     %   This class will be involved with data transfer between Matlab and
@@ -9,9 +9,7 @@ classdef data_transfer < handle_light
     %
     %   TODO:
     %   ===================================================================
-    %   1) Move stimulus potential and time writing into this class
     %   2) Finish delete function
-    %   3) Rename file io NEURON functions to have consistent header ...
     %
     %   IMPROVEMENTS
     %   ====================================================================
@@ -61,7 +59,8 @@ classdef data_transfer < handle_light
         function initializeDataSavingPaths(obj)
            %initializeDataSavingPaths
            %
-           %    Called by event_manager on cell type change
+           %    Called by extracellular stim object if the cell type is
+           %    changed ...
            
            temp = obj.root_read_directory;
            if ~exist(temp,'dir')

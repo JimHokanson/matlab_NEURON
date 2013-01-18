@@ -42,7 +42,8 @@ classdef neural_cell < handle
     end
     
     methods (Abstract)
-       createCellInNEURON(obj)
+       %created_status - indicates that the cell was defined (or redefined) in NEURON 
+       created_status = createCellInNEURON(obj)
     end
     
     methods
