@@ -29,6 +29,10 @@ if iscell(cell_locations)
 end
 obj.new_cell_locations = cell_locations;
 
+n_new_inputs_total = size(cell_locations,1);
+
+thresholds = NaN(1,n_new_inputs_total);
+
 %Step 1 - retrieve applied potential
 %--------------------------------------------------------------------------
 %NEURON.simulation.extracellular_stim.sim_logger.data.getAppliedStimulus
@@ -38,103 +42,79 @@ obj.setNewAppliedStimulus();
 %--------------------------------------------------------------------------
 obj.predictor_obj = NEURON.simulation.extracellular_stim.threshold_predictor(...
                         obj.new_stimuli_matrix,...
-                        obj.applied_stimulus_matrix);
+                        obj.applied_stimulus_matrix,...
+                        obj.xyz_center,....
+                        obj.new_cell_locations,...
+                        obj.threshold_values);
                     
-%Step 2 - Find Previous matches
+%Step 2 - Find Previous matches & redundant old stimuli ...
 %--------------------------------------------------------------------------
-[is_matched,thresholds] = obj.getPreviousMatches();
+obj.matching_stim_obj = obj.predictor_obj.getStimuliMatches();
 
+m_obj = obj.matching_stim_obj;
+%Any old repeats, throw warning
+old_stim_indices_use = find(~m_obj.old_is_duplicate_and_not_ref);
+if length(old_stim_indices_use) ~= length(m_obj.old_is_duplicate_and_not_ref)
+    fprintf(2,'Old applied stimuli have duplicates present, run SOMETHING to clean up\n');
+    %NEURON.simulation.extracellular_stim.sim_logger.data.fixRedundantOldData
+    %Need access method in xstim class
+end
 
+%These are the indices that we will test further in the function below
+new_stim_indices__get_threshold = find(~m_obj.new_is_duplicate_and_not_ref);
 
-is_matched = is_matched'; %Make row vector, TODO: fix in function 
+new_stim_redundant_indices_with_old_source = ...
+            find(m_obj.new_is_duplicate_and_not_ref & m_obj.new_duplicate_has_old_source);
+new_stim_redundant_indices_with_new_source = ...
+            find(m_obj.new_is_duplicate_and_not_ref & ~m_obj.new_duplicate_has_old_source);
 
-unmatched_indices = find(~is_matched);
-if isempty(unmatched_indices)
+old_stim_redundant_index_sources = m_obj.first_index_of_new_duplicate(new_stim_redundant_indices_with_old_source);        
+
+thresholds(new_stim_redundant_indices_with_old_source) = ...
+        obj.threshold_values(old_stim_redundant_index_sources);
+
+if isempty(new_stim_indices__get_threshold)
     return
 end
 
-%Step 3 - Dimensionality Reduction
-%--------------------------------------------------------------------------
-
-
-[new_low_dimension,old_low_dimension] = predictor_obj.rereduceDimensions(...
-                                            applied_stimulus,obj.applied_stimulus_matrix);
-
-                                        
-keyboard                                        
-                                        
-%NOTE: This is one spot where we can enforce some distance, below which two
-%points are considered to be the same ...
-%NOT YET IMPLEMENTED ...
-if isempty(old_low_dimension)
-   red 
-else
-    
-end
-
-%Step 2.5 - Removal of repetitive stimuli 
-%-----------------------------------------------------------------
-[~,IA] = unique(applied_stimulus(unmatched_indices,:),'rows');
-
-is_repetition_mask     = true(1,length(unmatched_indices));
-is_repetition_mask(IA) = false; 
-repetition_indices     = unmatched_indices(is_repetition_mask);
-unmatched_indices      = unmatched_indices(IA);
-
 %Step 3 - Find unmatched stimuli & create reasonable running groups
 %--------------------------------------------------------------------------
-
-[groups_of_indices_to_run,more_repetition_indices] = ...
-    predictor_obj.getGroups(...
-        applied_stimulus(unmatched_indices,:),...
-        cell_locations(unmatched_indices,:),...
-        obj.applied_stimulus_matrix,...
-        obj.threshold_values,...
-        obj.xyz_center);
-
-%Translation of indices back to original indexing level
-%--------------------------------------------------------------------------
-n_groups = length(groups_of_indices_to_run);
-for iGroup = 1:n_groups
-   groups_of_indices_to_run{iGroup} = unmatched_indices(groups_of_indices_to_run{iGroup}); 
-end
-more_repetition_indices = unmatched_indices(more_repetition_indices);    
- 
-repetition_indices = [repetition_indices more_repetition_indices];
+groups_of_indices_to_run = obj.predictor_obj.getGroups(...
+                old_stim_indices_use,...
+                new_stim_indices__get_threshold);
 
 %Step 4 - Get thresholds for remaining data
 %--------------------------------------------------------------------------
-xstim_obj = obj.xstim_obj;
-cell_obj  = xstim_obj.cell_obj;
-t_start_all = tic;
+xstim_obj     = obj.xstim_obj;
+cell_obj      = xstim_obj.cell_obj;
+t_start_all   = tic;
 n_sims_total  = sum(cellfun('length',groups_of_indices_to_run));
 cur_sim_index = 0;
 
-%TODO: Eventually we should make a copy of this class so that we aren't
-%mucking with the users options ...
+%TODO: Eventually we should make a copy of this options 
+%class so that we aren't mucking with the users options ...
 %This is low priority
+threshold_options_obj = xstim_obj.threshold_options_obj;
 
-thershold_options_obj = xstim_obj.threshold_options_obj;
+%NOTE: We don't want to set redundant inputs true here as we will use
+%this to help with prediction, which won't benefit from redundant
+%information
+new_threshold_learned_mask = false(1,n_new_inputs_total);
 
 for iGroup = 1:n_groups
     
    t_group = tic; 
     
    current_indices = groups_of_indices_to_run{iGroup};
-   
-   n_indices = length(current_indices);
+   n_indices       = length(current_indices);
    
    %Threshold prediction
    %-----------------------------------------------------------------------   
-   predicted_thresholds = predictor_obj.predictThresholds( ...
-       applied_stimulus(current_indices,:),...
-           obj.applied_stimulus_matrix,...
-           obj.threshold_values,...
-           threshold_sign);
-   
-   %predicted_thresholds: (column vector)
-   %
-   %
+   predicted_thresholds = obj.predictor_obj.predictThresholds(...
+        old_stim_indices_use,...
+        find(new_threshold_learned_mask),...
+        current_indices,...
+        thresholds); %#ok<FNDSB>
        
    thresholds_local = zeros(1,n_indices);
    for iIndex = 1:n_indices
@@ -165,7 +145,7 @@ for iGroup = 1:n_groups
    avg_error = mean(abs(threshold_errors));
    
    if iGroup ~= 1
-      thershold_options_obj.changeGuessAmount(2*avg_error);
+      threshold_options_obj.changeGuessAmount(2*avg_error);
    end
    
    

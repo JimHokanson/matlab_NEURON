@@ -60,6 +60,7 @@ classdef data < handle_light
         desired_threshold_sign
         new_cell_locations
         predictor_obj  %Class: NEURON.simulation.extracellular_stim.threshold_predictor
+        matching_stim_obj
         
         %.setNewAppliedStimulus()
         %NOTE: These stimuli have been corrected so that the threshold
@@ -181,40 +182,6 @@ classdef data < handle_light
             
             
         end
-        function [is_matched,thresholds] = getPreviousMatches(obj)
-            %
-            %
-            %   [is_matched,thresholds] = getPreviousMatches(obj)
-            %
-            %   OUTPUTS
-            %   ===========================================================
-            %   is_matched : (logical array, sims x 1), whether or not the
-            %       stimuli "match" previous stimuli with known threshold
-            %       values
-            %   thresholds : (default NaN array)
-            
-            %How to do equivalency testing?????
-            %For right now we'll do exact equivalency ...
-            
-            n_new      = size(new_applied_stimuli,1);
-            thresholds = NaN(1,n_new);
-            
-            if isempty(obj.applied_stimulus_matrix)
-                is_matched = false(1,n_new);
-                return
-            end
-
-            
-            
-            %TODO: Consider loose equivalency ...
-            %Use distance metric ...
-            [is_matched,matched_location] = ismember(new_applied_stimuli,obj.applied_stimulus_matrix,'rows');
-            
-            %Note on 
-            
-            thresholds(is_matched) = threshold_sign.*obj.threshold_values(matched_location(is_matched));
-        end
-        
     end
 end
 

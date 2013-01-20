@@ -1,29 +1,16 @@
-function [groups_of_indices_to_run,repetition_indices] = getGroups(...
-    obj,applied_stimuli,cell_locations,old_stimuli,thresholds,old_locations)
+function groups_of_indices_to_run = getGroups(obj,old_indices_use,new_indices_use)
 %
 %
-%   [groups_of_indices_to_run,repetition_indices] = getGroups(...
-%    obj,applied_stimuli,cell_locations,old_stimuli,thresholds,old_locations)
+%   groups_of_indices_to_run = getGroups(obj,new_indices_use,old_indices_use)
+%
+%   TODO: Move most of this documentation to a separate document on the
+%   topic ..
 %
 %   OUTPUTS
 %   =======================================================================
-%   groups_of_indices_to_run : cell array of arrays, values in the arrays
+%   groups_of_indices_to_run : (cell array of arrays) values in the arrays
 %   are the indices of the passed in data to test together before running
 %   another prediction algorithm
-%
-%   repetition_indices       : Indices of stimuli that have prior repeats.
-%
-%           example, consider single number stimuli:
-%                           4 8 7 9 4 5 8 3 2 
-%           with indices    1 2 3 4 5 6 7 8 9
-%
-%   This method would return back, repetition_indices = [5 7], to indicate
-%   that indices 5 & 7 are repeats, if we know the thresholds to, in this
-%   case, indices 1 and 2, then we know the thresholds to 5 and 7
-%
-%   Our request may have duplicate stimuli, such as would occur if we asked
-%   for the stimulus from an equidistant point on opposite sides of the
-%   axon.
 %
 %   GOAL
 %   =======================================================================
@@ -85,21 +72,18 @@ function [groups_of_indices_to_run,repetition_indices] = getGroups(...
 % % % %NOTE: 2 might have been bad due to not carrying the sign when squaring
 % % % old_stimuli     = 1./old_stimuli;
 
-%TODO: Define these and document, perhaps move to class properties
+
+%NOTE: This method does not use thresholds or cell locations
+%in its calculations. If used these would need to be offset
+%by the indices passed in ...
 
 
-TESTING_PERCENTAGE_SPACING = 0.05; 
-
-
-%Dimensionality Reduction
-%--------------------------------------------------------------------------
-n_new_stimuli = size(applied_stimuli,1);
-
-[applied_stimuli,old_stimuli] = obj.rereduceDimensions(applied_stimuli,old_stimuli);
-%--------------------------------------------------------------------------
-
+old_stimuli     = obj.low_d_old_stimuli(old_indices_use,:);
+applied_stimuli = obj.low_d_new_stimuli(new_indices_use,:);
+n_new_stimuli   = size(applied_stimuli,1);
 
 %First grouping stratgey
+%I think instead of doing the min and max we should do a hull strategy
 %--------------------------------------------------------------------------
 [~,I_min] = min(applied_stimuli);
 [~,I_max] = max(applied_stimuli);
@@ -119,71 +103,77 @@ if isempty(old_stimuli)
 else
     dist_matrix_old = pdist2(applied_stimuli,[chosen_stimuli; old_stimuli]);
 end
+
 smallest_distance_to_known_point = min(dist_matrix_old,[],2);
 
+%This may be too large given some inputs
 dist_matrix_new = pdist2(applied_stimuli,applied_stimuli);
 
 
 %Main algorithm
 %--------------------------------------------------------------------------
-chosen_points          = zeros(1,n_new_stimuli);
+chosen_points            = zeros(1,n_new_stimuli);
+not_chosen_mask          = true(1,n_new_stimuli);
+chosen_mask(first_group) = false;
 max_dist_avg           = zeros(1,n_new_stimuli);
-repetitions_present    = false;
-n_actually_new_stimuli = n_new_stimuli;
+
+tic
 for iPoint = n_first_group+1:n_new_stimuli
    [maxValue,I] = max(smallest_distance_to_known_point); %Get point furthest from all old points
    if maxValue == 0 
-      %This indicates repetitions in the stimulus space ...  
-      %NOTE: Why wouldn't a maxValue of 0 always indicate repetition
-      % - I think it does, the question is 
-      repetitions_present    = true;
-      n_actually_new_stimuli = iPoint - 1;
-      break
+      error('Repetitions present, prior code should have removed repetitions')
    end
    
    chosen_points(iPoint) = I;
-   smallest_distance_to_known_point     = min(smallest_distance_to_known_point,dist_matrix_new(:,I));
+   
+   %The smallest distance from all unknown points to known points
+   %is now the minimum of either previous minimum distances, or the
+   %distance from these points to the chosen point (which is know
+   %considered to be a known point)
+   %smallest_distance_to_known_point = min(smallest_distance_to_known_point,dist_matrix_new(:,I));
+   
+   smallest_distance_to_known_point = min(smallest_distance_to_known_point,pdist2(applied_stimuli,applied_stimuli(I,:)));
+   
+   %This assignment is only for debugging
+   %If done properly this should decrease for 
    max_dist_avg(iPoint)  = mean(smallest_distance_to_known_point);
 end
-
-if repetitions_present
-    %error('Repetitions shouldn''t be present due to filtering before hand')
-    %NOTE: With projections we might get more repetitions ...
-    max_dist_avg = max_dist_avg(1:n_actually_new_stimuli);
-    repetition_indices = find(~ismember(1:n_new_stimuli,[first_group chosen_points]));
-else
-    repetition_indices = [];
-end
+toc
 
 %Using this information to form groups
-%--------------------------------------------------------------------------
+%==========================================================================
+%Step 1: How many points to place in each group ...
+%-----------------------------------------------
 normalized_contributions = cumsum(max_dist_avg)./sum(max_dist_avg);
 
-N = histc(normalized_contributions(n_first_group+1:end),0:TESTING_PERCENTAGE_SPACING:1);
+%NOTE: We remove the normalized contributions from those enries
+%that make up the first group, so that sum(N) = total_points - n_first_group
+N = histc(normalized_contributions(n_first_group+1:end),0:obj.opt__TESTING_PERCENTAGE_SPACING:1+obj.opt__TESTING_PERCENTAGE_SPACING);
 
-%To handle only matching < 1, not <= 1
-
-N(end) = n_actually_new_stimuli - sum(N(1:end-1)) - n_first_group;
-
-last_used_index  = n_first_group;
-non_empty_groups = find(N ~= 0);
-
+non_empty_groups   = find(N ~= 0);
 n_non_empty_groups = length(non_empty_groups);
+
+%Step 2: Assignment of groups based on # to place in each group
+%-----------------------------------------------
 n_groups_total     = n_non_empty_groups+1;
 
-all_groups = cell(1,n_groups_total);
-all_groups{1} = first_group;
+all_groups    = cell(1,n_groups_total);
+all_groups{1} = new_indices_use(first_group);
 
+last_used_index  = n_first_group;
 for iGroup = 1:n_non_empty_groups
     cur_group_N = N(non_empty_groups(iGroup));
     
     %NOTE: offset by 1 is to account for first_group set
-    all_groups{iGroup+1} = chosen_points(last_used_index+1:last_used_index+cur_group_N);
-    last_used_index = last_used_index + cur_group_N;
+    %NOTE: We reindex back into the indices passed into the function
+    all_groups{iGroup+1} = new_indices_use(chosen_points(last_used_index+1:last_used_index+cur_group_N));
+    last_used_index      = last_used_index + cur_group_N;
 end
 
 groups_of_indices_to_run = all_groups;
 
+%DEBUGGING
+%------------------------------------------------
 % % % %Some plot testing
 % % % row = zeros(1,n_new_stimuli);
 % % % c = cell_locations;

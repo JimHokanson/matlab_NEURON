@@ -29,6 +29,29 @@ classdef threshold_predictor < handle_light
         %of the variance and I wanted to make sure we got just a few more
         %dimensions than we might normally get, as these higher dimensions
         %might actually prove to be important.
+        opt__TESTING_PERCENTAGE_SPACING = 0.05; %For obtaining testing groups
+        %we currently choose points that are furthest away from known
+        %points. Each time we choose this point, we take the unknown
+        %distance that it removes (distance from it to cloest known point)
+        %and add it to some running value. Choosing the points makes it "known".
+        %After we have done this for all
+        %points, we can see how much each point reduced the total unknown
+        %distance, viewed as a cumulative distribution (CD). In general by
+        %definition the first points will contribute more to this CD than
+        %will later points as at the time of their picking they are now closer to known
+        %points. Given this CD we break up it up into percentage chunks.
+        %The chunk size is determined by this value. After each chunk we
+        %update our predictions regarding the next chunk. If we make this
+        %value too small, we may spend too much time predicting values.
+        %Roughly speaking the prediction algorithms take up some fixed time
+        %T, with some other factor that is dependent on the # of inputs
+        %total_time = T + T2*number_of_points
+        %In general we might expect that T2 is small such that there
+        %isn't much of a penalty with using a large # of points.
+        %THIS IS A CRAPPY EXPLANATION
+        %However if we make this value too large, we never update
+        %our predictions which means it takes longer to get our answers as
+        %well.
     end
     
     properties
@@ -38,18 +61,52 @@ classdef threshold_predictor < handle_light
     end
     
     properties
+       %.threshold_predictor()
+       cell_locations_old
+       cell_locations_new
+       old_thresholds   %(row vector)
+        
        old_stimuli       = []
        new_stimuli       = []
+       
        %.reduceDimensions()
        low_d_old_stimuli = []
        low_d_new_stimuli = []
        
-       all_stimuli_sorted
-       is_old_matrix     
+%        all_stimuli_sorted_low_d %A sorted version of all stimuli (old and new)
+%        %using their low dimensional representation
+%        original_index       %index of where the originals are in the sorted stimuli
+%        
+%        
+%        
+%        old_stim_index_in_sort  %index is old index, value is new index in sort
+%        new_stim_index_in_sort  %"   "
+%        
+%        %Do I use this ?????
+%        is_from_old_matrix   
+    end
+    
+    properties (Dependent)
+       n_new
+       n_old 
+    end
+    
+    methods 
+        function value = get.n_new(obj)
+           value = size(obj.new_stimuli,1); 
+        end
+        function value = get.n_old(obj)
+            value = size(obj.old_stimuli,1);
+        end
     end
     
     methods
-        function obj = threshold_predictor(new_stim,old_stim)
+        function obj = threshold_predictor(...
+                new_stim,...
+                old_stim,...
+                cell_locations_old,...
+                cell_locations_new,...
+                old_thresholds)
             %
             %
             %   obj = threshold_predictor(new_stim,old_stim)
@@ -63,13 +120,40 @@ classdef threshold_predictor < handle_light
             %   =================================================
             %   1) Expose options in constructor 
             
+            obj.cell_locations_old = cell_locations_old;
+            obj.cell_locations_new = cell_locations_new;
+            obj.old_thresholds     = old_thresholds;
+            
             obj.old_stimuli = old_stim;
             obj.new_stimuli = new_stim;
             
             %TODO: Remove inputs and use properties instead ...
             obj.reduceDimensions(new_stim,old_stim);
-            
-            
+
+% % %             %NOTE: I put old here to allow the first index in a run of
+% % %             %no difference to come from old (if present)
+% % %             %I guess we could accomplish the same by looking at the end if
+% % %             %we swapped the order ...
+% % %             [obj.all_stimuli_sorted_low_d,obj.original_index] = ...
+% % %                 sortrows([obj.low_d_old_stimuli; obj.low_d_new_stimuli]);
+% % %             obj.is_from_old_matrix = obj.original_index <= obj.n_old;
+% % %             
+% % %             %ARG, I really dislike this code
+% % %             %One of these days I am going to write a class which does this
+% % %             %for me ...
+% % %             linear_indices = 1:length(obj.is_from_old_matrix);
+% % %             
+% % %             original_indices_old_sorted = obj.original_index(obj.is_from_old_matrix);
+% % %             original_indices_new_sorted = obj.original_index(~obj.is_from_old_matrix);
+% % %             
+% % %             %A correction for the concatenation 
+% % %             original_indices_new_sorted = original_indices_new_sorted - obj.n_old;
+% % %             
+% % %             obj.old_stim_index_in_sort = zeros(1,obj.n_old);
+% % %             obj.old_stim_index_in_sort(original_indices_old_sorted) = linear_indices(obj.is_from_old_matrix);
+% % %             
+% % %             obj.new_stim_index_in_sort = zeros(1,obj.n_new);
+% % %             obj.new_stim_index_in_sort(original_indices_new_sorted) = linear_indices(~obj.is_from_old_matrix);
         end
         
         %I want to get rid of this method ...
@@ -98,14 +182,13 @@ classdef threshold_predictor < handle_light
             if isempty(old_stim)
                 obj.data_mean        = mean(new_stim,1);
                 [obj.coeff,scores_new,latent] = princomp(new_stim,'econ');
-                obj.low_d_old_stimuli = scores_temp(1:
             else
-                n_new = size(new_stim,1);                
+                n_new = obj.n_new;               
                 temp_data = [new_stim; old_stim];
                 obj.data_mean = mean(temp_data,1);
                 [obj.coeff,scores_both,latent] = princomp(temp_data,'econ');
                 scores_new = scores_both(1:n_new,:);
-                scores_old = scores_both(n_new+1,:);
+                scores_old = scores_both(n_new+1:end,:);
             end
             
             %How much should we keep
@@ -123,16 +206,6 @@ classdef threshold_predictor < handle_light
             end
         end
         
-        function getStimuliMatches(obj)
-           %
-           %    NOTE: The goal of placing this method in this object is
-           %    that this class gets to decide what the same is.
-           %
-            
-           %1) Redundant old stimuli 
-           %2) Redundant new stimuli
-           %3) Redundant stimuli between new and old ...
-        end
     end
     
 end
