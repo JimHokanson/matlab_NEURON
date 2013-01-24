@@ -33,7 +33,7 @@ n_sections_total = length(section_ids_local);
 
 L_all            = zeros(1,n_sections_total);
 L_all(section_ids_local == 1) = p.node_length;
-L_all(section_ids_local == 2) = p.myelin_length;
+L_all(section_ids_local == 2) = p.myelin_length./p.myelin_n_segs;
 
 obj.L_all = L_all;
 

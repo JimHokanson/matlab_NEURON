@@ -64,6 +64,9 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     end
     
     properties (Hidden)
+        
+        ran_init_code_once = false
+        
         cell_populated_in_NEURON % .createCellInNeuron, used by moveCenter
         props_populated = false; % props.populateDependentVariables
         %ev_man_obj;
@@ -114,13 +117,16 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
            obj.xstim_event_manager_obj = ev_man_obj;
         end
         function moveCenter(obj, newCenter)
-            obj.xyz_center = newCenter;
-            if isobject(obj.ev_man_obj)
-               cellLocationChanged(obj.ev_man_obj)
-            end
-            if obj.cell_populated_in_NEURON
-                populate_xyz(obj)
-            end
+            
+            obj.spatial_info_obj.moveCenter(newCenter);
+            
+%             obj.xyz_center = newCenter;
+%             if isobject(obj.ev_man_obj)
+%                cellLocationChanged(obj.ev_man_obj)
+%             end
+%             if obj.cell_populated_in_NEURON
+%                 populate_xyz(obj)
+%             end
         end   
     end
     

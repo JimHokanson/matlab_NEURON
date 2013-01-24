@@ -104,7 +104,9 @@ classdef props < handle_light
                 case 'McNeal_1976'
                     set_McNeal_1976(obj)
                 case 'Rattay_1987'
-                    set_Rattay_1987(obj)
+                    set_Rattay_1987(obj,1)
+                case 'Rattay_1987_unmyelinated'
+                    set_Rattay_1987(obj,0)
                 otherwise
                     error('Option not yet implemented')
             end
@@ -121,7 +123,7 @@ classdef props < handle_light
         %L/D 100
         
         %end
-        function set_Rattay_1987(obj)
+        function set_Rattay_1987(obj,myelin)
             %Rattay Fig 6
             %------------------------------
             %
@@ -168,7 +170,20 @@ classdef props < handle_light
             obj.myelin_axial_resistivity = obj.node_axial_resistivity;
             obj.myelin_conductance = 0;
             obj.myelin_capacitance = 0;
+           
+            if myelin
             obj.myelin_length = 1000;
+            
+            else
+                obj.myelin_length = 0;
+                obj.myelin_n_segs = 0;
+                % making this up...
+                obj.node_length = 10;
+                obj.number_internodes = 5000;
+                obj.node_membrane_dynamics = 'hh';
+                
+                
+            end
             
         end
         

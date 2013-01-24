@@ -1,4 +1,4 @@
-classdef simulation < handle
+classdef simulation < handle_light
     %
     %   CLASS: NEURON.simulation
     %

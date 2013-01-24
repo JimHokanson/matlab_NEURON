@@ -72,12 +72,12 @@ cm = node_capacitance
 	
 //TODO: Move this to a separate function
 //Jim will take care of this, eventually ...
-objref node_list
-node_list = new SectionList()
+//objref node_list
+//node_list = new SectionList()
 
-forsec "node" {
-   node_list.append()
-}
+//forsec "node" {
+//   node_list.append()
+//}
 
 
 //Do we need to change the defaults???? - I don't think so, leave for now

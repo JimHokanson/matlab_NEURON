@@ -1,4 +1,4 @@
-proc xstim__apply_stimulus() { local cur_stim_index, cur_sec_index, n_stim_changes, stim_scale localobj s
+proc xstim__apply_stimulus() { local cur_stim_index, cur_seg_index, cur_sec_index, n_stim_changes, stim_scale localobj s
 /*  xstim__apply_stimulus
 
 USAGE
@@ -28,18 +28,35 @@ stim_scale
  
 */
 
+print "Running xstim_apply_stimulus"
+
 //Initialization --------------------------------------
 cur_stim_index = 0
 cur_sec_index  = 0
+cur_seg_index  = 0
 n_stim_changes = xstim__t_vec.size
 stim_scale     = $1
 s = new Vector()
+
+print "N Stim Changes" n_stim_changes
 
 //TODO - should check that xstim__setup_stim_playback length == xstim__all_sectionlist length ~= 0
 
 //xstim__apply_stimulus_timer = startsw()
 
 //n = 0
+
+/*
+forsec xstim__all_sectionlist {
+	cur_sec_index = cur_sec_index + 1
+	print "Section " cur_sec_index
+	for (x,0) {
+		cur_seg_index = cur_seg_index + 1
+		print cur_seg_index
+	}
+}
+*/
+
 forsec xstim__all_sectionlist {
 	for (x,0) {
 		s = xstim__stim_vector_list.o(cur_sec_index)
@@ -50,9 +67,11 @@ forsec xstim__all_sectionlist {
 			//	print s.x[i]
 			//}
 			cur_stim_index  = cur_stim_index + 1
+			//print cur_stim_index
 		}
 	}
 	//print n
+	//print cur_sec_index
 	cur_sec_index = cur_sec_index + 1
 }
 

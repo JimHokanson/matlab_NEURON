@@ -1,0 +1,6 @@
+// create_generic_unmyelinated_axon
+
+// programmed to work with generic (myelinated) class, by ignoring myelin parameters
+// SEE: create_generic_axon.hoc
+
+

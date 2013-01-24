@@ -18,7 +18,11 @@ xstim__node_sectionlist : See xstim__define_global_variables.hoc
 
 xstim_node_list = $o1
 
+{xstim_node_list.remove(xstim_node_list)}
+
 //http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/secspec.html#forsec
 forsec "node" xstim_node_list.append
+
+//xstim_node_list.printnames()
 
 }
