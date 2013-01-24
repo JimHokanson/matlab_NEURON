@@ -17,10 +17,17 @@ public class NEURON_reader {
 	public static final Pattern pattern = Pattern.compile("\n(oc>)*");
 
 	//??? Use StringBuilder????
-	StringBuffer input_data = new StringBuffer(2000);
-	StringBuffer error_data = new StringBuffer(2000);
-	byte[] temp_data  = new byte[2000];
-
+	int max_bytes = 4000;
+	StringBuffer input_data = new StringBuffer(max_bytes);
+	StringBuffer error_data = new StringBuffer(max_bytes);
+	
+	//Technically we would expect that this is smaller than the input or output data
+	//as those can be formed by many concatenations of repeated reads. Each read
+	//writes over temp_data and then gets copied to the next index in the buffers
+	byte[] temp_data  	    = new byte[max_bytes];
+	
+	
+	
 	//Set by class 
 	public boolean success_flag           = false;   //aka 'result' or 'success flag'
 	public boolean error_flag 		 	  = false; 	 //Set true when error occurs ...
@@ -31,6 +38,7 @@ public class NEURON_reader {
 	public String  result_str             = new String();
 
 	//For repeated calls
+	
 	long start_time;
 	long wait_time_nanoseconds;
 	boolean debug;
@@ -134,12 +142,36 @@ public class NEURON_reader {
 			readStream(n_bytes_available, debug, false); //false indicates error stream
 			//NOTE: We'll never get the terminal string from the error stream
 			//Don't assign variable from function call..
+			
+			
 		}
 
 		//READING INPUT
 		//---------------------------------------------------
 		n_bytes_available = pin.available();
+		if (n_bytes_available > max_bytes){
+			System.err.println("Too many bytes needed for input: " + max_bytes + " initialized, " + n_bytes_available + "requested");
+		}
+		
 		if (n_bytes_available > 0){
+			
+			
+			// I am getting an error here:
+			//java.io.BufferedInputStream.read(Unknown Source)
+			//This is after an error ...
+			
+			/*
+			Java exception occurred:
+java.lang.IndexOutOfBoundsException
+
+	at java.io.BufferedInputStream.read(Unknown Source)
+
+	at NEURON_reader.read_result(NEURON_reader.java:143)
+*/
+			
+			
+			
+			
 			pin.read(temp_data,0,n_bytes_available);
 			is_terminal_string = readStream(n_bytes_available, debug, true);
 		}
