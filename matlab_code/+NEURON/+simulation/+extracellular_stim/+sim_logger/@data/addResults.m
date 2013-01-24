@@ -1,20 +1,24 @@
-function addResults(obj,applied_stimuli,thresholds,xyz_centers)
+function addResults(obj,new_stimulus_indices,thresholds)
 %
-%   addResults(obj,applied_stimuli,thresholds)
+%   addResults(obj,new_stimulus_indices,thresholds)
 %
 %   INPUTS
 %   =======================================================================
-%   applied_stimuli : observations x [space x time]
-%   thresholds      : stimulus thresholds in uA (sort of)
+%   new_stimulus_indices : observations x [space x time]
+%   thresholds           : stimulus thresholds in uA (sort of)
 %
 %   FULL PATH:
 %   
+
+applied_stimuli = obj.new_stimuli_matrix(new_stimulus_indices,:);
+xyz_centers     = obj.new_cell_locations(new_stimulus_indices,:);
 
 n_entries = length(thresholds);
 
 %Updating results
 %--------------------------------------------------------------
-new_indices = obj.current_index+1:obj.current_index + n_entries;
+current_index = length(obj.creation_time);
+new_indices   = current_index+1:current_index + n_entries;
 
 obj.applied_stimulus_matrix(new_indices,:) = applied_stimuli;
 obj.creation_time(new_indices)             = now;

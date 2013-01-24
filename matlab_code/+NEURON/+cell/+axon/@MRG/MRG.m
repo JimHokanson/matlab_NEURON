@@ -97,12 +97,12 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
             
             obj = obj@NEURON.cell.axon;
             
-            %see method: getThresholdInfo()
+            %see method: 
+            %   NEURON.cell.axon.MRG.getThresholdInfo()
             obj.threshold_info_obj = NEURON.cell.threshold_info;
             obj.threshold_info_obj.v_rest            = -80; %Can I get this from props?
             obj.threshold_info_obj.v_rough_threshold = -50;
             obj.threshold_info_obj.v_ap_threshold    = 0;
-            
             
             obj.spatial_info_obj = NEURON.cell.axon.MRG.spatial_info(obj,xyz_center);
             obj.props_obj        = NEURON.cell.axon.MRG.props(obj,obj.spatial_info_obj);
@@ -113,17 +113,14 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     %CHANGING METHODS =====================================================
     methods
         function [hasChanged,new_config] = hasSpatialInformationChanged(obj,previous_config)
-            %TODO: Make this an abstract method of
-            %extracellular_stim_capable
+            %
+            %
+            %   [hasChanged,new_config] = hasSpatialInformationChanged(obj,previous_config)
+            %
+            %   See Also:
+            %       NEURON.cell.axon.MRG.spatial_info.hasSpatialInformationChanged
             
            [hasChanged,new_config] = obj.spatial_info_obj.hasConfigurationChanged(previous_config); 
-        end
-        function setEventManagerObject(obj,ev_man_obj)
-            %
-            %   ev_man_obj : Class: NEURON.simulation.extracellular_stim.event_manager
-            
-            %TODO: Could add switch here if we have multiple types ...
-            obj.xstim_event_manager_obj = ev_man_obj;
         end
         function moveCenter(obj, newCenter)
            obj.spatial_info_obj.moveCenter(newCenter);
@@ -131,22 +128,33 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     end
     
     %INFO FOR OTHERS ======================================================
+    %Required methods by: NEURON.cell.extracellular_stim_capable
     methods
         function xyz_nodes = getXYZnodes(obj)
+           %getXYZnodes
+           %
+           %    xyz_nodes = getXYZnodes(obj)
+           %
+           %    See Also:
+           %        NEURON.cell.axon.MRG.spatial_info.get__XYZnodes
+           
            xyz_nodes = obj.spatial_info_obj.get__XYZnodes();
         end
         function avg_node_spacing = getAverageNodeSpacing(obj)
             %getAverageNodeSpacing
             %
-            %   Written For ...
+            %   avg_node_spacing = getAverageNodeSpacing(obj)
+            %
+            %   See Also:
+            %       NEURON.cell.axon.MRG.spatial_info.get__avg_node_spacing
             
             avg_node_spacing = obj.spatial_info_obj.get__avg_node_spacing;
 
         end
         function threshold_info_obj = getThresholdInfo(obj)
-           %TODO: Document
+           %threshold_info_obj
            %
-           %    NOTE: I might want to change things ...
+           %    threshold_info_obj = getThresholdInfo(obj)
            
            threshold_info_obj = obj.threshold_info_obj;
         end

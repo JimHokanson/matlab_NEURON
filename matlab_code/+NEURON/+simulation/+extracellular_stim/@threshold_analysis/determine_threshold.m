@@ -183,9 +183,8 @@ function isShort = helper__isShortSimCondition(obj,r,t)
 %   NOTE: This obtains the time vector from the simulation object. 
 %   This might eventually change to being an object of its own ...
 
-
-sim = obj.parent;
-first_index_end_time = find(sim.time_vector >= sim.tstop - t.short_simulation_test_time,1);
+sim_props = obj.parent.props_obj;
+first_index_end_time = find(sim_props.time_vector >= sim_props.tstop - t.short_simulation_test_time,1);
 if isempty(first_index_end_time)
     %??? Is our simulation too short?
     %

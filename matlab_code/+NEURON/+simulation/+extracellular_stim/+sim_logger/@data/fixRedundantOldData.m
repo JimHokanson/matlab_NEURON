@@ -27,53 +27,50 @@ function fixRedundantOldData(obj)
 %NOTE: This might need to change
 MAX_THRESHOLD_DIFFERENCE = 0.1;
 
-%Dimensionality Reduction: Do I want to do this???
-%--------------------------------------------------------------------------
-predictor_obj = NEURON.simulation.extracellular_stim.threshold_predictor(...
-                    [],obj.applied_stimulus_matrix);
 
-[~,old_low_dimension] = predictor_obj.rereduceDimensions(...
-                                            [],obj.applied_stimulus_matrix);
-           
-[unique_old_stim,~,index_in_unique_old_stim] = unique(old_low_dimension,'rows');
+obj.predictor_obj = NEURON.simulation.extracellular_stim.threshold_predictor(...
+                        obj.new_stimuli_matrix,...
+                        obj.applied_stimulus_matrix,...
+                        obj.xyz_center,....
+                        obj.new_cell_locations,...
+                        obj.threshold_values);
 
-n_unique      = size(unique_old_stim,1);
-n_old_entries = size(old_low_dimension,1);   
+%NEURON.simulation.extracellular_stim.threshold_predictor.getStimuliMatches
+%NEURON.simulation.extracellular_stim.threshold_predictor.matching_stimuli
+m = obj.predictor_obj.getStimuliMatches();
+
+r_groups = m.getRedundantOldGroups();
+
 %Redundant Stimuli Handling ...
 %-----------------------------------------------------
-if n_unique ~= n_old_entries
+if ~isempty(r_groups)
     
-    indices_delete_mask       = false(1,n_old_entries);
-    new_threshold_mask        = false(1,n_old_entries);
-    new_threshold_values      = NaN(1,n_old_entries);
+    n_duplicate_groups = length(r_groups);
     
+    new_threshold_values = zeros(1,n_duplicate_groups);
+    first_indices_keep   = zeros(1,n_duplicate_groups);
+    other_indices_remove = cell(1,n_duplicate_groups);
     
-    [~,IC] = unique2(index_in_unique_old_stim);
-    %IC: 
-    
-    redundant_groups = find(cellfun('length',IC) > 1);
-    
-    for iGroup = 1:length(redundant_groups)
-       cur_IC_index      = redundant_groups(iGroup);
-       cur_group_indices = IC{cur_IC_index};
+    for iGroup = 1:n_duplicate_groups
+       cur_group_indices = r_groups{iGroup};
+       
+       first_indices_keep(iGroup)     = cur_group_indices(1);
+       other_indices_remove{iGroup} = cur_group_indices(2:end);
+       
        thresholds_local  = obj.threshold_values(cur_group_indices);
        if any(isnan(thresholds_local))
            error('Case not yet handled')
        end
-       threshold_new = mean(thresholds_local);
-       if any(abs(thresholds_local - threshold_new) > MAX_THRESHOLD_DIFFERENCE)
+       
+       new_threshold_values(iGroup) = mean(thresholds_local);
+       if any(abs(thresholds_local -  new_threshold_values(iGroup)) > MAX_THRESHOLD_DIFFERENCE)
            error('Max threshold difference for same stimulus violated, code not yet handled')
        end
-       new_threshold_mask(cur_group_indices(1))      = true;
-       new_threshold_values(cur_group_indices(1))    = threshold_new;
-       indices_delete_mask(cur_group_indices(2:end)) = true; 
-    end    
+    end
     
-    %Updating thresholds
-    obj.threshold_values(new_threshold_mask) = new_threshold_values(new_threshold_mask);
+    obj.threshold_values(first_indices_keep) = new_threshold_values;
     
-    %Removal of redundant entries and saving ...
-    obj.deleteEntries(indices_delete_mask);
+    obj.deleteEntries(vertcat(other_indices_remove{:}));
 
 end
 

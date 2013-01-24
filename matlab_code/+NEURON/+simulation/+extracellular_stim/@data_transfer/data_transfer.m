@@ -7,10 +7,6 @@ classdef data_transfer < handle_light
     %   NEURON with variabls specifically related to extracellular
     %   stimulation.
     %
-    %   TODO:
-    %   ===================================================================
-    %   2) Finish delete function
-    %
     %   IMPROVEMENTS
     %   ====================================================================
     %   1) Allow ignoring of loading the time vector (if it doesn't change)
@@ -19,6 +15,7 @@ classdef data_transfer < handle_light
     %       should add on that at time 0, there is no stimulus
     %       I would actually be surprised if this isn't in the hoc code ...
     %       - would need to see vector.play code 
+    %   3) Finish delete function
     
     properties
         parent    %

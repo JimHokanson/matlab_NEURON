@@ -2,67 +2,53 @@ classdef simulation < handle
     %
     %   CLASS: NEURON.simulation
     %
+    %   This class (or subclass) are the main class for running NEURON.
+    %
     %   SUBCLASS NOTES
     %   =========================================================
     %   1) Call this constructor
-    %
-    %   TODO: Better definition of model assignment. When does a particular
-    %   model get attached to a simulation?
     %
     %   KNOWN IMPLEMENTORS
     %   =========================================================
     %   	NEURON.simulation.extracellular_stim
     %
-    %   NEURON VARIABLES === MOVED TO NEURON.simulation.props
+    %   IMPROVEMENTS
     %   =========================================================
-    %   celsius
-    %   tstop
-    %   dt
+    %   1) Remove reference to n_obj
+    %   2) Improve options handling for launching NEURON process
+    %   3) 
     %
     
     properties
-        %TODO:
-        %Could incorporate solution method ... discrete integration, event based with dynamic steps ...
+        props_obj   %Class: NEURON.simulation.props
+    end
 
-        props_obj
-    end
-    
-    properties (Dependent)
-       time_vector 
-    end
-    
-    methods 
-        function value = get.time_vector(obj)
-           value = 0:obj.props_obj.dt:obj.props_obj.tstop;
-        end
+    properties (SetAccess = private)
+        opt__launch_NEURON_process_during_initialization = true %This variable 
+        %is handled in the
     end
     
     properties
-        launch_NEURON_process = true %Started but not yet suppported ... Goal was to allow calling
-        %certain methods that didn't need the NEURON environment in order
-        %to work, The thought was to really pass this to the NEURON class
-        %and specifically to the write method
-    end
-    
-    properties
+        %TODO: 
         opt__TIME_AFTER_LAST_EVENT = 0.4 %Amount of time to wait after the last event
         %This is used for simulations to ensure that the simulation runs
         %long enough. See also the method adjustSimTimeIfNeeded()
     end
     
     properties
-        %.
-        sim_hash    %String for preventing save collisions between concurrent versions of Matlab
-        %Created in the constructor.
-        %NOTE: This is based upon the process id of Matlab, not
+        %.simulation()
+        sim_hash    %String for preventing file save collisions 
+        %between concurrent versions of Matlab. This is based upon the 
+        %process id of Matlab, not
         %the communications process.
         %IMPORTANT: This variable is declared in NEURON in init_neuron.hoc
         
-        %TODO: Remove references to this variable
-        %go through the command object ...
-        n_obj       %(class NEURON)    NOTE: If this is ever invalid we have problems
         %Might become invalid from stack dump
-        cmd_obj     %(class NEURON.cmd)
+        cmd_obj     %(Class NEURON.cmd) This class may not exist if
+    end
+    
+    properties (Access = private)
+       n_obj        %(Class: NEURON)
     end
     
     properties (Hidden)
@@ -72,7 +58,7 @@ classdef simulation < handle
     %DEPENDENT PROPS & METHODS
     %===========================================================
     properties (Dependent)
-        path_obj %(class NEURON_paths)
+        path_obj    %(Class: NEURON.paths)
     end
     
     methods
@@ -97,22 +83,24 @@ classdef simulation < handle
             %       NEURON.simulation.extracellular_stim
             %       NEURON.simulation.initNEURON
             
-            in.launch_NEURON_process = true;
+            in.launch_NEURON_process = obj.opt__launch_NEURON_process_during_initialization;
             in.debug                 = false;
             in = processVarargin(in,varargin);
             
             obj.sim_hash    = ['p' num2str(feature('GetPid'),'%d') '_'];
-                        
-            obj.launch_NEURON_process = in.launch_NEURON_process;
-            
-            if obj.launch_NEURON_process
-                obj.n_obj       = NEURON;
-                obj.n_obj.debug = in.debug;
+                                    
+            %TODO: Make this a method
+            if in.launch_NEURON_process
+                obj.n_obj       = NEURON('debug',in.debug);
                 obj.cmd_obj     = NEURON.cmd(obj.n_obj);
+                
                 initNEURON(obj);
+                
+                obj.props_obj = NEURON.simulation.props(obj);
             end
             
-            obj.props_obj = NEURON.simulation.props(obj);
+            %TODO: Build in non-sim running support
+            
         end
     end
     

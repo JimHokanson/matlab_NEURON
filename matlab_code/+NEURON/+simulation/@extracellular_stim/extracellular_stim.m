@@ -91,6 +91,32 @@ classdef extracellular_stim < NEURON.simulation
             obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd_obj);
             
         end
+        function init__simulation(obj)
+           %init__simulation Initializes simulation before being run
+           %
+           %    init__simulation(obj)
+           %
+           %    NOTE: Most simulation methods should call this class before
+           %    running. A known current exception is the simulation
+           %    logging calls which call methods which call this function
+           %    ...
+           %
+           %    For more information on event order see the Event Order
+           %    documentation file in the private folder of this class.
+           %
+           %    FULL PATH:
+           %        NEURON.simulation.extracellular_stim.init__simulation
+           
+           obj.init__verifyAssignedObjects();
+           
+           obj.init__setupThresholdInfo(); 
+           
+           obj.cell_obj.createExtracellularStimCell();
+           
+           obj.init__create_stim_info();
+           
+        end
+        
     end
     
     methods (Static)
@@ -99,13 +125,8 @@ classdef extracellular_stim < NEURON.simulation
     
     %EVENT HANDLING  ======================================================
     methods
-        %NOTE: The event manager object is reponsible is responsible
-        %for handling changes in NEURON from changes in Matlab. Given that
-        %one may construct the objects before associating them with this
-        %object, these methods are needed ...
         function set_Tissue(obj,tissue_obj)
             obj.tissue_obj = tissue_obj;
-            tissueChanged(obj.ev_man_obj);
         end
         function set_Electrodes(obj,elec_objs)
             obj.elec_objs = elec_objs;
@@ -115,6 +136,8 @@ classdef extracellular_stim < NEURON.simulation
             
             %NOTE: We might need to clear everything
             %if a new cell object is defined ...
+            %In other words, if the cell_obj is not empty
+            %we might need to change things ...
             
             obj.cell_obj.setSimObjects(obj.cmd_obj,obj);
             
@@ -130,41 +153,21 @@ classdef extracellular_stim < NEURON.simulation
         %sim__getCurrentDistanceCurve
         %sim__single_stim
         
-        %This is some code that needs to be updated. Its goal is to
-        %determine stimulus threshold in a volume.
-        %NOTE: This will be replaced with the sim_logger code
-        %and the threshold_analysis object
-        function init__simulation(obj)
-           obj.init__verifyAssignedObjects();
-           
-           obj.init__setupThresholdInfo(); 
-           
-           obj.cell_obj.createExtracellularStimCell();
-           
-           obj.init__create_stim_info();
-           
-        end
+
         function sim_logger = sim__getLogInfo(obj)
             sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
             
             %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
             sim_logger.initializeLogging(obj); 
         end
-        function sim__create_logging_data(obj,varargin)
+        function thresholds = sim__getThresholdsMulipleLocations(obj,cell_locations,varargin)
             %
             %
             %   sim__create_logging_data(obj,varargin)
             %
             %   OPTIONAL INPUTS
             %   ===========================================================
-            
-            
-            
-            
-            %wtf = NEURON.simulation.extracellular_stim.create_standard_sim;
-            %wtf.sim__create_logging_data()
-            
-            in.cell_locations = {-500:20:500 -500:20:500 -500:20:500};
+            in.threshold_sign = 1;
             in = processVarargin(in,varargin);
             
             sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
@@ -173,7 +176,7 @@ classdef extracellular_stim < NEURON.simulation
             sim_logger.initializeLogging(obj);
             
             %NEURON.simulation.extracellular_stim.sim_logger.getThresholds
-            sim_logger.getThresholds(in.cell_locations,1);
+            thresholds = sim_logger.getThresholds(cell_locations,in.threshold_sign);
             
         end
         
@@ -200,18 +203,20 @@ classdef extracellular_stim < NEURON.simulation
             %init__verifyAssignedObjects
             %
             %    Verifies that all objects which are necessary for this
-            %    simulation are defined ...
+            %    simulation are defined. These incldue:
+            %       1) Electrode Object
+            %       2) Tissue Object
+            %       3) Cell Object
             %
             %    init__verifyAssignedObjects(obj)
             %
-            %    KNOWN CALLERS:
-            %    ==========================================================
-            %    NEURON.simulation.extracellular_stim.event_manager
+            %    See Also:
+            %       NEURON.simulation.extracellular_stim.init__simulation
             
             if ~isobject(obj.tissue_obj)
                 error('Tissue object must be specified before initializing system')
             end
-            
+
             if ~isobject(obj.elec_objs)
                 error('Electrodes must be specified before running simulations')
             end
@@ -221,19 +226,13 @@ classdef extracellular_stim < NEURON.simulation
             end
         end
         function init__setupThresholdInfo(obj)
-            %NOTE: This method might be more appropriate in
-            %moving towards the event manager
             %
-            %Alternatively, the event manager call in the sim cases
-            %might move here instead ...
-            %
-            %    initSystem(obj.ev_man_obj)
+            %   init__setupThresholdInfo
             %
             %    See Also:
             %        NEURON.simulation.extracellular_stim.sim__single_stim
             %        NEURON.simulation.extracellular_stim.sim__determine_threshold
-            
-            
+
             obj.threshold_analysis_obj.threshold_info = obj.cell_obj.getThresholdInfo();
         end
     end
@@ -241,118 +240,5 @@ classdef extracellular_stim < NEURON.simulation
     %PLOTTING  ============================================================
     methods
         %NEURON.simulation.extracellular_stim.plot__AppliedStimulus
-    end
-    
-    %TESTING =========================================================
-    methods(Static)
-        function potentialTesting(varargin)
-            %
-            %    NEURON.simulation.extracellular_stim.potentialTesting
-            %
-            %
-            %    OLD METHOD: Needs updating
-            
-            
-            
-            %??? - how to update or process pieces of varargin
-            %- like adding on not to run NEURON process
-            %and then passing to create_standard_sim
-            error('Needs updating ...')
-            
-            
-            in.TISSUE_RESISTIVITY   = 500;
-            in.STIM_START_TIME      = 0.3;
-            in.STIM_SCALE_1         = [1 -0.5];
-            in.STIM_SCALE_2         = [-1 0.5];
-            in.STIM_DURATION_1      = [0.2 0.4];
-            in.STIM_DURATION_2      = [0.2 0.4];
-            in.ELECTRODE_LOCATIONS  = [-200 0 0; 200 0 0];
-            in.plot_option          = 2;
-            obj = NEURON.simulation.extracellular_stim;
-            
-            %tissue ------------------------------------------------
-            set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.TISSUE_RESISTIVITY));
-            
-            %stimulation electrode ---------------------------------
-            e_objs = NEURON.extracellular_stim_electrode(in.ELECTRODE_LOCATIONS);
-            
-            setStimPattern(e_objs(1),in.STIM_START_TIME,in.STIM_DURATION_1,in.STIM_SCALE_1);
-            setStimPattern(e_objs(2),in.STIM_START_TIME,in.STIM_DURATION_2,in.STIM_SCALE_2);
-            
-            set_Electrodes(obj,e_objs);
-            
-            %cell ---------------------------------------------------
-            %set_CellModel(obj,NEURON.cell.axon.MRG(in.CELL_CENTER))
-            
-            %NEURON.simulation.extracellular_stim.showPotentialPlane
-            %NEURON.simulation.extracellular_stim.showPotentialTwoElectrodes
-            
-            switch in.plot_option
-                case 1
-                    showPotentialPlane(obj)
-                case 2
-                    showPotentialTwoElectrodes(obj)
-            end
-            
-        end
-        function default_run_single_stim(varargin)
-            %TODO: Rely upon create_standard_sim
-        end
-        function default_run_determine_threshold(varargin)
-            %TODO: Rely upon create_standard_sim
-        end
-        function extras = defaultRun(debug,stim_amp,varargin)
-            %NEURON.simulation.extracellular_stim.defaultRun
-            %
-            %   Calling form (Static Method)
-            %   NEURON.simulation.extracellular_stim.defaultRun(debug,stim_amp,varargin)
-            %
-            %   OPTIONAL INPUTS
-            %   ==========================================================
-            %
-            %   TODO: Expand this to allow a basic demo of all methods
-            %
-            %   i.e. allow selection of the method to run ...
-            %
-            %   NOTE: stim threshold with defaults should be -2.40 ish
-            
-            in.TISSUE_RESISTIVITY = 500;
-            in.ELECTRODE_LOCATION = [0 0 0];
-            in.CELL_CENTER        = [0 50 0];
-            in.STIMULUS_AMP       = -1;
-            in.STIM_START_TIME    = 0.2;
-            in.STIM_DURATIONS     = [0.2 0.4];
-            in.STIM_SCALES        = [1 -0.5];
-            in.STARTING_STIM_AMP  = stim_amp;
-            in.save_data          = true;
-            in.run_option         = 2;
-            in = processVarargin(in,varargin);
-            
-            obj = NEURON.simulation.extracellular_stim('debug',debug);
-            
-            %tissue ------------------------------------------------
-            set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.TISSUE_RESISTIVITY));
-            
-            %stimulation electrode ---------------------------------
-            e_obj = NEURON.extracellular_stim_electrode.create(in.ELECTRODE_LOCATION);
-            setStimPattern(e_obj,in.STIM_START_TIME,in.STIM_DURATIONS,in.STIM_SCALES);
-            set_Electrodes(obj,e_obj);
-            
-            %cell ---------------------------------------------------
-            set_CellModel(obj,NEURON.cell.axon.MRG(in.CELL_CENTER))
-            
-            %This is the part I should put on a switch statement ...
-            %==============================================================
-            %apFired = single_stim(obj,stim_amp);
-            
-            switch in.run_option
-                case 1
-                    sim__single_stim(obj,stim_amp);
-                case 2
-                    %NEURON.simulation.extracellular_stim.sim__determine_threshold
-                    extras = sim__determine_threshold(obj,in.STARTING_STIM_AMP);
-                    disp(extras.getSummaryString);
-            end
-        end
     end
 end

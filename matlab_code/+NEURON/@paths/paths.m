@@ -1,5 +1,8 @@
 classdef paths < handle
-    %NEURON_paths 
+    %
+    %   Class: NEURON.paths 
+    %
+    %   This is the main path for handling NEURON related pathing
     %
     %   USER CONSTANTS NEEDED
     %   ==================================================================
@@ -7,8 +10,11 @@ classdef paths < handle
     %
     %   IMPROVEMENTS
     %   ===================================================================
-    %   build in reset method - NEURON_paths.reset
-    %   build in support for model specific paths ...
+    %   1) Build in reset method - NEURON_paths.reset
+    %   2) Provide better customization of paths that are likely to change,
+    %     specifically NEURON executable paths that will change with
+    %     versioning
+    %   3) Remove user constants call ...
     
     properties
         hoc_code_root         %Directory containing all hoc code
@@ -22,7 +28,8 @@ classdef paths < handle
                    	%This is needed in order to launch NEURON
         
         save_root   %Location where files are saved to send back and forth to NEURON
-
+                    %NOTE: I don't think this is used anymore ...
+        
         %Compile Related - See NEURON.compile
         %------------------------------------------------------------------
         c_root_install
@@ -35,8 +42,8 @@ classdef paths < handle
         % Default nrniv install directories, by OS
         % Must change the appropriate property if nrniv installed somewhere
         % else
-        NRNIV_WIN_PATH = 'C:\nrn72\bin\nrniv.exe'
-        NRNIV_MAC_PATH = '/Applications/NEURON-7.2/nrn/i386/bin/nrniv'
+        NRNIV_WIN_PATH    = 'C:\nrn72\bin\nrniv.exe'
+        NRNIV_MAC_PATH    = '/Applications/NEURON-7.2/nrn/i386/bin/nrniv'
         NNRNIV_LINUX_PATH = '/usr/local/nrn/i686/bin/nrniv'
     end
     
@@ -57,9 +64,9 @@ classdef paths < handle
                 if ispc % Windows
                     obj.exe_path  = obj.NRNIV_WIN_PATH;
                 elseif ismac % Mac
-                    obj.exe_path = obj.NRNIV_MAC_PATH;
+                    obj.exe_path  = obj.NRNIV_MAC_PATH;
                 else % Linux, etc.
-                   obj.exe_path = obj.NRNIV_LINUX_PATH; 
+                   obj.exe_path   = obj.NRNIV_LINUX_PATH; 
                 end
             end
 
@@ -73,7 +80,7 @@ classdef paths < handle
                 obj.c_mknrndll       = fullfile(obj.c_root_install,'lib','mknrndll.sh');
             elseif ismac
                 obj.c_root_install = fileparts(fileparts(fileparts(fileparts(obj.exe_path))));
-                obj.c_mknrndll = fullfile(obj.c_root_install,'nrn','i386','bin','nrnivmodl');
+                obj.c_mknrndll     = fullfile(obj.c_root_install,'nrn','i386','bin','nrnivmodl');
             else
                 warning('Compiling .mod files on non-mac Unix systems is not yet supported.')
             end

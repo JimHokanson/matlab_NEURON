@@ -51,7 +51,10 @@ classdef threshold_predictor < handle_light
         %THIS IS A CRAPPY EXPLANATION
         %However if we make this value too large, we never update
         %our predictions which means it takes longer to get our answers as
-        %well.
+        
+        opt__score_rounding_precision = 1e-10 %This is on what level we
+        %want to compare the low dimensional representations of the old and
+        %new stimuli as being equal. Instead of using a 
     end
     
     properties
@@ -129,31 +132,6 @@ classdef threshold_predictor < handle_light
             
             %TODO: Remove inputs and use properties instead ...
             obj.reduceDimensions(new_stim,old_stim);
-
-% % %             %NOTE: I put old here to allow the first index in a run of
-% % %             %no difference to come from old (if present)
-% % %             %I guess we could accomplish the same by looking at the end if
-% % %             %we swapped the order ...
-% % %             [obj.all_stimuli_sorted_low_d,obj.original_index] = ...
-% % %                 sortrows([obj.low_d_old_stimuli; obj.low_d_new_stimuli]);
-% % %             obj.is_from_old_matrix = obj.original_index <= obj.n_old;
-% % %             
-% % %             %ARG, I really dislike this code
-% % %             %One of these days I am going to write a class which does this
-% % %             %for me ...
-% % %             linear_indices = 1:length(obj.is_from_old_matrix);
-% % %             
-% % %             original_indices_old_sorted = obj.original_index(obj.is_from_old_matrix);
-% % %             original_indices_new_sorted = obj.original_index(~obj.is_from_old_matrix);
-% % %             
-% % %             %A correction for the concatenation 
-% % %             original_indices_new_sorted = original_indices_new_sorted - obj.n_old;
-% % %             
-% % %             obj.old_stim_index_in_sort = zeros(1,obj.n_old);
-% % %             obj.old_stim_index_in_sort(original_indices_old_sorted) = linear_indices(obj.is_from_old_matrix);
-% % %             
-% % %             obj.new_stim_index_in_sort = zeros(1,obj.n_new);
-% % %             obj.new_stim_index_in_sort(original_indices_new_sorted) = linear_indices(~obj.is_from_old_matrix);
         end
         
         %I want to get rid of this method ...
@@ -187,8 +165,19 @@ classdef threshold_predictor < handle_light
                 temp_data = [new_stim; old_stim];
                 obj.data_mean = mean(temp_data,1);
                 [obj.coeff,scores_both,latent] = princomp(temp_data,'econ');
-                scores_new = scores_both(1:n_new,:);
-                scores_old = scores_both(n_new+1:end,:);
+              
+                
+            %Fixes:
+            %1) Recompute scores based on coefficient
+            %2) Round results to certain place
+            
+%                 temp_data_no_mean = bsxfun(@minus,temp_data,mean(temp_data));
+%                 scores_both_2 = temp_data_no_mean*obj.coeff;
+%                 scores_new_2 = scores_both_2(1:n_new,:);
+%                 scores_old_2 = scores_both_2(n_new+1:end,:);
+                
+                scores_new = round2(scores_both(1:n_new,:),obj.opt__score_rounding_precision);
+                scores_old = round2(scores_both(n_new+1:end,:),obj.opt__score_rounding_precision);
             end
             
             %How much should we keep

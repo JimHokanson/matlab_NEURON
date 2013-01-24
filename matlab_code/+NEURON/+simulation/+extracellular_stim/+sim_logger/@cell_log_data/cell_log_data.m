@@ -5,6 +5,8 @@ classdef cell_log_data
     
     properties
        cell_type
+           %1 - MRG
+           %2 - axon generic
        property_values_array
     end
     
@@ -16,6 +18,8 @@ classdef cell_log_data
            switch class(cell_obj)
                case 'NEURON.cell.axon.MRG'
                    obj.cell_type = 1;
+               case 'NEURON.cell.axon.generic'
+                   obj.cell_type = 2;
                otherwise
                    error('Case for cell type: %s, not yet handled',class(cell_obj))
            end

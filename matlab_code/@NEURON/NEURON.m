@@ -40,7 +40,10 @@ classdef NEURON < handle_light
     end
     
     properties
-        comm_obj    %Class: Implementation of NEURON.comm_obj, NOT YET IMPLEMENTED
+        comm_obj    %Class: Implementation of NEURON.comm_obj
+                    %Known implementations:
+                    %   NEURON.comm_obj.java_comm_obj
+                    %   NEURON.comm_obj.windows_comm_obj
     end
     
     %OPTIONS   %==========================================
@@ -65,8 +68,10 @@ classdef NEURON < handle_light
             %   See class description above -> help NEURON
             
             in.win_use_java = true;
+            in.debug        = obj.debug;
             in = processVarargin(in,varargin);
             
+            obj.debug    = in.debug;
             obj.path_obj = NEURON.paths;
             
             %Load communication object based on system type

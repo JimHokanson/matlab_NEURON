@@ -1,11 +1,27 @@
-classdef props < handle_light % JW note: I'm not actually sure what handle_light does, but I'm basing this on other props classes
-    
+classdef props < handle_light 
+    %
+    %
     % Class: NEURON.simulation.props
+    %
+    %   IMPROVEMENTS:
+    %   ==============================================================
+    %   1) Build in support for different time solver methods
     
     properties (SetAccess = private)
         celsius = 37
-        tstop   = 1.2 %(units - ms), stopping time for the simulation
-        dt      = 0.005 %(units - ms
+        tstop   = 1.2       %(units - ms), stopping time for the simulation
+        dt      = 0.005     %(units - ms), dt for fixed time solvers
+    end
+    
+    properties (Dependent)
+       time_vector 
+    end
+    
+    methods 
+        function value = get.time_vector(obj)
+           %This could change based on the simulation type ...
+           value = 0:obj.dt:obj.tstop;
+        end
     end
     
     properties (Hidden)

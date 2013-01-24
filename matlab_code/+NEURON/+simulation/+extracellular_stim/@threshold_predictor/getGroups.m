@@ -83,7 +83,12 @@ applied_stimuli = obj.low_d_new_stimuli(new_indices_use,:);
 n_new_stimuli   = size(applied_stimuli,1);
 
 %First grouping stratgey
-%I think instead of doing the min and max we should do a hull strategy
+%I think instead of doing the min and max we should do a convex hull
+%strategy
+%Sadly the convex hull had way more points than I anticipated
+%However, we could use this to test the prediction model
+%and whether or not we need to use a different algorithm
+%- see convhulln
 %--------------------------------------------------------------------------
 [~,I_min] = min(applied_stimuli);
 [~,I_max] = max(applied_stimuli);
@@ -96,29 +101,31 @@ chosen_stimuli = applied_stimuli(first_group,:);
 %--------------------------------------------------------------------------
 
 
+%NOTE: If K is greather than length, no error occurs which is fine
+[idx_nn,dist_nn] = knnsearch(applied_stimuli,applied_stimuli,'K',50);
+
+dist_nn = dist_nn'; %
+
 %Initialization of distance metrics and loop variables
 %--------------------------------------------------------------------------
 if isempty(old_stimuli)
-    dist_matrix_old = pdist2(applied_stimuli,chosen_stimuli);
+    [~,smallest_distance_to_known_point] = knnsearch(chosen_stimuli,applied_stimuli);
 else
-    dist_matrix_old = pdist2(applied_stimuli,[chosen_stimuli; old_stimuli]);
+    [~,smallest_distance_to_known_point] = knnsearch([chosen_stimuli; old_stimuli],applied_stimuli);
 end
-
-smallest_distance_to_known_point = min(dist_matrix_old,[],2);
-
-%This may be too large given some inputs
-dist_matrix_new = pdist2(applied_stimuli,applied_stimuli);
 
 
 %Main algorithm
 %--------------------------------------------------------------------------
-chosen_points            = zeros(1,n_new_stimuli);
-not_chosen_mask          = true(1,n_new_stimuli);
-chosen_mask(first_group) = false;
-max_dist_avg           = zeros(1,n_new_stimuli);
+chosen_points    = zeros(1,n_new_stimuli);
+max_dist_removed = zeros(1,n_new_stimuli);
 
-tic
+not_chosen_mask              = true(1,n_new_stimuli);
+not_chosen_mask(first_group) = false;
+
 for iPoint = n_first_group+1:n_new_stimuli
+    
+   %SLOW LINE
    [maxValue,I] = max(smallest_distance_to_known_point); %Get point furthest from all old points
    if maxValue == 0 
       error('Repetitions present, prior code should have removed repetitions')
@@ -126,25 +133,48 @@ for iPoint = n_first_group+1:n_new_stimuli
    
    chosen_points(iPoint) = I;
    
+   %INSIGHT
+   %-----------------------------------------------------------------------
+   %Let's say we get a maxValue of 1 for this point
+   %meaning this point is the farthest distance of any unknown point
+   %to some known point.
+   %Let's say the closest 3 points are 0.2 1 and 2 away
+   %knowledge of this point can only improve the first two samples, as the
+   %third one must already have a closer point, otherwise it would 
+   %be the max value. This means instead of taking the min
+   %over all unknown points, we only take the min over the first set
+   %of points, which leads to less comparisons.
+   
+   I_update = find(dist_nn(:,I) > maxValue,1);
+   
+   if isempty(I_update)
+       %This means our knnsearch was too small, compute all ...
+       
    %The smallest distance from all unknown points to known points
    %is now the minimum of either previous minimum distances, or the
    %distance from these points to the chosen point (which is know
    %considered to be a known point)
-   %smallest_distance_to_known_point = min(smallest_distance_to_known_point,dist_matrix_new(:,I));
    
-   smallest_distance_to_known_point = min(smallest_distance_to_known_point,pdist2(applied_stimuli,applied_stimuli(I,:)));
+   %SLOW LINE :/
+   %Increasting K in nn decreases these calls
+   %but it also increases nn search time
+   smallest_distance_to_known_point(not_chosen_mask) = ...
+       min(smallest_distance_to_known_point(not_chosen_mask),pdist2(applied_stimuli(not_chosen_mask,:),applied_stimuli(I,:)));
+   else 
+      indices = idx_nn(I,1:I_update-1);      
+      smallest_distance_to_known_point(indices) = ...
+            min(smallest_distance_to_known_point(indices),dist_nn(1:I_update-1,I));        
+   end
    
-   %This assignment is only for debugging
-   %If done properly this should decrease for 
-   max_dist_avg(iPoint)  = mean(smallest_distance_to_known_point);
+   not_chosen_mask(I)       = false;
+   max_dist_removed(iPoint) = maxValue;
 end
-toc
 
 %Using this information to form groups
 %==========================================================================
 %Step 1: How many points to place in each group ...
 %-----------------------------------------------
-normalized_contributions = cumsum(max_dist_avg)./sum(max_dist_avg);
+normalized_contributions = cumsum(max_dist_removed)./sum(max_dist_removed);
 
 %NOTE: We remove the normalized contributions from those enries
 %that make up the first group, so that sum(N) = total_points - n_first_group

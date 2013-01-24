@@ -1,20 +1,46 @@
 %{
+
+
+---------------------------------------------------------------------------
+                         NEURON DIRECTORY ORDER
+---------------------------------------------------------------------------
+1) On loading the simulation, the functions defined for NEURON are loaded
+2) On defining the cell, the 
+
 ---------------------------------------------------------------------------
                                 Event Order
 ---------------------------------------------------------------------------
 Currently the main aspects of event order are handled by the class:
-*****   NEURON.simulation.extracellular_stim.event_manager   *********
 
-1) All relevant objects must be attached to the simulation class. The
+1) Simulation is initiated. At this point in time the simulation variables
+are declared.
+
+2) All relevant objects must be attached to the simulation class. These
 include:
     - tissue
     - electrodes
     - cell
 
-2) Create the cell in NEURON
-   - In addition, most cells will take this time to populate spatial
-   information so that it is available when calculating the applied voltage
-   to the cell from the electrodes
+3) Before running any simulation, the following method is called:
+NEURON.simulation.extracellular_stim.init__simulation
+
+This method runs through the following steps:
+---------------------------------------------------------------------------
+
+4) Verification of assigned objects
+
+5) Threshold Info from the cell is transfered to the threshold analysis
+object
+
+6) Creation of the cell in NEURON
+
+   Most cells will take this time to populate spatial information so that
+   it is available when calculating the applied voltage to the cell from
+   the electrodes.
+
+
+
+
 
 3) Setup recording any properties desired, currently just the membrane
 potential is automatically setup for recording ...

@@ -29,14 +29,16 @@ classdef Hokanson_2013
             
            
            for iPair = 1:n_electrode_pairings
+              fprintf('Running Pairing: %d\n',iPair);
               options = {...
                'electrode_locations',obj.ALL_ELECTRODE_PAIRINGS{iPair},... 
                'tissue_resistivity',obj.TISSUE_RESISTIVITY};
                xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
-               xstim_obj.sim__create_logging_data;
+               xstim_obj.sim__getThresholdsMulipleLocations({-500:20:500 -500:20:500 -500:20:500});
            end
            
-           
+           %s = xstim_obj.sim__getLogInfo;
+           %s.simulation_data_obj.fixRedundantOldData
            
 %            %Two Electrodes - 400 apart in X 
 %            
