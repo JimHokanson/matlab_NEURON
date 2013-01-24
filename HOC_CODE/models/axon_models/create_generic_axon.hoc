@@ -37,11 +37,10 @@ create node[number_internodes + 1], myelin[number_internodes]
 		connect node[i+1](0), myelin[i](1)
 	}
 
-forsec "myelin" { nseg = myelin_n_segs }
-
-
 
 	forsec "node" {
+	insert_node_dynamics(node_dynamics)
+cm = node_capacitance
 		L    = node_length
 		diam = node_diameter
 		nseg = 1 //Leave hardcoded for now ...
@@ -50,24 +49,15 @@ forsec "myelin" { nseg = myelin_n_segs }
 	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/geometry.html#Section
 	
 	forsec "myelin" {
+				insert pas
+		e_pas = v_init
+		g_pas = myelin_conductance
+		cm    = myelin_capacitance
+		nseg = myelin_n_segs 
 		L    = myelin_length
 		diam = fiber_diameter
 	}
 
-//STILL MISSING - segment information nsegs -> 6 to 10?????, might need to be odd - yes, make odd!
-
-
-	forsec "myelin" {
-		insert pas
-		e_pas = v_init
-		g_pas = myelin_conductance
-		cm    = myelin_capacitance
-	}
-
-forsec "node"{
-insert_node_dynamics(node_dynamics)
-cm = node_capacitance
-}
 	
 	
 //TODO: Move this to a separate function

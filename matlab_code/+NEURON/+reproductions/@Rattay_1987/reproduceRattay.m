@@ -17,8 +17,8 @@ stimAmps = [minStim:stimStep:maxStim]*1000;
 %stimAmps = [-5:.5:5]*1000; % -5mA-5mA
 TISSUE_RESISTIVITY = 300; % isotropic 300 ohm cm
 STIM_START_TIME    = 0.1;
-STIM_DURATIONS      = [0.1 0.2 0.3];   % 100us duration, square pulse
-STIM_SCALES = [1 0 1];
+STIM_DURATIONS      = [0.1 0.2];   % 100us duration, square pulse
+STIM_SCALES = [1 -0.5];
 propsPaper = 'Rattay_1987'; % get properties from this paper, for now. %TODO: get properties used in Rattay_1987.
 TEMP_CELSIUS = 27;
 
