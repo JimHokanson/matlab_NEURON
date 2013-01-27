@@ -1,4 +1,4 @@
-proc xstim__create_stim_sectionlist() {localobj xstim_section_list
+proc xstim__create_stim_sectionlist() {local n_removed localobj xstim_section_list
 /*
 
 This method is required for extracellular stimulation to apply the stimulus. 
@@ -34,12 +34,15 @@ Documentation Finished: 12/18/2012 JAH
 //For some reason I don't need to specify that this is a section list ...
 xstim_section_list = $o1
 
-{xstim_section_list.remove(xstim_section_list)}
+//WRONG - now our pointer points to a new object which is local only
+//xstim_section_list = new SectionList()
+
+{n_removed = xstim_section_list.remove(xstim_section_list)}
+//print "N xstim removed:", n_removed
 
 //http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/classes/seclist.html#wholetree
 xstim_section_list.wholetree()
 
-//xstim_section_list.printnames()
 
 //NOTE: For the MRG code we just start at one end and go to the other.
 //This gets more complicated if we have branching and we need to take into

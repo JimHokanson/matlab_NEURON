@@ -29,58 +29,72 @@ node_dynamics
 
 load_file("insert_node_dynamics.hoc")
 
+objref stim
+
 //number_nodes - specified in Matlab
 
 create node[number_internodes + 1], myelin[number_internodes]
+
+	forsec "myelin" {
+		insert extracellular
+		
+		// print xc[0] 0
+		// print xg[0] 0 
+		// print xraxial[0] 1e9
+		// print xc[1]
+		// print xg[1]
+		// print xraxial[1]
+		
+		nseg = myelin_n_segs
+		diam = fiber_diameter
+		L    = myelin_length
+		
+		Ra   = myelin_axial_resistivity
+		//cm   = myelin_capacitance
+		
+		
+		cm = .005 // uF/cm2
+		
+		insert pas
+			e_pas = v_init
+			g_pas = 1.5e-6 // S/cm2
+			//g_pas = myelin_conductance
+		
+	}
+
+	forsec "node" {
+		insert extracellular
+		L    = node_length
+		diam = node_diameter
+		
+		Ra 	 = node_axial_resistivity
+		cm   = node_capacitance
+		
+		nseg = 1 //Leave hardcoded for now ...
+		insert_node_dynamics(node_dynamics)
+		
+	}
+	
+		// node[10]{					//Current clamp at center node - 21, 0 through 20
+		// stim=new IClamp()
+		// stim.loc(0.5)
+		// stim.del=0.1
+		// stim.dur=0.1
+		// stim.amp=15
+		// }
+		
+	//See also this on sections and their properties:
+	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/geometry.html#Section
+
+	
 	for i=0, number_internodes-1 {
 		connect myelin[i](0), node[i](1)
 		connect node[i+1](0), myelin[i](1)
 	}
 
-forsec "myelin" { nseg = myelin_n_segs }
-
-
-
-	forsec "node" {
-		L    = node_length
-		diam = node_diameter
-		nseg = 1 //Leave hardcoded for now ...
-	}
-	//See also this on sections and their properties:
-	//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/geometry.html#Section
-	
-	forsec "myelin" {
-		L    = myelin_length
-		diam = fiber_diameter
-	}
-
-//STILL MISSING - segment information nsegs -> 6 to 10?????, might need to be odd - yes, make odd!
-
-
-	forsec "myelin" {
-		insert pas
-		e_pas = v_init
-		g_pas = myelin_conductance
-		cm    = myelin_capacitance
-	}
-
-forsec "node"{
-insert_node_dynamics(node_dynamics)
-cm = node_capacitance
-}
-	
-	
-//TODO: Move this to a separate function
-//Jim will take care of this, eventually ...
-//objref node_list
-//node_list = new SectionList()
-
-//forsec "node" {
-//   node_list.append()
-//}
-
 
 //Do we need to change the defaults???? - I don't think so, leave for now
+/*
 forsec "myelin" { 
 	insert extracellular
 }
@@ -88,3 +102,7 @@ forsec "myelin" {
 forsec "node"   { 
 	insert extracellular
 }
+*/ 
+
+
+

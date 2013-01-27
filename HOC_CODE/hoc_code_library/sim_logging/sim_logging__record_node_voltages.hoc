@@ -1,4 +1,4 @@
-obfunc sim_logging__record_node_voltages(){ local cur_seg_index localobj node_vm_hist, tempRecVec, node_section_list
+obfunc sim_logging__record_node_voltages(){localobj node_vm_hist, tempRecVec, node_section_list
 /* sim_logging__record_node_voltages
 
 Given a list of sections, this function will create recording vectors 
@@ -24,17 +24,12 @@ node_vm_hist     - (Class List) - holds vectors of membrane potentials at each s
 
 */
 
-cur_seg_index = 0
 tempRecVec   		 = new Vector()
 node_vm_hist 		 = new List()
 node_section_list    = $o1
 
-node_section_list.printnames()
-
 forsec node_section_list {
 	for (x,0) {
-	cur_seg_index = cur_seg_index + 1
-		print cur_seg_index
 		tempRecVec = new Vector()
 		tempRecVec.record(&v(x))
 		node_vm_hist.append(tempRecVec)

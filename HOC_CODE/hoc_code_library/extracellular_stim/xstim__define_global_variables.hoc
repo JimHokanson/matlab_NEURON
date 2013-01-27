@@ -2,10 +2,6 @@
 
 //NOTE: We should make this an object ...
 
-//NOTE: This is a bit unfortunate since it makes encapsulation a bit more difficult
-//objref node[0] //Unfortunately we need this to allow xstim__create_node_sectionlist to be interpreted
-//See https://www.neuron.yale.edu/phpBB/viewtopic.php?f=8&t=2676
-//Specifically the fourth part
 
 //=================================================================
 //					OBJECT VARIABLES
@@ -69,16 +65,6 @@ xstim__t_vec    		= new Vector()
 //	xstim__setup_stim_playback.hoc
 //
 //	NEURON.simulation.extracellular_stim.init__create_stim_info
-
-//=================================================================
-//					NON-OBJECT VARIABLES
-//=================================================================
-
-xstim__playback_initialized = 0 
-//See xstim__setup_stim_playback
-
-xstim__cell_setup_changed_since_last_playback_initialization = 1
-//See xstim__setup_stim_playback
 
 
 

@@ -1,4 +1,4 @@
-proc xstim__create_node_sectionlist() {localobj xstim_node_list
+proc xstim__create_node_sectionlist() {local n_removed localobj xstim_node_list
 /*
 
 This method creates a section list of all nodes for analyzing the membrane potential
@@ -18,11 +18,9 @@ xstim__node_sectionlist : See xstim__define_global_variables.hoc
 
 xstim_node_list = $o1
 
-{xstim_node_list.remove(xstim_node_list)}
+{n_removed = xstim_node_list.remove(xstim_node_list)}
 
 //http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/secspec.html#forsec
 forsec "node" xstim_node_list.append
-
-//xstim_node_list.printnames()
 
 }

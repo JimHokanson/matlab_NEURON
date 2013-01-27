@@ -4,6 +4,7 @@
 create node[axonnodes], MYSA[paranodes1], FLUT[paranodes2], STIN[axoninter]
 access node[0]
 
+
 proc MRG__init_axon() {
 	for i=0,axonnodes-1 {
 		node[i]{
