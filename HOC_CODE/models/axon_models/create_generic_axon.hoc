@@ -25,6 +25,9 @@ fiber_diameter
 myelin_conductance
 myelin_capacitance
 node_dynamics
+node_axial_resistivity
+myelin_axial_resistivity
+v_init
 */
 
 load_file("insert_node_dynamics.hoc")

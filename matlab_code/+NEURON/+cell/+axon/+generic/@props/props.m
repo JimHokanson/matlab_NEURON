@@ -37,8 +37,8 @@ classdef props < handle_light
         node_axial_resistivity = 110 % Ra (ohm-cm) - Stampfli, year?
         node_capacitance = 2% cm (uF/cm2)
         
-        % Myelin props]
-        myelin_n_segs = 9 %9
+        % Myelin props
+        myelin_n_segs = 9
         %myelin_n_segs = 10 %Default value, could change this via settings
         %for the different implementations in different papers
         %This will be important for determining spatial info
@@ -55,10 +55,12 @@ classdef props < handle_light
         
         node_membrane_dynamics = 'fh' %string hh, fh, etc
 
-        
         %FIBER DIAMETER DEPENDENT PROPERTIES
         myelin_length % (um)
         node_diameter % (um) aka axon diameter, usually some fraction of fiber diameter
+        
+        % Electrical props
+        v_init = -70; % mV
     end
     
     methods
