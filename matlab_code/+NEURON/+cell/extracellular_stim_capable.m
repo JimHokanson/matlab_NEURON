@@ -170,6 +170,7 @@ classdef extracellular_stim_capable < handle
             if obj.opt__use_local_node_sectionlist_code
                 %This command defines the function ...
                 %NOTE: It is assumed that the current directory is the model directory ...
+                
                 cmd_obj.load_file('create_node_sectionlist.hoc');
                 %This command executes the function ...
                 cmd_obj.run_command('create_node_sectionlist(xstim__node_sectionlist)');
@@ -244,7 +245,9 @@ classdef extracellular_stim_capable < handle
             NEURON.lib.sim_logging.record_membrane_voltages(...
                 cmd_obj,'xstim__node_sectionlist','xstim__node_vm_hist')
             
-            cmd_obj.run_command('xstim__cell_setup_changed_since_last_playback_initialization = 1');
+            %Not needed right now, default to recreating, might reoptimize
+            %later
+            %cmd_obj.run_command('xstim__cell_setup_changed_since_last_playback_initialization = 1');
             
         end
         

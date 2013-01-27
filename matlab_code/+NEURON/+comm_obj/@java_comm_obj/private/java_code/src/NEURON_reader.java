@@ -17,7 +17,7 @@ public class NEURON_reader {
 	public static final Pattern pattern = Pattern.compile("\n(oc>)*");
 
 	//??? Use StringBuilder????
-	int max_bytes = 4000;
+	int max_bytes = 10000;
 	StringBuffer input_data = new StringBuffer(max_bytes);
 	StringBuffer error_data = new StringBuffer(max_bytes);
 	

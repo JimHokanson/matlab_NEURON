@@ -25,6 +25,11 @@ classdef NEURON < handle_light
     %   ===================================================================
     %   NEURON.simualtion.extracellular_stim
     %
+    %
+    %   IMPROVEMENTS
+    %   ===================================================================
+    %
+    %
     %   METHODS IN OTHER FILES
     %   ===================================================================
     %   - NEURON.compile
@@ -37,26 +42,30 @@ classdef NEURON < handle_light
     %================================================================================
     properties
         path_obj    %Class: NEURON.paths
-    end
-    
-    properties
+
         comm_obj    %Class: Implementation of NEURON.comm_obj
-                    %Known implementations:
-                    %   NEURON.comm_obj.java_comm_obj
-                    %   NEURON.comm_obj.windows_comm_obj
+        %   Known implementations:
+        %       NEURON.comm_obj.java_comm_obj
+        %       NEURON.comm_obj.windows_comm_obj (.NET implementation)
+        
+        command_log_obj     %Class: NEURON.command_log
     end
-    
+     
     %OPTIONS   %==========================================
     properties
-        opt__throw_error_default = true;
+        opt__throw_error         = true;
         opt__interactive_mode    = false; %If true, this tries to setup the
-                                   %NEURON writing process so that it is
-                                   %like typing into NEURON
+        %NEURON writing process so that it is like typing into NEURON.
+        %The results are printed directly to the command window instead of
+        %being assigned to a temporary variabe
+        opt__log_commands        = false; %If true commands will be logged
+        %to the log_obj
     end
     
     %FOR DEBUGGING  %====================================
     properties
-        debug        = false   %If true spits back everything from NEURON
+        debug        = false   %If true all commandss sent to NEURON and responses 
+        %back will be displayed in the command window
         last_cmd_str = ''      %Set during NEURON.write in case there is an error
     end
     
@@ -65,16 +74,26 @@ classdef NEURON < handle_light
         function obj = NEURON(varargin)
             %NEURON
             %
-            %   See class description above -> help NEURON
+            %   OPTIONAL INPUTS
+            %   ====================================================
+            %   win_use_java : (default true), if false the old .NET
+            %                  communication object will be used
+            %   debug        : (default, obj.debug, false)
+            %   log_commands : (default, obj.opt__log_commands, false)
+            %   
             
             in.win_use_java = true;
             in.debug        = obj.debug;
+            in.log_commands = obj.opt__log_commands;
             in = processVarargin(in,varargin);
             
-            obj.debug    = in.debug;
-            obj.path_obj = NEURON.paths;
+            obj.debug             = in.debug;
+            obj.path_obj          = NEURON.paths;
+            obj.opt__log_commands = in.log_commands; 
+            obj.command_log_obj   = NEURON.command_log;
             
             %Load communication object based on system type
+            %----------------------------------------------------------------------
             if ispc
                 if in.win_use_java
                     obj.comm_obj = NEURON.comm_obj.java_comm_obj(obj.path_obj);
@@ -90,15 +109,29 @@ classdef NEURON < handle_light
             %
             %   [success,results] = NEURON.write(str)
             %
+            %   This method is THE gateway method for communicating with
+            %   NEURON. This method calls the communication object to send
+            %   a message to NEURON and to get the response.
+            %
+            %   One can instantiate this class directly and use this method
+            %   to communicate directly with NEURON. Normally simulation
+            %   classes should interface through a command 
+            %
+            %   OPTIONAL INPUTS
+            %   ===========================================================
+            %   throw_error : TODO: Finish this 
+            %   max_wait    :
+            %   debug       : 
+            %   
             %   OUTPUTS
-            %   ================================================
+            %   ===========================================================
             %   success : Whether or not the NEURON program threw an error.
             %   results : stdout of NEURON from running command
             %
             %   See Also:
             %       NEURON.cmd      %Main access point for calling this function
             
-            in.throw_error = obj.opt__throw_error_default;
+            in.throw_error = obj.opt__throw_error;
             in.max_wait    = -1;
             in.debug       = obj.debug;
             in = processVarargin(in,varargin);
@@ -111,16 +144,27 @@ classdef NEURON < handle_light
             
             [success,result_str] = write(obj.comm_obj,command_str,in);
             
+            if obj.opt__log_commands
+               obj.command_log_obj.addCommand(command_str,result_str,success);
+            end
+            
             %Error Handling and Interactive Display Handling
             %--------------------------------------------------------------
             if ~success && in.throw_error
+                %Let user know what caused the error
                 fprintf(2,'LAST COMMAND:\n%s\n',command_str);
                 if obj.opt__interactive_mode
+                    %If we're in interactive mode don't bring 
+                    %the error into here, just display it in the command
+                    %window
                     fprintf(2,'%s\n',result_str);
                 else
+                    %This could be throw as caller but that is pretty 
+                    %much a useless Matlab function anyway
                     error('ERROR FROM NEURON:\n%s',result_str)
                 end
             elseif obj.opt__interactive_mode && ~isempty(result_str)
+                %When in interactive mode and no error is present
                 fprintf('%s\n',result_str);
             end
             
@@ -128,8 +172,8 @@ classdef NEURON < handle_light
             %where the command line color will indicate success or failure.
             %We don't also need the success flag to show up
             if nargout
-               varargout{1} = success;
-               varargout{2} = result_str;
+                varargout{1} = success;
+                varargout{2} = result_str;
             end
         end
     end
@@ -144,18 +188,18 @@ classdef NEURON < handle_light
     %STATIC METHODS   ==============================================
     methods (Static)
         function init_system
-        %init_system
-        %
-        %   Should be called on startup to initialize system, at least for
-        %   Windows ...
-
+            %init_system
+            %
+            %   Should be called on startup to initialize system, at least for
+            %   Windows ...
+            
             NEURON.comm_obj.java_comm_obj.init_system_setup;
             
             if ispc
                 user32.init();
                 NET.addAssembly('System');
                 NEURON.comm_obj.windows_comm_obj.init_system_setup;
-            end 
+            end
         end
         function file_path = createNeuronPath(file_path)
             %NEURON_createNeuronPath
@@ -165,7 +209,7 @@ classdef NEURON < handle_light
             %   NOTE: This function should provide a path that is safe for
             %   passing into Neuron. This basically involves creating a
             %   cygwin path for windows.
-
+            
             if ispc
                 file_path = getCygwinPath(file_path);
             end

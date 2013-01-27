@@ -85,22 +85,21 @@ classdef simulation < handle_light
             
             in.launch_NEURON_process = obj.opt__launch_NEURON_process_during_initialization;
             in.debug                 = false;
+            in.log_commands          = false;
             in = processVarargin(in,varargin);
             
             obj.sim_hash    = ['p' num2str(feature('GetPid'),'%d') '_'];
                                     
             %TODO: Make this a method
             if in.launch_NEURON_process
-                obj.n_obj       = NEURON('debug',in.debug);
+                obj.n_obj       = NEURON('debug',in.debug,'log_commands',in.log_commands);
                 obj.cmd_obj     = NEURON.cmd(obj.n_obj);
                 
                 initNEURON(obj);
                 
+                %TODO: Build in non-sim running support
                 obj.props_obj = NEURON.simulation.props(obj);
             end
-            
-            %TODO: Build in non-sim running support
-            
         end
     end
     

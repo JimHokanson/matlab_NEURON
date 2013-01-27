@@ -81,6 +81,7 @@ classdef extracellular_stim < NEURON.simulation
             
             in.launch_NEURON_process = true;
             in.debug                 = false;
+            in.log_commands          = false;
             in = processVarargin(in,varargin);
             
             obj@NEURON.simulation(in);

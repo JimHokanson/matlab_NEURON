@@ -31,6 +31,7 @@ function obj = create_standard_sim(varargin)
 %----------------------------------------------
 in.launch_neuron_process = true;
 in.debug                 = false;
+in.log_commands          = false;
 in.celsius               = 37;
 
 %Tissue properties:
@@ -53,7 +54,9 @@ in = processVarargin(in,varargin);
 
 %--------------------------------------------------------------
 obj = NEURON.simulation.extracellular_stim(...
-    'launch_NEURON_process',in.launch_neuron_process,'debug',in.debug);
+    'launch_NEURON_process',    in.launch_neuron_process,...
+    'debug',                    in.debug,...
+    'log_commands',             in.log_commands);
 
 % if celsius is changed, must be changed in both the sim obj and in NEURON
 if obj.props_obj.celsius ~= in.celsius
