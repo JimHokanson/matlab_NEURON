@@ -25,16 +25,10 @@ node_dynamics = $1
 // for lookup table, see constant property MEMBRANE_DYNAMICS_OPTIONS in NEURON.cell.axon.generic.props, indexing starts at 1
 //1 = FH, 2 = HH
 // the keyword after insert corresponds to the SUFFIX of the mod file
-print "Node Dynamics: ", node_dynamics
 if (node_dynamics == 1) {
-	print "fh"
-	insert fh
+	insert hh2
 } else if (node_dynamics == 2){
-	print "hh"
-	insert hh
-} else if (node_dynamics == 3){
-	print "crrss"
-	insert crrss
+	insert fh
 }	
 
 

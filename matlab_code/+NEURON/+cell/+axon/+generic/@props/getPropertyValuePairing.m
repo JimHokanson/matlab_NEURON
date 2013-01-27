@@ -39,7 +39,9 @@ p_v = {...
     'fiber_diameter'                p.fiber_diameter
     'myelin_conductance'            p.myelin_conductance
     'myelin_capacitance'            p.myelin_capacitance
-    'node_dynamics'                 p.node_dynamics};
+    'node_dynamics'                 p.node_dynamics
+    'myelin_axial_resistivity'      p.myelin_axial_resistivity
+    'node_axial_resistivity'        p.node_axial_resistivity};
 
 
 if value_array_only

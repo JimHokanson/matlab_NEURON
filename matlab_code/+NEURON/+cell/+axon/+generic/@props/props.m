@@ -18,6 +18,7 @@ classdef props < handle_light
     properties (Hidden)
         parent %Class: NEURON.cell.axon.generic
         spatial_obj %Class: NEURON.cell.axon.generic.spatial_info
+        node_dynamics
     end
     
     properties
@@ -37,7 +38,7 @@ classdef props < handle_light
         node_capacitance = 2% cm (uF/cm2)
         
         % Myelin props]
-        myelin_n_segs = 9
+        myelin_n_segs = 9 %9
         %myelin_n_segs = 10 %Default value, could change this via settings
         %for the different implementations in different papers
         %This will be important for determining spatial info
@@ -52,14 +53,8 @@ classdef props < handle_light
         % fiber props
         fiber_diameter % (um)
         
-        node_membrane_dynamics = 'fh' %string ????, hh, fh, etc
-        node_dynamics % an integer representing the above
-        % implement a way to convert string to a number that can be sent to
-        % NEURON? integer will be variable membrane_dynamics. Do this in
-        % populateDependentVariables?
-        % NOTE: in addition to being easier for the user to change, the
-        % string can be used to load the correct dll file in
-        % createCellInNEURON
+        node_membrane_dynamics = 'fh' %string hh, fh, etc
+
         
         %FIBER DIAMETER DEPENDENT PROPERTIES
         myelin_length % (um)
@@ -104,9 +99,7 @@ classdef props < handle_light
                 case 'McNeal_1976'
                     set_McNeal_1976(obj)
                 case 'Rattay_1987'
-                    set_Rattay_1987(obj,1)
-                case 'Rattay_1987_unmyelinated'
-                    set_Rattay_1987(obj,0)
+                    set_Rattay_1987(obj)
                 otherwise
                     error('Option not yet implemented')
             end
@@ -123,7 +116,7 @@ classdef props < handle_light
         %L/D 100
         
         %end
-        function set_Rattay_1987(obj,myelin)
+        function set_Rattay_1987(obj)
             %Rattay Fig 6
             %------------------------------
             %
@@ -170,21 +163,9 @@ classdef props < handle_light
             obj.myelin_axial_resistivity = obj.node_axial_resistivity;
             obj.myelin_conductance = 0;
             obj.myelin_capacitance = 0;
-           
-            if myelin
+
             obj.myelin_length = 1000;
-            
-            else
-                obj.myelin_length = 0;
-                obj.myelin_n_segs = 0;
-                % making this up...
-                obj.node_length = 10;
-                obj.number_internodes = 5000;
-                obj.node_membrane_dynamics = 'hh';
-                
-                
-            end
-            
+   
         end
         
         function set_McNeal_1976(obj)
