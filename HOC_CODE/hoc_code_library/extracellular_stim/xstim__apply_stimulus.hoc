@@ -9,12 +9,12 @@ NOTE: Prior to this the following must occur:
 1) Define a cell model
 2) Create a stimulus section list : 
 	    - xstim__create_stim_sectionlist or create_stim_sectionlist (local)
-		- see NEURON.simulation.extracellular_stim.event_manager
 3) Load stim data : 
 		- xstim__load_data
 4) Initialize Playback : 
 		- xstim__setup_stim_playback
-
+		- this assigns playback vectors for each section
+		
 GLOBALS 
 ------------------------------------------------------------------
 xstim__all_sectionlist  : see xstim__create_all_sectionlist in xstim__setup_stim_playback
@@ -23,60 +23,37 @@ xstim__t_vec 			:
 
 INPUTS
 --------------------------------------------------------------------
-stim_scale
+stim_scale : This is a multiplier that scales the input applied voltage
+			  by this specfied value.
 
  
 */
 
-print "Running xstim_apply_stimulus"
-
 //Initialization --------------------------------------
-cur_stim_index = 0
-cur_sec_index  = 0
-cur_seg_index  = 0
+cur_stim_index = 0 	//Indexes into stimulation matrix, includes space & time
+cur_sec_index  = 0	//Debugging variable, not currently used
+cur_seg_index  = 0  //
 n_stim_changes = xstim__t_vec.size
 stim_scale     = $1
 s = new Vector()
 
-print "N Stim Changes" n_stim_changes
-
-//TODO - should check that xstim__setup_stim_playback length == xstim__all_sectionlist length ~= 0
-
-//xstim__apply_stimulus_timer = startsw()
-
-//n = 0
-
-/*
-forsec xstim__all_sectionlist {
-	cur_sec_index = cur_sec_index + 1
-	print "Section " cur_sec_index
-	for (x,0) {
-		cur_seg_index = cur_seg_index + 1
-		print cur_seg_index
-	}
-}
-*/
-
 forsec xstim__all_sectionlist {
 	for (x,0) {
-		s = xstim__stim_vector_list.o(cur_sec_index)
+		s = xstim__stim_vector_list.o(cur_seg_index)
 		for (i = 0; i < n_stim_changes; i=i+1) {
-			//n = n + 1
+			//NOTE: xstim__v_ext_in is a global variable
 			s.x[i] = xstim__v_ext_in.x[cur_stim_index]*stim_scale
-			//if(i == 1){
-			//	print s.x[i]
-			//}
 			cur_stim_index  = cur_stim_index + 1
+			
+			//Debugging lines
+			// if(i == 1){
+				// print s.x[i]
+			// }
 			//print cur_stim_index
 		}
+		cur_seg_index = cur_seg_index + 1
 	}
-	//print n
-	//print cur_sec_index
-	cur_sec_index = cur_sec_index + 1
 }
-
-//print "xstim__apply_stimulus_timer"
-//print startsw() - xstim__apply_stimulus_timer
 
 
 }
