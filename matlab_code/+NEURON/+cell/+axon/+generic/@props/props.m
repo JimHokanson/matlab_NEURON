@@ -18,6 +18,7 @@ classdef props < handle_light
     properties (Hidden)
         parent %Class: NEURON.cell.axon.generic
         spatial_obj %Class: NEURON.cell.axon.generic.spatial_info
+        node_dynamics
     end
     
     properties
@@ -37,7 +38,7 @@ classdef props < handle_light
         node_capacitance = 2% cm (uF/cm2)
         
         % Myelin props]
-        myelin_n_segs = 9
+        myelin_n_segs = 9 %9
         %myelin_n_segs = 10 %Default value, could change this via settings
         %for the different implementations in different papers
         %This will be important for determining spatial info
@@ -52,14 +53,8 @@ classdef props < handle_light
         % fiber props
         fiber_diameter % (um)
         
-        node_membrane_dynamics = 'fh' %string ????, hh, fh, etc
-        node_dynamics % an integer representing the above
-        % implement a way to convert string to a number that can be sent to
-        % NEURON? integer will be variable membrane_dynamics. Do this in
-        % populateDependentVariables?
-        % NOTE: in addition to being easier for the user to change, the
-        % string can be used to load the correct dll file in
-        % createCellInNEURON
+        node_membrane_dynamics = 'fh' %string hh, fh, etc
+
         
         %FIBER DIAMETER DEPENDENT PROPERTIES
         myelin_length % (um)

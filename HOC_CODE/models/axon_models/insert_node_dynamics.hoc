@@ -26,9 +26,9 @@ node_dynamics = $1
 //1 = FH, 2 = HH
 // the keyword after insert corresponds to the SUFFIX of the mod file
 if (node_dynamics == 1) {
-	insert fh
-} else if (node_dynamics == 2){
 	insert hh2
+} else if (node_dynamics == 2){
+	insert fh
 }	
 
 

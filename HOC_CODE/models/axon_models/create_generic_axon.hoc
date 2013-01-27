@@ -40,7 +40,8 @@ create node[number_internodes + 1], myelin[number_internodes]
 
 	forsec "node" {
 	insert_node_dynamics(node_dynamics)
-cm = node_capacitance
+        cm   = node_capacitance
+        Ra   = node_axial_resistivity
 		L    = node_length
 		diam = node_diameter
 		nseg = 1 //Leave hardcoded for now ...
@@ -53,9 +54,10 @@ cm = node_capacitance
 		e_pas = v_init
 		g_pas = myelin_conductance
 		cm    = myelin_capacitance
-		nseg = myelin_n_segs 
-		L    = myelin_length
-		diam = fiber_diameter
+		Ra    = myelin_axial_resistivity
+		nseg  = myelin_n_segs 
+		L     = myelin_length
+		diam  = fiber_diameter
 	}
 
 	
