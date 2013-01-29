@@ -17,7 +17,8 @@ classdef Rattay_1987
     end
     
     methods(Static)
-       reproduceRattay(varargin)
+       resultObj = reproduceRattay(varargin)
+       ratios = stimRatios(resultObj)
     end
     
 end
