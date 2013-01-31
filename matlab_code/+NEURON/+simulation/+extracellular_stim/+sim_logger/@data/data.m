@@ -45,7 +45,8 @@ classdef data < handle_light
         
         %.setNewAppliedStimulus()
         n_points_per_cell       = [] %This currently indicates how many
-        %nodes are present 
+        %nodes are present, empty is used to indicate that it hasn't been
+        %initialized
     end
     
     properties

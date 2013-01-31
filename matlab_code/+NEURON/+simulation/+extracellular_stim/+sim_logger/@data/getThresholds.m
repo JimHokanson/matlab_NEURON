@@ -141,9 +141,9 @@ for iGroup = 1:n_groups
         %NEURON.simulation.extracellular_stim.sim__determine_threshold
         %NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
         %NEURON.simulation.extracellular_stim.results.threshold_testing_history
-        result_obj = xstim_obj.sim__determine_threshold(predicted_thresholds(iIndex));
+        result_obj = xstim_obj.sim__determine_threshold(threshold_sign*predicted_thresholds(iIndex));
         
-        thresholds_local(iIndex) = result_obj.stimulus_threshold;
+        thresholds_local(iIndex) = threshold_sign*result_obj.stimulus_threshold;
         
         if isnan(thresholds_local(iIndex))
             error('Something went wrong, NaN encountered')
@@ -179,7 +179,7 @@ for iGroup = 1:n_groups
         cur_sim_index,n_sims_total,time_run_single_group/n_indices,avg_error);
     
 end
-toc
+toc(t_start_all)
 
 thresholds = helper__cleanupThresholds(thresholds,m_obj,threshold_sign);
 

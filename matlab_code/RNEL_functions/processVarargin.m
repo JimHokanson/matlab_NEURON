@@ -36,7 +36,19 @@ function [in,extras] = processVarargin(in,v,varargin)
 %   Similar functions:
 %   http://www.mathworks.com/matlabcentral/fileexchange/22671
 %   http://www.mathworks.com/matlabcentral/fileexchange/10670
-
+%
+%   IMPROVEMENTS
+%   ===============================================================
+%   1) For non-matched inputs, provide link to offending caller
+%   2) Allow notation which only applies values to matching class
+%           - what about subclasses or type? - provide different notation
+%           - something like:
+%                 - for function name matching
+%                 ...,'@function_name',{'prop_a',1,'prop_b',2},'prop_local',true
+%                 - for class matching
+%                 ...,'#'
+%                 Importantly these would not throw an error and if found
+%                 would run extra code to determine evaluation ...
 
 c.case_sensitive    = false;
 c.allow_duplicates  = false;

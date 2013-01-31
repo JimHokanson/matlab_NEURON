@@ -1,6 +1,27 @@
 // create_generic_unmyelinated_axon
 
-// programmed to work with generic (myelinated) class, by ignoring myelin parameters
-// SEE: create_generic_axon.hoc
+/* VARIABLES
+axon_dynamics (an integer, equivalent to node_dynamics in generic_axon)
+axon_capacitance
+axial_resistivity
+axon_length
+axon_diameter
+n_segs
+*/
 
+load_file("insert_node_dynamics.hoc")
 
+create axon
+
+forsec "axon" {
+	insert_node_dynamics(axon_dynamics)
+	cm = axon_capacitance
+	Ra = axial_resistivity
+	L = axon_length
+	diam = axon_diameter
+	nseg = n_segs
+}
+
+forsec "axon" {
+	insert extracellular
+}
