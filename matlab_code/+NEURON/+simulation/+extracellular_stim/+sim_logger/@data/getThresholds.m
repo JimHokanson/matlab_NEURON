@@ -179,7 +179,7 @@ for iGroup = 1:n_groups
         cur_sim_index,n_sims_total,time_run_single_group/n_indices,avg_error);
     
 end
-toc
+toc(t_start_all)
 
 thresholds = helper__cleanupThresholds(thresholds,m_obj,threshold_sign);
 

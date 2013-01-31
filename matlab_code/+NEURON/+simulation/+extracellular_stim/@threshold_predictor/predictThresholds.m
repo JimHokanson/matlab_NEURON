@@ -86,7 +86,7 @@ unknown_inputs = obj.low_d_new_stimuli(new_indices_predict,:);
 n_known = size(known_inputs,1);
 if n_known < 5000
     
-    predicted_thresholds = griddatan(known_inputs(I,:),known_thresholds(I)',unknown_inputs);
+    predicted_thresholds = griddatan(known_inputs,known_thresholds(:),unknown_inputs);
     
     I_NaN = find(isnan(predicted_thresholds));
     
@@ -98,7 +98,7 @@ if n_known < 5000
         
         %YIKES: This could lead to duplicates as there are
         
-        fitresult = fit(known_inputs(I,1:2), known_thresholds(I)', ft,opts);
+        fitresult = fit(known_inputs(:,1:2), known_thresholds(:), ft,opts);
         predicted_thresholds(I_NaN) = feval(fitresult,unknown_inputs(I_NaN,1:2));
         
         I_NaN = find(isnan(predicted_thresholds));

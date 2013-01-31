@@ -1,5 +1,5 @@
-function ratios = stimRatios(resultObj)
-firedPts = resultObj.firedPts; % nAPs x 2 (stim amp, distance) (mA,mm)
+function stimRatios(obj)
+firedPts = obj.fig5MyelinatedResult.firedPts; % nAPs x 2 (stim amp, distance) (mA,mm)
 
 minDist = 0.01;
 maxDist = 5;
@@ -57,5 +57,7 @@ figure
 plot(ratios(:,1),ratios(:,2),'o')
 xlabel('Electrode Distance (mm)')
 ylabel('Stim Amp Ratio (-Stim/+Stim)')
+
+obj.myelinatedStimRatios = ratios;
 
 end
