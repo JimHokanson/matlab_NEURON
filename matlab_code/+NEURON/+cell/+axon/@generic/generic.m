@@ -94,7 +94,7 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
             % class)
             % Implement a way to change these values according to paper? or
             % props? atleast for v_rest?
-            in.v_rest               = -80;
+            in.v_rest               = -70;
             in.v_rough_threshold    = -50;
             in.v_ap_threshold       = 0;
             in = processVarargin(in,varargin);

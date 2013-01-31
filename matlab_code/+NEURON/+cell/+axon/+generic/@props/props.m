@@ -35,10 +35,10 @@ classdef props < handle_light
         
         node_length = 1% (um)
         node_axial_resistivity = 110 % Ra (ohm-cm) - Stampfli, year?
-        node_capacitance = 2% cm (uF/cm2)
+        node_capacitance = 1% cm (uF/cm2)
         
-        % Myelin props]
-        myelin_n_segs = 9 %9
+        % Myelin props
+        myelin_n_segs = 9
         %myelin_n_segs = 10 %Default value, could change this via settings
         %for the different implementations in different papers
         %This will be important for determining spatial info
@@ -55,10 +55,12 @@ classdef props < handle_light
         
         node_membrane_dynamics = 'fh' %string hh, fh, etc
 
-        
         %FIBER DIAMETER DEPENDENT PROPERTIES
         myelin_length % (um)
         node_diameter % (um) aka axon diameter, usually some fraction of fiber diameter
+        
+        % Electrical props
+        v_init = -70; % mV
     end
     
     methods
@@ -117,31 +119,6 @@ classdef props < handle_light
         
         %end
         function set_Rattay_1987(obj)
-            %Rattay Fig 6
-            %------------------------------
-            %
-            %fiber diameter - 2.4 um
-            %                 (also 9.6 for bracket results)
-            %
-            %node length - ? 1 um (not specified, using default)
-            %node_axial_resistivity - 100
-            %node capacitance? 1 uF/cm2 is more typical, changing to that
-            %
-            %myelin_conductance - 0 (default)
-            %myelin_capacitance - 0 (default)
-            %myelin_axial_resistvity - 100
-            %
-            %node dynamics - fh
-            %
-            %node diameter - 2.4 (their fiber diameter is axon diameter ...)
-            %              also 9.6 (brackets)
-            %
-            %
-            %NOTE: This isn't that realistic but it wasn't all that critical
-            %for their results ...
-            %myelin_length - 1 mm (1000 um) - see pg 344 (delta x reference)
-            %                    see also figure 6 caption
-            %
             %
             %SIM PROPS
             %temp = 27
@@ -152,10 +129,10 @@ classdef props < handle_light
             %STIM PROPS
             %stim pulse - 0.1 ms long, cathodal (negative), monophasic
             
-            obj.fiber_diameter = 2.4; % also used 9.6
+            obj.fiber_diameter = 2.4; % 2.4 um, also used 9.6 um
             
-            obj.node_axial_resistivity = 100;
-            obj.node_capacitance = 1;
+            obj.node_axial_resistivity = 100; % 100
+            obj.node_capacitance = 1; % 1 uF/cm^2
             obj.node_diameter = obj.fiber_diameter;
             % node length, use default
             obj.node_membrane_dynamics = 'fh'; % calls populateDependentVariables, currently this only sets property node_dynamics (an integer interpreted by hoc code)
@@ -164,7 +141,10 @@ classdef props < handle_light
             obj.myelin_conductance = 0;
             obj.myelin_capacitance = 0;
 
-            obj.myelin_length = 1000;
+            %NOTE: This isn't that realistic but it wasn't all that critical
+            %for their results ...
+            obj.myelin_length = 1000; % 1 mm - see pg 344 (delta x reference)
+            %                           see also figure 6 caption
    
         end
         
