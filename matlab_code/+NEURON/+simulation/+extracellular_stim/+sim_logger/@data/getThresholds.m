@@ -1,5 +1,7 @@
 function thresholds = getThresholds(obj,cell_locations,threshold_sign)
-%
+%getThresholds
+%s
+%   thresholds = getThresholds(obj,cell_locations,threshold_sign)
 %
 %   INPUTS
 %   =======================================================================
@@ -10,7 +12,7 @@ function thresholds = getThresholds(obj,cell_locations,threshold_sign)
 %
 %   Threshold Sign Handling
 %   -----------------------------------------------------------------------
-%   If the threshols sign is negative, the applied stimuli are multiplied
+%   If the threshold sign is negative, the applied stimuli are multiplied
 %   by -1 so as to find a positive threshold. This is of course equivalent
 %   to a negative threshold with the originally applied stimuli, before
 %   multiplying by -1. Before returning thresholds from this function the
@@ -58,7 +60,7 @@ obj.predictor_obj = NEURON.simulation.extracellular_stim.threshold_predictor(...
     obj.new_cell_locations,...
     obj.threshold_values);
 
-%Step 2 - Find Previous matches & redundant old stimuli ...
+%Step 3 - Find Previous matches & redundant old stimuli ...
 %--------------------------------------------------------------------------
 %NEURON.simulation.extracellular_stim.threshold_predictor.getStimuliMatches
 obj.matching_stim_obj = obj.predictor_obj.getStimuliMatches();
@@ -78,17 +80,23 @@ new_stim_indices__get_threshold = m_obj.new_source_indices_to_learn;
 thresholds(m_obj.old_index_for_redundant_new_source__mask) = ...
     obj.threshold_values(m_obj.old_index_for_redundant_new_source__redundant_only);
 
+%--------------------------------------------------------------------------
+%                       POSSIBLE EARLY RETURN
+%--------------------------------------------------------------------------
 if isempty(new_stim_indices__get_threshold)
     thresholds = helper__cleanupThresholds(thresholds,m_obj,threshold_sign);
     return
 end
 
-%Step 3 - Find unmatched stimuli & create reasonable running groups
+fprintf('Adding additional entries: %d old, %d to run\n',...
+    length(old_stim_indices_use),length(new_stim_indices__get_threshold));
+
+%Step 4 - Find unmatched stimuli & create reasonable running groups
 %--------------------------------------------------------------------------
 %TODO: This approach should be mexed
 groups_of_indices_to_run = obj.predictor_obj.getGroups(old_stim_indices_use,new_stim_indices__get_threshold);
 
-%Step 4 - Get thresholds for remaining data
+%Step 5 - Get thresholds for remaining data
 %--------------------------------------------------------------------------
 xstim_obj     = obj.xstim_obj;
 cell_obj      = xstim_obj.cell_obj;
