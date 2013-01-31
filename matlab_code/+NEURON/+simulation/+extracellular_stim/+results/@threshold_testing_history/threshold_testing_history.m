@@ -45,6 +45,11 @@ classdef threshold_testing_history < handle_light
            obj.threshold_info = threshold_info;
            
         end
+        function plot(obj)
+            
+           mesh(obj.last_threshold_vm)
+           title(sprintf('Stimulus Threshold: %0.2f',obj.stimulus_threshold))
+        end
         function logResult(obj,tested_value,ap_fired,max_vm,vm)
            n_local = obj.n_loops + 1;
            

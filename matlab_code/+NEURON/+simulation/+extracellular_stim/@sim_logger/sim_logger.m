@@ -1,17 +1,24 @@
 classdef sim_logger < handle_light
     %
-    %   NEURON.simulation.extracellular_stim.sim_logger
-    %
+    %   Class:
+    %       NEURON.simulation.extracellular_stim.sim_logger
     %
     %   IMPROVEMENTS
     %   ===================================================================
     %   1) Create backup system  - take structure and send to zip
     %   2) Create merging system - allow combining of data from multiple computers 
-    
+    %
     %   LONG TERM
     %   ===================================================================
     %   We could eventually log other types of simualations as well. This
     %   class would need to move up the package hierarchery ...
+    %
+    %   See Also:
+    %       NEURON.simulation.extracellular_stim.sim_logger.cell_log_data
+    %       NEURON.simulation.extracellular_stim.sim_logger.data
+    %       NEURON.simulation.extracellular_stim.sim_logger.matcher
+    %       NEURON.simulation.extracellular_stim.sim_logger.pathing
+    %       NEURON.simulation.extracellular_stim.sim_logger.stimulus_setup
 
     
     properties
@@ -48,9 +55,10 @@ classdef sim_logger < handle_light
         function initializeLogging(obj,xstim_obj)
            %initializeLogging
            %
-           %    This method can be used to 
-           %
            %    initializeLogging(obj,xstim_obj)
+           %
+           %    This method can be used to initialize logging given a
+           %    particular extracellular stimulation object.
            %
            %    INPUTS
            %    ===========================================================
@@ -112,19 +120,24 @@ classdef sim_logger < handle_light
     
     methods
         function thresholds = getThresholds(obj,cell_locations,threshold_sign)
+           %getThresholds
+           %
+           %    thresholds = getThresholds(obj,cell_locations,threshold_sign)
+           %
+           %    
            %
            %    INPUTS
            %    ===========================================================
            %    cell_locations : see .data.getThresholds
-           %    threshold_sign
-           %
+           %    threshold_sign : Either -1 or +1. See threshold sign
+           %            in the private documentation folder of ????
            %
            %    See Also:
            %        NEURON.simulation.extracellular_stim.sim_logger.data.getThresholds
             
             
            if obj.current_simulation_number == 0
-               error('Simulation must currently be first initiated via initializeLogging')
+               error('Simulation must currently be first initiated via .initializeLogging()')
            end
             
            thresholds = obj.simulation_data_obj.getThresholds(cell_locations,threshold_sign);

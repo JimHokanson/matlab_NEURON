@@ -82,7 +82,9 @@ classdef threshold_analysis < handle_light
             %
             
             result_obj = NEURON.simulation.extracellular_stim.results.single_sim;
-
+            result_obj.tested_scale = scale;
+            result_obj.xstim_obj    = obj.parent;
+            
             %Running the simulation
             str = sprintf('{xstim__run_stimulation2(%0g)}',scale);
             [result_obj.success,result_str] = obj.cmd_obj.run_command(str,'throw_error',false);

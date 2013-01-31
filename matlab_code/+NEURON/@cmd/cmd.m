@@ -17,8 +17,15 @@ classdef cmd
         VAR_REGEXP_SPEC = '#var#%s#(.*?)#'
     end
     
+    %Constructor  ----------------------------------------------
     methods (Hidden)
         function obj = cmd(comm_obj)
+            %cmd
+            %
+            %  Normally this is called by NEURON (maybe by the sim
+            %  classes?) In general I wanted someone to only see the
+            %  relevant methods on tab complete so I hid the constructor.
+            
             obj.comm_obj = comm_obj;
         end
     end
@@ -33,12 +40,20 @@ classdef cmd
            %    Generic method to run command
            %
            %    INPUTS
-           %    =================================================
+           %    ===========================================================
            %    str : command to run
+           %
+           %    OUPUTS
+           %    ===========================================================
+           %    flag    : indicates success (true) or not (false)
+           %    results : string of response from NEURON program
            %
            %    OPTIONAL INPUTS
            %    ===========================================================
-           %    See: NEURON.write
+           %    See optional inputs in NEURON.write
+           %    
+           %    See Also:
+           %        NEURON.write
            
            [flag,results] = obj.comm_obj.write(str,varargin{:});
        end
@@ -46,6 +61,10 @@ classdef cmd
            %
            %    success = writeNumericProps(obj,props,values)
            %
+           %    INPUTS
+           %    ===========================================================
+           %    props  : 
+           %    valeus :
            
            value_strings = cellfun(@(x) sprintf('%0g',x),values,'un',0); 
             
@@ -179,14 +198,6 @@ classdef cmd
            %NOTE: might need to handle empty ...
            output = temp{1};
         end
-%         function extractParams(obj,str,single_match)
-%             if ~exist('single_match','var')
-%                 single_match = false;
-%             end
-%             
-%             if single_match
-%                 temp =  
-%         end
     end
     
     %Extract Data From Neuron =============================================

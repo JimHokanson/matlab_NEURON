@@ -25,6 +25,10 @@ function result_obj = sim__single_stim(obj,scale)
 %Important call to make sure everything is synced
 obj.init__simulation();
 
+if ~exist('scale','var')
+    error('Scale input must be provided')
+end
+
 %NEURON.simulation.extracellular_stim.threshold_analysis
 result_obj = obj.threshold_analysis_obj.run_stimulation(scale);
 

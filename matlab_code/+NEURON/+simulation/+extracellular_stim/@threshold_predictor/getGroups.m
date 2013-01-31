@@ -82,6 +82,11 @@ old_stimuli     = obj.low_d_old_stimuli(old_indices_use,:);
 applied_stimuli = obj.low_d_new_stimuli(new_indices_use,:);
 n_new_stimuli   = size(applied_stimuli,1);
 
+if n_new_stimuli < 20
+    groups_of_indices_to_run = {new_indices_use};
+    return
+end
+
 %First grouping stratgey
 %I think instead of doing the min and max we should do a convex hull
 %strategy

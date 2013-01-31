@@ -44,7 +44,7 @@ classdef data < handle_light
         
         
         %.setNewAppliedStimulus()
-        n_points_per_cell       = 0 %This currently indicates how many
+        n_points_per_cell       = [] %This currently indicates how many
         %nodes are present 
     end
     

@@ -6,6 +6,9 @@ classdef props < handle_light
     %   IMPROVEMENTS:
     %   ==============================================================
     %   1) Build in support for different time solver methods
+    %       - see cvode, use_daspk is alright for extracellular stim BUT
+    %           it seems slow
+    %       - 
     
     properties (SetAccess = private)
         celsius = 37
