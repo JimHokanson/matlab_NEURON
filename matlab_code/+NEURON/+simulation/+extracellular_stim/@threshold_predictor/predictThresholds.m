@@ -27,7 +27,7 @@ function predicted_thresholds = predictThresholds(obj,...
 n_new_stimuli = length(new_indices_predict);
 
 if isempty(old_indices_use) && isempty(new_indices_learned)
-    predicted_thresholds = ones(1,n_new_stimuli);
+    predicted_thresholds = ones(n_new_stimuli,1);
     return
 end
 
