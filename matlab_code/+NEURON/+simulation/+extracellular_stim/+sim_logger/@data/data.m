@@ -1,6 +1,7 @@
 classdef data < handle_light
     %
-    %   Class: NEURON.simulation.extracellular_stim.sim_logger.data
+    %   Class: 
+    %       NEURON.simulation.extracellular_stim.sim_logger.data
     %
     %   METHODS IN OTHER FILES
     %   -------------------------------------------------------------------
@@ -12,6 +13,9 @@ classdef data < handle_light
     %   -------------------------------------------------------------------
     %   Threshold Sign
     %   Design Notes
+    %
+    %   See Also:
+    %       NEURON.simulation.extracellular_stim.sim_logger
     
     properties
         xstim_obj
