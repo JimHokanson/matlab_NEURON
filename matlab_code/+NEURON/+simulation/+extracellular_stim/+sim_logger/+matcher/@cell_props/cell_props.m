@@ -44,7 +44,7 @@ classdef cell_props < handle_light
             
             obj.current_data_instance = current_data_local;
                         
-            I1 = find(current_data_local.cell_type == obj.cell_type(indices_to_test));
+            I1 = indices_to_test(current_data_local.cell_type == obj.cell_type(indices_to_test));
             
             if isempty(I1)
                 I = [];

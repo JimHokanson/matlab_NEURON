@@ -98,16 +98,20 @@ classdef matcher < handle_light
             %NEURON.simulation.extracellular_stim.sim_logger.matcher.stim
             matching_indices = obj.stim_obj.getMatchingEntries(xstim_obj,obj.current_max_index);
 
+            %NEURON.simulation.extracellular_stim.sim_logger.matcher.cell_props.getMatchingEntries
             temp = obj.cell_props_obj.getMatchingEntries(xstim_obj,matching_indices);
             %Shift indices back to original input space
-            index = matching_indices(temp);
+            index = temp;
+            %index = matching_indices(temp);
             
             
             
             %Handle output
             %--------------------------------------------------------------
             if length(index) > 1
-                error('Index should be empty or have a singular match')
+                %TODO: Write deletion methods
+                index = index(end);
+                %error('Index should be empty or have a singular match')
             end
             
             if isempty(index) && add_if_not_found

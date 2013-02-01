@@ -74,8 +74,12 @@ classdef extracellular_stim < NEURON.simulation
     methods
         function obj = extracellular_stim(varargin)
             %
-            %
             %   obj = extracellular_stim(varargin)
+            %
+            %   NOTE: I am considering making this constructor private ...
+            %
+            %   See Also:
+            %       NEURON.simulation.extracellular_stim.create_standard_sim
             
             import NEURON.simulation.extracellular_stim.*
             
@@ -150,24 +154,30 @@ classdef extracellular_stim < NEURON.simulation
     
     %SIMULATION METHODS ===================================================
     methods
-        %sim__determine_threshold
-        %sim__getCurrentDistanceCurve
-        %sim__single_stim
-        
-
         function sim_logger = sim__getLogInfo(obj)
+            %sim__getLogInfo
+            %   
+            %   sim_logger = sim__getLogInfo(obj)
+            %
+            %   This method gets the sim_logger class after initialization
+            %   so that the data object it contains is valid given the
+            %   current extracellular stimulation being used.
+            
             sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
             
             %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
             sim_logger.initializeLogging(obj); 
         end
         function thresholds = sim__getThresholdsMulipleLocations(obj,cell_locations,varargin)
+            %sim__getThresholdsMulipleLocations
             %
-            %
-            %   sim__create_logging_data(obj,varargin)
+            %   sim__getThresholdsMulipleLocations(obj,varargin)
             %
             %   OPTIONAL INPUTS
             %   ===========================================================
+            %
+            %
+            
             in.threshold_sign = 1;
             in = processVarargin(in,varargin);
             
@@ -179,11 +189,6 @@ classdef extracellular_stim < NEURON.simulation
             %NEURON.simulation.extracellular_stim.sim_logger.getThresholds
             thresholds = sim_logger.getThresholds(cell_locations,in.threshold_sign);
             
-        end
-        
-        function act_obj = sim__get_activation_volume(obj,file_save_path,x_bounds,y_bounds,z_bounds)
-            %TODO: Fix me ...
-            act_obj = NEURON.results.xstim.activation_volume.get(obj,file_save_path,x_bounds,y_bounds,z_bounds);
         end
     end
     

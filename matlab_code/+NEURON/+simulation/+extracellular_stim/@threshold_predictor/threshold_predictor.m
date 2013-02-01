@@ -51,13 +51,10 @@ classdef threshold_predictor < handle_light
         %THIS IS A CRAPPY EXPLANATION
         %However if we make this value too large, we never update
         %our predictions which means it takes longer to get our answers as
-        
-        opt__score_rounding_precision = 1e-10 %This is on what level we
-        %want to compare the low dimensional representations of the old and
-        %new stimuli as being equal. Instead of using a 
     end
     
-    properties
+    %PCA props ============================================================
+    properties (Hidden)
         coeff
         data_mean   %Mean of old and new stimuli combined ...
         n_pcs_keep
@@ -76,17 +73,6 @@ classdef threshold_predictor < handle_light
        low_d_old_stimuli = []
        low_d_new_stimuli = []
        
-%        all_stimuli_sorted_low_d %A sorted version of all stimuli (old and new)
-%        %using their low dimensional representation
-%        original_index       %index of where the originals are in the sorted stimuli
-%        
-%        
-%        
-%        old_stim_index_in_sort  %index is old index, value is new index in sort
-%        new_stim_index_in_sort  %"   "
-%        
-%        %Do I use this ?????
-%        is_from_old_matrix   
     end
     
     properties (Dependent)
@@ -130,70 +116,9 @@ classdef threshold_predictor < handle_light
             obj.old_stimuli = old_stim;
             obj.new_stimuli = new_stim;
             
-            %TODO: Remove inputs and use properties instead ...
-            obj.reduceDimensions(new_stim,old_stim);
-        end
-        
-        %I want to get rid of this method ...
-        function [new,old] = rereduceDimensions(obj,new_stim,old_stim)
-           
-            if isempty(new_stim)
-                new = [];
-            else
-                new = bsxfun(@minus,new_stim,obj.data_mean)*obj.coeff;
-                new = new(:,1:obj.n_pcs_keep);
-            end
-            
-            if isempty(old_stim)
-                old = [];
-            else
-                old = bsxfun(@minus,old_stim,obj.data_mean)*obj.coeff;
-                old = old(:,1:obj.n_pcs_keep);
-            end
-        end
-        
-        function reduceDimensions(obj,new_stim,old_stim)
-            %
-            %   Call this method to reduce the dimensionality of the data
-            %
-            
-            if isempty(old_stim)
-                obj.data_mean        = mean(new_stim,1);
-                [obj.coeff,scores_new,latent] = princomp(new_stim,'econ');
-            else
-                n_new = obj.n_new;               
-                temp_data = [new_stim; old_stim];
-                obj.data_mean = mean(temp_data,1);
-                [obj.coeff,scores_both,latent] = princomp(temp_data,'econ');
-              
-                
-            %Fixes:
-            %1) Recompute scores based on coefficient
-            %2) Round results to certain place
-            
-%                 temp_data_no_mean = bsxfun(@minus,temp_data,mean(temp_data));
-%                 scores_both_2 = temp_data_no_mean*obj.coeff;
-%                 scores_new_2 = scores_both_2(1:n_new,:);
-%                 scores_old_2 = scores_both_2(n_new+1:end,:);
-                
-                scores_new = round2(scores_both(1:n_new,:),obj.opt__score_rounding_precision);
-                scores_old = round2(scores_both(n_new+1:end,:),obj.opt__score_rounding_precision);
-            end
-            
-            %How much should we keep
-            %--------------------------------------------------------------
-            csl = cumsum(latent) - latent(1);
-            I = find(csl./csl(end) > obj.opt__PCA_THRESHOLD,1);
-            
-            obj.n_pcs_keep = I;
-            
-            %Reducing the dimensions
-            %--------------------------------------------------------------
-            obj.low_d_new_stimuli = scores_new(:,1:obj.n_pcs_keep);
-            if ~isempty(old_stim)
-                obj.low_d_old_stimuli = scores_old(:,1:obj.n_pcs_keep);
-            end
-        end
+            obj.reduceDimensions();
+        end        
+
         
     end
     

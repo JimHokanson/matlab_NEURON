@@ -53,18 +53,19 @@ classdef data < handle_light
         %INDIVIDUAL RESULTS
         %------------------------------------------------------------------
         applied_stimulus_matrix = []    %sims x [points by time]
-        threshold_values        = []    %1 x sims
+        threshold_values        = []    %sims x 1
         xyz_center              = []    %sims x xyz
         creation_time           = []    %1 x sims, matlab time (double)
-                                        %of when the entry was created
-        stimulus_setup_id       = []    %
+        %of when the entry was created
+        stimulus_setup_id       = []    %Which stimulus setup generated
+        %this point
         
         %NEW STIMULI
         %------------------------------------------------------------------
         %.getThresholds
         desired_threshold_sign
         new_cell_locations
-        predictor_obj  %Class: NEURON.simulation.extracellular_stim.threshold_predictor
+        predictor_obj           %Class: NEURON.simulation.extracellular_stim.threshold_predictor
         matching_stim_obj
         
         %.setNewAppliedStimulus()
@@ -133,6 +134,14 @@ classdef data < handle_light
     
     %ADDING DATA ==========================================================
     methods
+        function initPredictorObj(obj)
+           obj.predictor_obj = NEURON.simulation.extracellular_stim.threshold_predictor(...
+                    obj.new_stimuli_matrix,...
+                    obj.applied_stimulus_matrix,...
+                    obj.xyz_center,....
+                    obj.new_cell_locations,...
+                    obj.threshold_values); 
+        end
         function setNewAppliedStimulus(obj)
             %
             %   This function computes the applied stimulus 

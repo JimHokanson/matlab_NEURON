@@ -34,6 +34,12 @@ end
 known_inputs = [obj.low_d_old_stimuli(old_indices_use,:); ...
     obj.low_d_new_stimuli(new_indices_learned,:)];
 
+%TODO: Make this assumption obvious
+if size(known_inputs,1) < 3*size(known_inputs,2)
+   predicted_thresholds = ones(n_new_stimuli,1);
+   return
+end
+
 known_thresholds = [obj.old_thresholds(old_indices_use) ...
     new_thresholds_all(new_indices_learned)];
 
