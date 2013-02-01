@@ -116,37 +116,13 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
        function setEventManagerObject(obj,ev_man_obj)
            obj.xstim_event_manager_obj = ev_man_obj;
         end
-        function moveCenter(obj, newCenter)
-            
+        function moveCenter(obj, newCenter) 
             obj.spatial_info_obj.moveCenter(newCenter);
-            
-%             obj.xyz_center = newCenter;
-%             if isobject(obj.ev_man_obj)
-%                cellLocationChanged(obj.ev_man_obj)
-%             end
-%             if obj.cell_populated_in_NEURON
-%                 populate_xyz(obj)
-%             end
         end   
     end
     
     % INFO FOR OTHERS
     methods
-        %{
-        function node_spacing = getNodeSpacing(obj)
-           %What a mess ...
-           if ~obj.spatial_info_populated
-               %NEURON.cell.axon.generic.populateSpatialInfo
-               populateSpatialInfo(obj)
-           end
-            
-           I = find(obj.section_ids == 1);
-           node_spacing = obj.xyz_all(I(2),3) - obj.xyz_all(I(1),3); %NOTE: Might want to do distance instead
-           %also might want to do the average diff
-        end
-        %}
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%
         function xyz_nodes = getXYZnodes(obj)
            xyz_nodes = obj.spatial_info_obj.get__XYZnodes();
         end
@@ -159,10 +135,6 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
 
         end
         function threshold_info_obj = getThresholdInfo(obj)
-           %TODO: Document
-           %
-           %    NOTE: I might want to change things ...
-           
            threshold_info_obj = obj.threshold_info_obj;
         end
         function cell_log_data_obj = getXstimLogData(obj)

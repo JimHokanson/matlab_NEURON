@@ -1,5 +1,5 @@
 function cell_created = createCellInNEURON(obj)
-% NEURON.cell.axon.generic.createCellInNEURON
+% NEURON.cell.axon.generic_unmyelinated.createCellInNEURON
 
 cell_created = true;
 
@@ -19,6 +19,6 @@ if ~obj.ran_init_code_once
 end
 
 
-placeVariablesInNEURON(obj.props_obj,c) % NEURON.cell.axon.generic.props.placeVariablesInNEURON
+placeVariablesInNEURON(obj.props_obj,c) % NEURON.cell.axon.generic_unmyelinated.props.placeVariablesInNEURON
 
-c.load_file('create_generic_axon.hoc');
+c.load_file('create_generic_unmyelinated_axon.hoc');

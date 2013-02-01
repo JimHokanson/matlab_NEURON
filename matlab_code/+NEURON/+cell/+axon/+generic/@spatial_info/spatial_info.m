@@ -81,7 +81,7 @@ classdef spatial_info < handle_light
     end
     
     properties
-        props_obj %Class: NEURON.cell.axon.MRG.props
+        props_obj %Class: NEURON.cell.axon.generic.props
     end
     
     methods
