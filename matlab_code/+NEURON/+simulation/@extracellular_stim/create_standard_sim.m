@@ -60,9 +60,9 @@ obj = NEURON.simulation.extracellular_stim(...
 
 % if celsius is changed, must be changed in both the sim obj and in NEURON
 if obj.props_obj.celsius ~= in.celsius
-   changeProps(obj.props_obj,'celsius',in.celsius);
+    changeProps(obj.props_obj,'celsius',in.celsius);
     %obj.celsius = in.celsius;
-   %obj.changeSimulationVariables;
+    %obj.changeSimulationVariables;
 end
 
 set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.tissue_resistivity));
@@ -83,7 +83,7 @@ end
 set_Electrodes(obj,e_objs);
 
 %cell ---------------------------------------------------
-switch in.cell_type   
+switch in.cell_type
     case 'MRG'
         set_CellModel(obj,NEURON.cell.axon.MRG(in.cell_center))
     case 'generic'
@@ -91,9 +91,18 @@ switch in.cell_type
         options.paper = [];
         options = processVarargin(options,in.cell_options);
         if isempty(options.paper)
-            error('Must define paper to pull cell properties from')
+            warning('Cell properties have not been specified by a paper. Default values are being used.')
         else
-           setPropsByPaper(obj.cell_obj.props_obj,options.paper)
+            setPropsByPaper(obj.cell_obj.props_obj,options.paper)
+        end
+    case 'generic_unmyelinated'
+        set_CellModel(obj,NEURON.cell.axon.generic_unmyelinated(in.cell_center))
+        options.paper = [];
+        options = processVarargin(options,in.cell_options);
+        if isempty(options.paper)
+            warning('Cell properties have not been specified by a paper. Default values are being used.')
+        else
+            setPropsByPaper(obj.cell_obj.props_obj,options.paper)
         end
     otherwise
         error('Unhandled cell type')
@@ -103,7 +112,7 @@ end
 
 function in = helper__handleStimOptions(in,n_electrodes)
 
-%Start times 
+%Start times
 %-------------------------------------------------------------
 if length(in.stim_start_times) == 1
     if n_electrodes == 1
@@ -130,25 +139,25 @@ end
 end
 
 function value_out = helper2__handleStimCellArrayOption(value_in,prop_name,n_electrodes)
-   if iscell(value_in)
-      if length(value_in) ~= n_electrodes
-         %TODO: Improve
-         error('Mismatch in length for prop: %s',prop_name);
-      end
-      value_out = value_in;
-   elseif size(value_in,1) == 1
-      %replicate 
-      if n_electrodes == 1
-         value_out = {value_in};
-      else
-         value_out(1:n_electrodes) = {value_in};
-      end
-   elseif size(value_in,1) == n_electrodes
-       value_out = cell(1,n_electrodes);
-       for iElec = 1:n_electrodes
-          value_out{iElec} = value_in(iElec,:); 
-       end
-   else
-       error('Unhandled cased for property: %s',prop_name);
-   end
+if iscell(value_in)
+    if length(value_in) ~= n_electrodes
+        %TODO: Improve
+        error('Mismatch in length for prop: %s',prop_name);
+    end
+    value_out = value_in;
+elseif size(value_in,1) == 1
+    %replicate
+    if n_electrodes == 1
+        value_out = {value_in};
+    else
+        value_out(1:n_electrodes) = {value_in};
+    end
+elseif size(value_in,1) == n_electrodes
+    value_out = cell(1,n_electrodes);
+    for iElec = 1:n_electrodes
+        value_out{iElec} = value_in(iElec,:);
+    end
+else
+    error('Unhandled cased for property: %s',prop_name);
+end
 end

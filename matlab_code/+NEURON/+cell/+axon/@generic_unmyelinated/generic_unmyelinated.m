@@ -29,7 +29,7 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
         section_ids % ID of sections, see populate_section_id_info
         center_I % index into node that is center of axon
         L_all % populate_axon_length_info
-        spatial_info_populated = false % .getNodeSpacing()
+        spatial_info_populated = false
     end
     
    methods
@@ -57,8 +57,8 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
             obj.threshold_info_obj.v_ap_threshold = in.v_ap_threshold;
             
 
-            obj.spatial_info_obj = NEURON.cell.axon.generic.spatial_info(obj,xyz_center);
-            obj.props_obj = NEURON.cell.axon.generic.props(obj,obj.spatial_info_obj);
+            obj.spatial_info_obj = NEURON.cell.axon.generic_unmyelinated.spatial_info(obj,xyz_center);
+            obj.props_obj = NEURON.cell.axon.generic_unmyelinated.props(obj,obj.spatial_info_obj);
             obj.spatial_info_obj.setPropsObj(obj.props_obj);
         end  
     end
@@ -75,21 +75,15 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
     
     % INFO FOR OTHERS
     methods
-        % I'm not sure if anything will try to call these functions, but
-        % ALL sections of the axon are nodes, so they're not relevant.
-        %{ 
+        % nodes aren't really relevant to a myelinated cell, but these
+        % methods are required by base class
         function xyz_nodes = getXYZnodes(obj) 
-           xyz_nodes = obj.spatial_info_obj.get__XYZnodes();
+           xyz_nodes = obj.xyz_all;
         end
-        function avg_node_spacing = getAverageNodeSpacing(obj)
-            %getAverageNodeSpacing
-            %
-            %   Written For ...
-            
+        function avg_node_spacing = getAverageNodeSpacing(obj)  
             avg_node_spacing = obj.spatial_info_obj.get__avg_node_spacing;
-
         end
-        %}
+        
         function threshold_info_obj = getThresholdInfo(obj)
            threshold_info_obj = obj.threshold_info_obj;
         end
@@ -98,8 +92,7 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
            [pv,pv_version] = obj.props_obj.getPropertyValuePairing(true);
            cell_log_data_obj = NEURON.simulation.extracellular_stim.sim_logger.cell_log_data(...
                obj,[pv_version pv]);
-        end
-        
+        end  
         
     end
    

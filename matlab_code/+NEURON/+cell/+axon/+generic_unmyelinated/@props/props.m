@@ -28,11 +28,11 @@ classdef props < handle_light
         props_up_to_date_in_NEURON = false
         
         membrane_dynamics = 'hh';
-        axon_capacitance
-        axial_resistivity
-        axon_length
-        axon_diameter
-        n_segs
+        axon_capacitance  = 1 % (uF/cm2)
+        axial_resistivity = 110 % (ohm-cm)
+        axon_length       = 20000 % um = 20 mm
+        axon_diameter     = 5 % um
+        n_segs            = 500
     end
     
     methods

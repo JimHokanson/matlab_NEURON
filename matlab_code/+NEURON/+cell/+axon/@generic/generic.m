@@ -74,7 +74,7 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         section_ids % ID of sections, see populate_section_id_info
         center_I % index into node that is center of axon
         L_all % populate_axon_length_info
-        spatial_info_populated = false % .getNodeSpacing()
+        spatial_info_populated = false
     end
     
     methods

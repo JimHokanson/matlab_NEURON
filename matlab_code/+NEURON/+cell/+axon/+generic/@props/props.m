@@ -51,13 +51,13 @@ classdef props < handle_light
         myelin_axial_resistivity = 110% Ra (ohm-cm)
         
         % fiber props
-        fiber_diameter % (um)
+        fiber_diameter = 1% (um)
         
         node_membrane_dynamics = 'fh' %string hh, fh, etc
 
         %FIBER DIAMETER DEPENDENT PROPERTIES
-        myelin_length % (um)
-        node_diameter % (um) aka axon diameter, usually some fraction of fiber diameter
+        myelin_length = 500% (um)
+        node_diameter = 0.75% (um) aka axon diameter, usually some fraction of fiber diameter
         
         % Electrical props
         v_init = -70; % mV
