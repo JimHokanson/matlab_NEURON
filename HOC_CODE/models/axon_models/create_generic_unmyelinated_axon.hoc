@@ -11,10 +11,9 @@ n_segs
 
 load_file("insert_node_dynamics.hoc")
 
-// an unmyelinated axon is equivalent to a single giant node
-create node
+create axon
 
-forsec "node" {
+forsec "axon" {
 	insert_node_dynamics(axon_dynamics)
 	cm = axon_capacitance
 	Ra = axial_resistivity
@@ -23,6 +22,6 @@ forsec "node" {
 	nseg = n_segs
 }
 
-forsec "node" {
+forsec "axon" {
 	insert extracellular
 }

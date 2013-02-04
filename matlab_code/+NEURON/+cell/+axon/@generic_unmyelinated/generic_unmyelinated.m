@@ -18,6 +18,7 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
         
         xstim_event_manager_obj
         xyz_all   % populate_xyz()
+        
     end
     
     properties (Hidden)
@@ -32,13 +33,13 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
         spatial_info_populated = false
     end
     
-   methods
-       function value = get.xyz_all(obj)
-           value = obj.spatial_info_obj.get__xyz_all;
-       end
-   end
-   
-   % INITIALIZATION
+    methods
+        function value = get.xyz_all(obj)
+            value = obj.spatial_info_obj.get__xyz_all;
+        end
+    end
+    
+    % INITIALIZATION
     methods
         function obj = generic_unmyelinated(xyz_center,varargin) % constructor
             % input xyz center relative to electrodes
@@ -56,45 +57,47 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
             obj.threshold_info_obj.v_rough_threshold = in.v_rough_threshold;
             obj.threshold_info_obj.v_ap_threshold = in.v_ap_threshold;
             
-
+            
             obj.spatial_info_obj = NEURON.cell.axon.generic_unmyelinated.spatial_info(obj,xyz_center);
             obj.props_obj = NEURON.cell.axon.generic_unmyelinated.props(obj,obj.spatial_info_obj);
             obj.spatial_info_obj.setPropsObj(obj.props_obj);
-        end  
+            
+            obj.opt__first_section_access_string = 'access axon'; 
+
+        end
     end
-   
+    
     % CHANGING METHODS
     methods
-       function setEventManagerObject(obj,ev_man_obj)
-           obj.xstim_event_manager_obj = ev_man_obj;
+        function setEventManagerObject(obj,ev_man_obj)
+            obj.xstim_event_manager_obj = ev_man_obj;
         end
-        function moveCenter(obj, newCenter) 
+        function moveCenter(obj, newCenter)
             obj.spatial_info_obj.moveCenter(newCenter);
-        end   
+        end
     end
     
     % INFO FOR OTHERS
     methods
         % nodes aren't really relevant to a myelinated cell, but these
         % methods are required by base class
-        function xyz_nodes = getXYZnodes(obj) 
-           xyz_nodes = obj.xyz_all;
+        function xyz_nodes = getXYZnodes(obj)
+            xyz_nodes = obj.xyz_all;
         end
-        function avg_node_spacing = getAverageNodeSpacing(obj)  
+        function avg_node_spacing = getAverageNodeSpacing(obj)
             avg_node_spacing = obj.spatial_info_obj.get__avg_node_spacing;
         end
         
         function threshold_info_obj = getThresholdInfo(obj)
-           threshold_info_obj = obj.threshold_info_obj;
+            threshold_info_obj = obj.threshold_info_obj;
         end
         function cell_log_data_obj = getXstimLogData(obj)
-           %NEURON.cell.axon.generic_unmyelinated.props.getPropertyValuePairing
-           [pv,pv_version] = obj.props_obj.getPropertyValuePairing(true);
-           cell_log_data_obj = NEURON.simulation.extracellular_stim.sim_logger.cell_log_data(...
-               obj,[pv_version pv]);
-        end  
+            %NEURON.cell.axon.generic_unmyelinated.props.getPropertyValuePairing
+            [pv,pv_version] = obj.props_obj.getPropertyValuePairing(true);
+            cell_log_data_obj = NEURON.simulation.extracellular_stim.sim_logger.cell_log_data(...
+                obj,[pv_version pv]);
+        end
         
     end
-   
     
 end
