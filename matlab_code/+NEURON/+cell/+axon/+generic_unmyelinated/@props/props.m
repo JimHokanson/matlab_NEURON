@@ -44,6 +44,7 @@ classdef props < handle_light
         
         function set.membrane_dynamics(obj,value)
             obj.membrane_dynamics = value;
+            obj.populateDependentVariables();
         end
         function populateDependentVariables(obj)
             obj.axon_dynamics = find(strcmpi(obj.MEMBRANE_DYNAMICS_OPTIONS,obj.membrane_dynamics));
