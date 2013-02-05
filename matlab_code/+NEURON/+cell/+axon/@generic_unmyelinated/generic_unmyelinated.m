@@ -13,7 +13,7 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
     
     properties (SetAccess = private)
         props_obj %Class NEURON.cell.axon.generic_unmyelinated.props
-        threshold_info_obj %Class: NEURON.cell.threshold_info
+        %threshold_info_obj %Class: NEURON.cell.threshold_info
         spatial_info_obj %Class: NEURON.cell.axon.generic_unmyelinated.spatial_info
         
         xstim_event_manager_obj
@@ -35,7 +35,7 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
     
     
     properties
-       
+       threshold_info_obj %Class: NEURON.cell.threshold_info
     end
     
     methods

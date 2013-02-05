@@ -32,6 +32,16 @@ simObj = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resist
     'cell_type','generic_unmyelinated','cell_options',{'paper',propsPaper},'stim_scales',STIM_SCALES,'stim_durations',STIM_DURATIONS,...
     'stim_start_times',STIM_START_TIME,'debug',in.debug,'celsius',TEMP_CELSIUS);
 
+c = simObj.cell_obj;
+
+simObj.opt__TIME_AFTER_LAST_EVENT = 1;
+
+%create method like the following
+%c.adjustPropagationIndex('1 mm off of center')
+%c.adjustPropagationIndex(-1)
+
+p = c.props_obj;
+
 
 for iStim = 1:nStimAmps
     STIM_AMP = stimAmps(iStim);

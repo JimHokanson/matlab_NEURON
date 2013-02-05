@@ -20,7 +20,7 @@ classdef spatial_info < handle_light
     
     methods
         function xyz_all = get__xyz_all(obj)
-            obj.populate_spatialInfo();
+            obj.populate_spatialInfo(); % NEURON.cell.axon.generic_unmyelinated.spatial_info.populate_spatialInfo
             xyz_all = obj.xyz_all; 
         end
         
