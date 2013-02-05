@@ -33,6 +33,11 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
         spatial_info_populated = false
     end
     
+    
+    properties
+       
+    end
+    
     methods
         function value = get.xyz_all(obj)
             value = obj.spatial_info_obj.get__xyz_all;
@@ -62,8 +67,11 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
             obj.props_obj = NEURON.cell.axon.generic_unmyelinated.props(obj,obj.spatial_info_obj);
             obj.spatial_info_obj.setPropsObj(obj.props_obj);
             
-            obj.opt__first_section_access_string = 'access axon'; 
-
+            %Overriding Superclass (extracellular_stim_capable) defaults
+            %------------------------------------------------------------
+            obj.opt__first_section_access_string     = 'access axon';
+            obj.opt__use_local_node_sectionlist_code = true;
+            
         end
     end
     

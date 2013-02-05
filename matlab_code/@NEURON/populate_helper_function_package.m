@@ -1,7 +1,7 @@
 function populate_helper_function_package
 %populate_helper_function_package Copies RNEL functions to this repository
 %
-%   NEURON.populate_helper_function_package   (STATIC METHOD)
+%   NEURON.populate_helper_function_package         (STATIC METHOD)
 %
 %   USAGE NOTES:
 %   ======================================================================
@@ -20,8 +20,10 @@ function populate_helper_function_package
 %   1) Any changes to the local versions of the files are not currently
 %   supported and could be overridden quite easily. We should add at
 %   least a warning in the local copies that make this clear. Ideally we
-%   would have a way of detecting local improvements and asking the uesr to
+%   would have a way of detecting local improvements and asking the user to
 %   reconcile updates between the two versions.
+%   2) On updating the file with a new version, highlight this with a color
+%   change.
 
 %Functions which have been manually changed from the RNEL library and
 %copied here. This is done because they are different (usually simpler) and
@@ -46,6 +48,7 @@ methods = {
     'ismember_str'              %processVarargin()
     'processVarargin'           %used everywhere ...
     'strtools.propsValuesToStr' %NEURON.cmd , 
+    'round2'                    %activation_volume (in xstim)
     'load2'
     'unique2'                   %NEURON.extracellular_stim_electrode.getMergedStimTimes
     };
