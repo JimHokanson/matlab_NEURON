@@ -13,10 +13,8 @@ in = processVarargin(in,varargin);
 minStim = -10; maxStim = 10; stimStep = .5; % -10 to 10 mA
 stimAmps = [minStim:stimStep:maxStim]*1000;
 TISSUE_RESISTIVITY = obj.tissue_resistivity; % isotropic 300 ohm cm
-STIM_START_TIME    = 0.1;
-%STIM_DURATIONS      = [0.1 0.2];   % 100us duration, square pulse
+STIM_START_TIME    = 0.1; % 100us duration, square pulse
 STIM_DURATIONS     = 0.1;
-%STIM_SCALES = [1 -0.5];
 STIM_SCALES        = 1;
 propsPaper         = obj.propsPaper;
 TEMP_CELSIUS       = obj.temp_celsius; % 27 C
@@ -39,9 +37,6 @@ simObj = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resist
 for iStim = 1:nStimAmps
     STIM_AMP = stimAmps(iStim);
     
-    %axon_distance = minAxonDist + (maxAxonDist-minAxonDist)*rand(1,N_FIBERS);
-    %node_spacing = obj.cell_obj.getAverageNodeSpacing;
-    %parallel_distance = 0.5*node_spacing*rand(1,N_FIBERS);
     axon_distance = linspace(minAxonDist,maxAxonDist,N_FIBERS);
     parallel_distance = 0;
     for iSim = 1:N_FIBERS %should probably rename iSim to avoid confusion with iStim

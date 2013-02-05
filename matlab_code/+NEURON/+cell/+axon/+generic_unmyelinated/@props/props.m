@@ -31,7 +31,7 @@ classdef props < handle_light
         axon_capacitance  = 1 % (uF/cm2)
         axial_resistivity = 110 % (ohm-cm)
         axon_length       = 20000 % um = 20 mm
-        axon_diameter     = 5 % um
+        axon_diameter     = 10 % um
         n_segs            = 500
     end
     
@@ -60,8 +60,25 @@ classdef props < handle_light
     
     methods
         function setPropsByPaper(obj,paper_option)
-         % TODO
-        end 
+            switch paper_option
+                case 'Rattay_1987'
+                    %SIM PROPS
+                    %temp = 27
+                    %
+                    %TISSUE PROPS
+                    %resistivity - 300
+                    %
+                    %STIM PROPS
+                    %stim pulse - 0.1 ms long, cathodal (negative), monophasic
+                    
+                    obj.membrane_dynamics = 'hh';
+                    obj.axon_capacitance = 1; % uF/cm^2
+                    obj.axial_resistivity = 100;
+                    obj.axon_diameter = 9.6; % 38.4 um also used
+                otherwise
+                    error('Option not yet implemented')
+            end
+        end
     end
     
     

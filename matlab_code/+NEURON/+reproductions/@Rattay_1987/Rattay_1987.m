@@ -14,6 +14,7 @@ classdef Rattay_1987 < handle_light
       fig5MyelinatedResult
       myelinatedStimRatios
       fig6Thresholds
+      fig5Result
     end
     
     methods
