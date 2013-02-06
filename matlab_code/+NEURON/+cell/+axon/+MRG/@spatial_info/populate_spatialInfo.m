@@ -22,7 +22,8 @@ function populate_spatialInfo(obj)
 %       NEURON.cell.axon.MRG.spatial_info.populate_axonLengthInfo
 %       NEURON.cell.axon.MRG.populate_xyz
 %
-%   FULL PATH: NEURON.cell.axon.MRG.spatial_info.populate_spatialInfo
+%   FULL PATH: 
+%       NEURON.cell.axon.MRG.spatial_info.populate_spatialInfo
 
 %NOTE: When spatial props are changed in the props
 %class, this property below is changed to be false
@@ -38,7 +39,7 @@ if ~obj.spatial_info_up_to_date
     populate_xyz(obj)
 
     %node_indices     = find(obj.section_ids == 1);
-    obj.avg_node_spacing = abs(mean(diff(obj.xyz_all(obj.section_ids == 1),3)));
+    obj.avg_node_spacing = abs(mean(diff(obj.xyz_all(obj.section_ids == 1,3))));
 
     obj.spatial_info_up_to_date = true;
 end

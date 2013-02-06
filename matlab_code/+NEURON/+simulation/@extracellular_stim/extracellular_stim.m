@@ -177,8 +177,19 @@ classdef extracellular_stim < NEURON.simulation
             %   ===========================================================
             %   threshold_sign     : (default 1)
             %   reshape_output     : (default true)
-            %   initialized_logger : (default '')
+            %   initialized_logger : (default []), if passed in this
+            %        can save a decent amount of time between sequential
+            %        calls as it keeps data in memory instead of loading
+            %        from disk
             %
+            %   IMPROVEMENTS
+            %   ===========================================================
+            %   1) Run a validation step that the passed in sim_logger
+            %   matches the settings currently applied to this simulation
+            %   object.
+            %
+            %   FULL PATH:
+            %    NEURON.simulation.extracellular_stim.sim__getThresholdsMulipleLocations
             
             in.threshold_sign     = 1;
             in.reshape_output     = true;
