@@ -11,7 +11,7 @@ if ~obj.spatial_info_up_to_date
     obj.center_I = ceil(n_segs)/2;
     
     % populate axon length info
-    obj.L_all = p.axon_length*ones(1,n_segs);
+    obj.L_all = (p.axon_length/n_segs)*ones(1,n_segs);
     
     % populate xyz
     populate_xyz(obj)
