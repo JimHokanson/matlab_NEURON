@@ -27,12 +27,12 @@ classdef props < handle_light
     properties
         props_up_to_date_in_NEURON = false
         
-        membrane_dynamics = 'hh';
+        membrane_dynamics = 'fh';
         axon_capacitance  = 1 % (uF/cm2)
         axial_resistivity = 110 % (ohm-cm)
-        axon_length       = 20000 % um = 20 mm
+        axon_length       = 20000 % um = 10 mm
         axon_diameter     = 10 % um
-        n_segs            = 500
+        n_segs            = 300
     end
     
     methods
@@ -72,10 +72,11 @@ classdef props < handle_light
                     %STIM PROPS
                     %stim pulse - 0.1 ms long, cathodal (negative), monophasic
                     
-                    obj.membrane_dynamics = 'hh';
+                    obj.membrane_dynamics = 'hh'; % this is really hh, but hh isn't working...
                     obj.axon_capacitance = 1; % uF/cm^2
                     obj.axial_resistivity = 100;
-                    obj.axon_diameter = 9.6; % 38.4 um also used
+                    %obj.axon_diameter = 9.6; % 38.4 um also used
+                    obj.axon_diameter = 38.4;
                 otherwise
                     error('Option not yet implemented')
             end

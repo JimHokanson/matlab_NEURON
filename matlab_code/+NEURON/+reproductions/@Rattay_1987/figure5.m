@@ -9,7 +9,8 @@ in.debug = false;
 in.local_debug = false;
 in = processVarargin(in,varargin);
 
-minStim = -5; maxStim = 5; stimStep = .25; % -10 to 10 mA
+%minStim = -5; maxStim = 5; stimStep = .25; % -5 to 5 mA
+minStim = -10; maxStim = 10; stimStep = .5;
 stimAmps = [minStim:stimStep:maxStim]*1000;
 TISSUE_RESISTIVITY = obj.tissue_resistivity; % isotropic 300 ohm cm
 STIM_START_TIME    = 0.1; % 100us duration, square pulse 
@@ -19,11 +20,11 @@ propsPaper         = obj.propsPaper;
 TEMP_CELSIUS       = obj.temp_celsius; % 27 C
 
 minAxonDist = 0.01*1000; % 0.01 mm
-maxAxonDist = 2*1000;  % 2 mm
+maxAxonDist = 3.5*1000;  % 3 mm
 
 
 nStimAmps = length(stimAmps);
-N_FIBERS = 50;
+N_FIBERS = 30;
 stimData = zeros(nStimAmps*N_FIBERS,3); % (current,distance,fired?)
 iSimTotal = 0;
 
@@ -32,15 +33,11 @@ simObj = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resist
     'cell_type','generic_unmyelinated','cell_options',{'paper',propsPaper},'stim_scales',STIM_SCALES,'stim_durations',STIM_DURATIONS,...
     'stim_start_times',STIM_START_TIME,'debug',in.debug,'celsius',TEMP_CELSIUS);
 
-c = simObj.cell_obj;
-
 simObj.opt__TIME_AFTER_LAST_EVENT = 1;
 
-%create method like the following
-%c.adjustPropagationIndex('1 mm off of center')
-%c.adjustPropagationIndex(-1)
+c = simObj.cell_obj;
 
-p = c.props_obj;
+c.adjustPropagationIndex(-200) % offset in um
 
 
 for iStim = 1:nStimAmps
