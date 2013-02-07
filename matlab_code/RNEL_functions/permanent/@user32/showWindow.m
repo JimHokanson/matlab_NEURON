@@ -63,6 +63,12 @@ function showWindow(hwnd,option)
 % Activates and displays a window. If the window is minimized or maximized, the system restores it to its original size and position. An application should specify this flag when displaying the window for the first time.
 %             
             option = int32(option);
+			            
+            %:/, I should look into this
+            %.h declares as unsigned long
+            %I get a int32 from .net :/
+            hwnd = typecast(hwnd,'uint32');
+			
             
             calllib('user32','ShowWindow',hwnd,option);
         end

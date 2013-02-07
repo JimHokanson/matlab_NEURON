@@ -35,6 +35,24 @@ classdef Hokanson_2013
     end
     
     methods (Static)
+        function figure1()
+            %
+            %       NEURON.reproductions.Hokanson_2013.figure1
+            
+            obj = NEURON.reproductions.Hokanson_2013;
+            
+            n_electrode_pairings = length(obj.ALL_ELECTRODE_PAIRINGS);
+            for iPair = 1:n_electrode_pairings
+                options = {...
+                    'electrode_locations',obj.ALL_ELECTRODE_PAIRINGS{iPair},...
+                    'tissue_resistivity',obj.TISSUE_RESISTIVITY};
+                xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
+                act_obj   = xstim_obj.sim__getActivationVolume();
+                
+                act_obj.populateVolumeCounts(2:2:20);
+                
+            end
+        end
         function create_log_data()
             
             %NEURON.reproductions.Hokanson_2013.create_log_data

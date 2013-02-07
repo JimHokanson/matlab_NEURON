@@ -33,8 +33,12 @@ classdef spatial_info < handle_light
             xyz_all = obj.xyz_all; 
         end
         function avg_node_spacing = get__avg_node_spacing(obj)
+           
+           %NEURON.cell.axon.MRG.spatial_info.populate_spatialInfo
            obj.populate_spatialInfo();
-            avg_node_spacing = obj.avg_node_spacing; 
+           
+           %populated by above method 
+           avg_node_spacing = obj.avg_node_spacing; 
         end
         function xyz_nodes = get__XYZnodes(obj)
            xyz_all = obj.get__xyz_all(); %#ok<PROP>

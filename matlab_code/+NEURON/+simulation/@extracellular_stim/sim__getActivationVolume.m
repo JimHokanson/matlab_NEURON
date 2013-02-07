@@ -1,4 +1,4 @@
-function act_obj = sim__getActivationVolume(obj,max_scale)
+function act_obj = sim__getActivationVolume(obj)
 
 %NOTE: The max scale could be optional
 %perhaps this only creates the activation volume object
