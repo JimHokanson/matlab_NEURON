@@ -1,6 +1,6 @@
-function stimRatios(obj,varargin)
-% get ratios of cathodal to anodal stim amplitudes needed to activate myelinated axon
-% over a range of distances
+function unmyelinatedStimRatios(obj,varargin)
+% get ratios of cathodal to anodal stim amplitudes needed to activate unmyelinated 
+% axon over a range of distances
 
 in.debug = false;
 in = processVarargin(in,varargin);
@@ -21,13 +21,17 @@ distances = linspace(minDist,maxDist,N_distances);
 
 xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(...
     'tissue_resistivity',TISSUE_RESISTIVITY,...
-    'cell_type','generic',...
+    'cell_type','generic_unmyelinated',...
     'cell_options',{'paper',props_paper},...
     'stim_scales',STIM_SCALES,...
     'stim_durations',STIM_DURATIONS,...
     'stim_start_times',STIM_START_TIME,...
     'debug',in.debug,...
     'celsius',TEMP_CELSIUS);
+
+xstim_obj.opt__TIME_AFTER_LAST_EVENT = 2.5; % increase simulation length
+c = xstim_obj.cell_obj;
+c.adjustPropagationIndex(-5000) % offset in um
 
 catThresholds = -1*xstim_obj.sim__getThresholdsMulipleLocations({0 distances 0},'threshold_sign',-1);
 anodeThresholds = xstim_obj.sim__getThresholdsMulipleLocations({0 distances 0},'threshold_sign',1);
@@ -39,6 +43,6 @@ xlabel('Electrode Distance (mm)')
 ylabel('Stim Amp Ratio (-Stim/+Stim)')
 ylim([0 1])
 
-obj.myelinated_stim_ratios = ratios;
+obj.unmyelinated_stim_ratios = ratios;
 
 end

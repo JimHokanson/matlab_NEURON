@@ -16,7 +16,7 @@ TISSUE_RESISTIVITY = obj.tissue_resistivity; % isotropic 300 ohm cm
 STIM_START_TIME    = 0.1; % 100us duration, square pulse 
 STIM_DURATIONS     = 0.1;
 STIM_SCALES        = 1;
-propsPaper         = obj.propsPaper;
+props_paper         = obj.props_paper;
 TEMP_CELSIUS       = obj.temp_celsius; % 27 C
 
 minAxonDist = 0.01*1000; % 0.01 mm
@@ -30,14 +30,14 @@ iSimTotal = 0;
 
 % create extracellular_stim object, as well as tissue, electrode, and cell.
 simObj = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resistivity',TISSUE_RESISTIVITY,...
-    'cell_type','generic_unmyelinated','cell_options',{'paper',propsPaper},'stim_scales',STIM_SCALES,'stim_durations',STIM_DURATIONS,...
+    'cell_type','generic_unmyelinated','cell_options',{'paper',props_paper},'stim_scales',STIM_SCALES,'stim_durations',STIM_DURATIONS,...
     'stim_start_times',STIM_START_TIME,'debug',in.debug,'celsius',TEMP_CELSIUS);
 
-simObj.opt__TIME_AFTER_LAST_EVENT = 1;
+simObj.opt__TIME_AFTER_LAST_EVENT = 2.5;
 
 c = simObj.cell_obj;
 
-c.adjustPropagationIndex(-200) % offset in um
+c.adjustPropagationIndex(-5000) % offset in um
 
 
 for iStim = 1:nStimAmps
@@ -80,6 +80,6 @@ end
 resultObj.headings = {'Stim Amp (mA)' 'Electrode Distance (mm)'};
 resultObj.firedPts = firedPts;
 resultObj.nullPts = nullPts;
-obj.fig5Result = resultObj;
+obj.fig5_result = resultObj;
 
 end
