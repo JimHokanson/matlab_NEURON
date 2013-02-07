@@ -57,6 +57,12 @@ classdef single_sim < handle_light
             time_vector    = obj.xstim_obj.props_obj.time_vector;
             n_space_points = size(obj.membrane_potential,2);
             mesh(1:n_space_points,time_vector,obj.membrane_potential)
+            
+            x = obj.ap_propogation_index;
+            y = time_vector([1 end]);
+            z = obj.vm_threshold;
+            
+            line([x x],y,[z z],'Linewidth',3,'Color','k')
             zlabel('Membrane Potential','FontSize',in.font_size)
             xlabel('Space','FontSize',in.font_size)
             ylabel('time','FontSize',in.font_size)
