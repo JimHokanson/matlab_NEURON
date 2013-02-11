@@ -9,14 +9,23 @@ At this point the majority of code focuses on modeling extracellular stimulation
 
 ## Features: ##
 
-1. Asynchronous bidirectional interface between NEURON and Matlab (Windows only, Mac coming soon)
-2. Extracellular stimulation using point source electrodes and homogenous tissue
+1. Bidirectional interface between NEURON and Matlab.
+2. Extracellular stimulation using point source electrodes and homogenous tissue (isotropic or anisotropic)
 
 ## Current Issues ##
 
-1. Requires some local functions, nearly complete with extracting dependencies into separate directory for optional install
+1. Installation in Matlab takes a bit of effort. I have plans to clean this up.
 
 ## Requirements ##
 
-1. Windows - temporary requirement, fixable problem
-2. NEURON  - http://www.neuron.yale.edu/neuron/
+1. NEURON  - http://www.neuron.yale.edu/neuron/
+
+## Future Design Plans ##
+
+1. Create NEURON class analogs in Matlab for exploring common NEURON objects - sectionlist, list, section
+2. Implement intracellular stim. simulations
+
+## Other Smaller TODOs ##
+
+1. Create a method to reload NEURON hoc library
+2. Selectively load library given simulation type
