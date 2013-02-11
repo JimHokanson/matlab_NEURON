@@ -1,50 +1,44 @@
 function result_obj = determine_threshold(obj,starting_value)
-%determine_threshold.
+%determine_threshold
 %
 %   result_obj = determine_threshold(obj,starting_value)
 %
 %   OUTPUTS
 %   =======================================================================
-%   result_obj : (NEURON.simulation.extracellular_stim.results.threshold_testing_history)
-%                Result object documenting testing ...
+%   result_obj : (Class: NEURON.simulation.extracellular_stim.results.threshold_testing_history)
+%                Result object that documents the testing performed.
 %
-%   TODO:
+%   IMPROVEMENTS
 %   =======================================================================
-%   1) Provide result class
-%   2) Handle edge cases
-%   3) Handle bounding errors more appropriately
-%   4) Document results ...
-%   5) Do subthreshold to threshold projections ...
-%
+%   1) Check applied stimuli to make sure it isn't identically zero
 %
 %   See Also:
 %       NEURON.simulation.extracellular_stim.results.single_sim;
 %
-%   FULL PATH: NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold;
-%
-%   Class: NEURON.simulation.extracellular_stim.threshold_analysis
+%   FULL PATH: 
+%       NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
+
 
 %in.throw_error = true;
 %in = processVarargin(in,varargin);
 
+%TODO: Check applied stimulus ...
 %What about if there is:
 %1) No applied stimulus 
 %   - this can come in if exactly half way between two opposite signed stimuli
 %2) Infinite applied extracellular voltage????
 %   - this is fixed when computing the stimulus ...
 
-%TODO: Check applied stimulus ...
 
+%Classes:
+%t - NEURON.simulation.extracellular_stim.threshold_options
+%r - NEURON.simulation.extracellular_stim.results.single_sim
+%result_obj - NEURON.simulation.extracellular_stim.results.threshold_testing_history
 
-%stim_sign = sign(starting_value);
-
-
-%NEURON.simulation.extracellular_stim.threshold_options;
 t = obj.parent.threshold_options_obj;
 
 %First simulation ---------------------------------------------------------
 r = run_stimulation(obj,starting_value);
-%r Class: NEURON.simulation.extracellular_stim.results.single_sim;
 
 result_obj = NEURON.simulation.extracellular_stim.results.threshold_testing_history(obj.threshold_info);
 
@@ -52,14 +46,17 @@ result_obj = NEURON.simulation.extracellular_stim.results.threshold_testing_hist
 %--------------------------------------------------------------------------
 lower_bound = helper__getNewestBounds(obj,r,t,starting_value,result_obj);
 if isempty(lower_bound)
-    [lower_bound,upper_bound,n_loops] = helper__getLowerBound(obj,t,starting_value,result_obj);
+    [lower_bound,upper_bound] = helper__getLowerBound(obj,t,starting_value,result_obj);
 else
-    [lower_bound,upper_bound,n_loops] = helper__getHigherBound(obj,t,starting_value,result_obj);
+    [lower_bound,upper_bound] = helper__getHigherBound(obj,t,starting_value,result_obj);
 end
 
 %Binary search until solution is found
 %--------------------------------------------------------------------------
 while true
+    
+   %Stopping condition check
+   %----------------------------------------------------------
    bound_difference = abs(upper_bound - lower_bound);
    if bound_difference < t.threshold_accuracy
        break
@@ -67,8 +64,6 @@ while true
     
    next_value = helper__getNextValue(lower_bound,bound_difference);
    r = run_stimulation(obj,next_value);
-   
-   n_loops = n_loops + 1;
    
    [lower_bound_temp,upper_bound_temp] = helper__getNewestBounds(obj,r,t,next_value,result_obj);
    if isempty(lower_bound_temp)
@@ -78,8 +73,8 @@ while true
    end
 end
 
-%Threshold - upper bound - or halfsies?
-if obj.opt_use_halfway_point_for_threshold
+%Threshold - upper bound or halfsies?
+if t.use_halfway_value_as_threshold
     bound_difference = abs(upper_bound - lower_bound);
     stimulus_threshold = helper__getNextValue(lower_bound,bound_difference);
 else

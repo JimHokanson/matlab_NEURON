@@ -24,8 +24,13 @@ m.n_new = obj.n_new;
 
 %NOTE: Some of these might be better off as unique statements ...
 [~,loc_old_vs_old] = ismember(obj.low_d_old_stimuli,obj.low_d_old_stimuli,'rows');
-[~,loc_new_vs_old] = ...
-                     ismember(obj.low_d_new_stimuli,obj.low_d_old_stimuli,'rows');
+
+if ~isempty(obj.low_d_old_stimuli)
+[~,loc_new_vs_old] = ismember(obj.low_d_new_stimuli,obj.low_d_old_stimuli,'rows');
+else
+   loc_new_vs_old = zeros(obj.n_new,1); 
+end
+
 [~,loc_new_vs_new] = ismember(obj.low_d_new_stimuli,obj.low_d_new_stimuli,'rows');
 
 
