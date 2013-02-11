@@ -1,38 +1,32 @@
 function adjustBoundsGivenMaxScale(obj,max_scale,varargin)
+%adjustBoundsGivenMaxScale
 %
 %   adjustBoundsGivenMaxScale(obj,max_scale)
 %
 %   Implementation note:
-%   -----------------------------------------------------------------
+%   -----------------------------------------------------------------------
 %   This approach currently assumes an axon model where we don't need to
 %   adjust bounds in the z direction since the axon is assumed to occupy an
 %   infinite length (or much larger than the stimulation region).
 %
 %
 %   IMPROVEMENTS
-%   -----------------------------------------------------------------
-%   1) Also allow shrinking of bounds to reduce interpolation work ...
+%   -----------------------------------------------------------------------
+%   1) Grow bounds more efficiently than one layer at a time ...
 %
 %   See Also:
 %       NEURON.simulation.extracellular_stim.results.activation_volume.checkBounds
-%       
-
-%How to determine best growth?
-% - for now just increment ...
 
 in.sim_logger = [];
 in = processVarargin(in,varargin);
 
-%sim_logger = obj.xstim_obj.sim
-
-too_small = checkBounds(obj,max_scale,'sim_logger',in.sim_logger);
+[too_small,min_abs_value_per_side] = obj.checkBounds(max_scale,'sim_logger',in.sim_logger);
 
 if ~any(too_small)
     return
 end
 
-fprintf(2,'Updating bounds to encompass stim at %g\n',max_scale);
-
+fprintf(2,'Updating bounds to encompass stim at %g, current min bound: %g\n',max_scale,min(min_abs_value_per_side));
 
 %IMPORTANT: This is only valid for the axon model where z shouldn't need to
 %be resized ...
@@ -58,7 +52,9 @@ while ~done
        obj.bounds(2,1) = obj.bounds(2,1) + obj.step_size; 
     end
     
-    too_small = checkBounds(obj,max_scale,'sim_logger',in.sim_logger);
+    [too_small,min_abs_value_per_side] = obj.checkBounds(max_scale,'sim_logger',in.sim_logger);
+    
+    fprintf(2,'Current min bound: %g\n',min(min_abs_value_per_side))
     
     done = ~any(too_small);
     

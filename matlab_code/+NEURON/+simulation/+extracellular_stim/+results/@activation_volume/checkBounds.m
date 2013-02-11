@@ -1,5 +1,7 @@
 function [too_small,min_abs_value_per_side] = checkBounds(obj,max_scale,varargin)
+%checkBounds
 %
+%   [too_small,min_abs_value_per_side] = checkBounds(obj,max_scale,varargin)
 %
 %   TODO: Finish documentation
 %

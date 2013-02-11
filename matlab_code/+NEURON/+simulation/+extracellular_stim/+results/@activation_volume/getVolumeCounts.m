@@ -1,5 +1,12 @@
-function stim_level_counts = populateVolumeCounts(obj,stim_levels,varargin)
+function stim_level_counts = getVolumeCounts(obj,stim_levels,varargin)
+%getVolumeCounts
 %
+%   stim_level_counts = getVolumeCounts(obj,stim_levels,varargin)
+%   
+%   OUTPUTS
+%   =======================================================================
+%   stim_level_counts : for each stimulus level input this specifies the #
+%       of cubic microns
 %
 %   OPTIONAL INPUTS
 %   =======================================================================
@@ -7,21 +14,16 @@ function stim_level_counts = populateVolumeCounts(obj,stim_levels,varargin)
 %       used for griddedInterpolant
 %   max_MB        : (default 500), how much memory (roughly) to use during
 %           interpolation. This unfortunately didn't end up having as much
-%           of an effect on speed as I expected ...
-%
-%
-%   ?? How to handle double activation from two electrodes?
-%   - stim on single electrode, then at some point later on a second
-%   electrode? -> perhaps I should enforce limits
-%   -> like in the two electrode case, only go so far in one direction ...
-%
-%       e1       e2    <- same model, just replicated in time
-%            |        <- cutoff point beyond which not to count to avoid duplication
+%           of an effect on speed as I expected 
+%           I tested 200 MB to 8 GB with no appreciable difference in
+%           overall speed.
 %
 %   IMPROVEMENTS
 %   =======================================================================
 %   1) ind2sub could be removed, it is very slow
 %   2) implement filtering - to avoid double counting with replications ...
+%   3) Implement gradient testing to ensure that the mesh is significantly
+%      refined enough to allow interpolation.
 %
 %   See Also:
 %       griddedInterpolant
@@ -29,6 +31,8 @@ function stim_level_counts = populateVolumeCounts(obj,stim_levels,varargin)
 %
 %   FULL PATH:
 %       NEURON.simulation.extracellular_stim.results.activation_volume.populateVolumeCounts
+
+MIN_SAMPLES_PER_LOOP = 100;
 
 in.interp_method = 'linear';
 in.max_MB        = 500;
@@ -58,13 +62,12 @@ signed_max_scale = abs_max_scale*sign(stim_levels(1));
 xstim_obj  = obj.xstim_obj;
 sim_logger = xstim_obj.sim__getLogInfo;
 
+%NEURON.simulation.extracellular_stim.results.activation_volume.adjustBoundsGivenMaxScale
 obj.adjustBoundsGivenMaxScale(signed_max_scale,'sim_logger',sim_logger)
 
 %Step 3: Retrieval of thresholds
 %-----------------------------------------------
-
 done = false;
-
 while ~done
     
     thresholds = xstim_obj.sim__getThresholdsMulipleLocations(obj.getXYZlattice(true),...
@@ -72,21 +75,17 @@ while ~done
     
     %TODO: Implement gradient testing
     
-    %{
-      
-      Determine area of large gradient, test maybe 10 - 20 places
-      %see how they compare to interpolation values at those locations
-      if they are too different, then change scale and rerun
-      if they are close, then do interpolation and return result
-
-    %}
-    
-    
+%   Determine area of large gradient, test maybe 10 - 20 places
+%   see how they compare to interpolation values at those locations
+%   if they are too different, then change scale and rerun
+%   if they are close, then do interpolation and return result
     done = true;
-    
 end
 
 abs_thresholds = abs(thresholds);
+
+%Possible Improvement: Shrink bounds here to only interpolate over 
+%region where thresholds are within range
 
 %Step 4
 %---------------------------------------------------
@@ -95,7 +94,7 @@ abs_thresholds = abs(thresholds);
 [x,y,z] = obj.getXYZlattice(false);
 
 %NOTE: This makes an assumption of interpolating at the 1 micron level
-%i.e. the step size is 1 micron
+%i.e. the step size is 1 micron (overall units are in microns)
 xi_final = (x(1):x(end))';
 yi_final = (y(1):y(end))';
 zi_final = (z(1):z(end))';
@@ -104,12 +103,13 @@ internode_length = obj.getInternodeLength;
 
 F = griddedInterpolant({x,y,z},abs_thresholds,in.interp_method);
 
-
 nz = length(zi_final);
 nx = length(xi_final);
 ny = length(yi_final);
 
 %Let's linearize thresholding over x & y, i.e. go by linear indexing
+
+%This # is used to conserve memory to an appropriate level.
 
 REPLICATION_FACTOR = 9; %How many times we create a vector of the max size
 %1 thresholds
@@ -119,7 +119,7 @@ REPLICATION_FACTOR = 9; %How many times we create a vector of the max size
 %9 locations, xyz (only temporary)
 
 n_samples_per_loop = floor(in.max_MB*1e6/(nz*8))/REPLICATION_FACTOR; 
-n_samples_per_loop = max(n_samples_per_loop,100); %TODO: Move constant to top
+n_samples_per_loop = max(n_samples_per_loop,MIN_SAMPLES_PER_LOOP);
 n_samples_total    = nx*ny;
 
 n_loops_total      = ceil(n_samples_total/n_samples_per_loop);
@@ -127,13 +127,14 @@ n_loops_total      = ceil(n_samples_total/n_samples_per_loop);
 
 z_indices_offset = 0:n_samples_total:(n_samples_total*(nz-1));
 
+%These values will be used for histc, see explanation on histc 
+%usage below
 stim_levels_histc = [0; abs(stim_levels(:))];
 
+h = waitbar(0,'Producing Counts');
 cur_start_index = 0;
 for iLoop = 1:n_loops_total
    
-   fprintf('Running loop %d of %d\n',iLoop,n_loops_total);
-    
    %Indices will index into x-y points, we'll run all z at once ...
    cur_indices     = cur_start_index+1:cur_start_index+n_samples_per_loop;
    cur_start_index = cur_start_index + n_samples_per_loop;
@@ -153,23 +154,29 @@ for iLoop = 1:n_loops_total
    [I,J,K] = ind2sub([nx ny nz],all_indices(:));
    
    thresholds_interpolated   = F([xi_final(I) yi_final(J) zi_final(K)]);
+   
+   %IMPORTANT: the reshaped matrix is [xy by z]
    thresholds_interpolated_r = reshape(thresholds_interpolated,[n_current_indices nz]);
+   
+   
    
    %Now we want to test all stim levels
    
-   %Let's examine thresholds for 4,6,8
-   %the first bin will be 0 - 4, values in this bin have thresholds below 4
-   %the 2nd bin will be for 4 - 6, here 6 is above threshold ...
-   %- by operating in the 2nd dimension, we sum for each x-y point along
+   %Consider as an example thresholds for 4,6,8
+   %- The first bin will be 0 - 4, values in this bin have thresholds below 4
+   %- The 2nd bin will be for 4 - 6, here 6 is above threshold ...
+   %- By operating in the 2nd dimension, we sum for each x-y point along
    %the values in z, i.e. N is a count along z
-   %- the number of rows in N corresponds to the # of x-y points
+   %- The number of rows in N corresponds to the # of x-y points
    %(n_current_indices)
+   %- The number of columns corresponds to each threshold division
    N = histc(thresholds_interpolated_r,stim_levels_histc,2);
    
-   %- The cumalative sum indicates that things which are above one threshold
-   %are above another threshold
-   %- the last bin indicates equal to the highest value, we'll ignore this
-   %for now
+   %- The cumalative sum is used as things which are above one threshold
+   %are above all other thresholds tested. In other words, if a point has a
+   %threshold below 4, it is also below 6
+   %- The last bin indicates values equal to the highest value. We'll 
+   %ignore this for now
    N_cumulative = cumsum(N(:,1:end-1),2);
    
    %This sets a limit on the # of times a bin can be counted in the z
@@ -177,8 +184,11 @@ for iLoop = 1:n_loops_total
    N_cumulative(N_cumulative > internode_length) = internode_length;
    
    stim_level_counts = stim_level_counts + sum(N_cumulative,1);
-      
+     
+   waitbar(iLoop/n_loops_total,h);
 end
+
+close(h)
 
 end
 
