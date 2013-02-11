@@ -57,10 +57,9 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     end
     
     properties (SetAccess = private)
-       xstim_event_manager_obj 
        xyz_all 
+       xyz_center
     end
-    
     
     %??? - Do I want to move this to a separate class
     %DESIGN NOTE FOR DIRTY BITS

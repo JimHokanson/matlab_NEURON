@@ -42,7 +42,7 @@ classdef extracellular_stim_capable < handle
     end
     
     %.create_stim_sectionlist() -------------------------------------------
-    properties
+    properties (Hidden)
         opt__use_local_stim_sectionlist_code = false; %If true code should
         %implement create_stim_sectionlist.hoc. If false the default method
         %will be used. The default is usually sufficient for cases with no
@@ -55,7 +55,7 @@ classdef extracellular_stim_capable < handle
     end
     
     %.create_node_sectionlist() -------------------------------------------
-    properties
+    properties (Hidden)
         opt__use_local_node_sectionlist_code = false;
     end
     

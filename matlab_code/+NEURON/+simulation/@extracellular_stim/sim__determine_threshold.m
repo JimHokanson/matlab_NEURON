@@ -28,7 +28,8 @@ function result_obj = sim__determine_threshold(obj,starting_value)
 %       NEURON.simulation.extracellular_stim.threshold_analysis
 %       NEURON.simulation.extracellular_stim.results.threshold_testing_history
 %
-%   FULL PATH: NEURON.simulation.extracellular_stim.sim_determine_threshold
+%   FULL PATH: 
+%       NEURON.simulation.extracellular_stim.sim_determine_threshold
 
     %Important call to make sure everything is synced
     obj.init__simulation();

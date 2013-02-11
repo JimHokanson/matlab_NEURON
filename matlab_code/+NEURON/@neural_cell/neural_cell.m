@@ -20,7 +20,7 @@ classdef neural_cell < handle
     properties (Dependent)
        model_directory 
     end
-    
+        
     methods 
         function value = get.model_directory(obj)
            value = fullfile(obj.simulation_obj.path_obj.hoc_code_model_root,obj.HOC_CODE_DIRECTORY);

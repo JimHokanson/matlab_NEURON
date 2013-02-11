@@ -1,16 +1,13 @@
-function t_all = sim__getCurrentDistanceCurve(obj,distance_steps,dim,starting_value)
+function t_all = sim__getCurrentDistanceCurve(obj,xyz_test,starting_value)
 %sim__getCurrentDistanceCurve
 %
 %   t_all = sim__getCurrentDistanceCurve(obj,distance_steps,dim,starting_value)
 %
 %   INPUTS
 %   =====================================================
-%   distance_steps : steps at which to evaluate threshold
-%   dim            : numeric value, either 1, 2, or 3 for x,y,z
-%                    NOTE: for axons they travel along z ...
+%   xyz_test       : 
 %   starting_value : starting stimulus level, SIGN is important
-%
-%   
+% 
 %   IMPROVEMENTS
 %   =====================================================
 %   1) Eventually return a result object
@@ -22,13 +19,14 @@ function t_all = sim__getCurrentDistanceCurve(obj,distance_steps,dim,starting_va
 %   See Also:
 %       
 
-error('This function is out of date and needs up be updated')
+in.use_sim_logger = true;
+in = processVarargin(in,varargin);
 
-elec_obj_local      = obj.elec_objs;
-threshold_obj_local = obj.threshold_cmd_obj;
-if length(elec_obj_local) ~= 1
-    error('Function assumes only a single electrode')
-end
+
+if in.use_sim_logger
+
+elec_obj_local    = obj.elec_objs;
+threshold_options = obj.threshold_options_obj;
 
 moveCenter(obj.cell_obj,[0 0 0])
 

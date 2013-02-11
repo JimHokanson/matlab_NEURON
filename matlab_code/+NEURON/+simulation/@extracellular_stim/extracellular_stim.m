@@ -1,6 +1,5 @@
 classdef extracellular_stim < NEURON.simulation
     %
-    %   
     %   Class: 
     %       NEURON.simulation.extracellular_stim
     %
@@ -10,21 +9,12 @@ classdef extracellular_stim < NEURON.simulation
     %
     %   Simulation Methods
     %   ===================================================================
-    %
     %   NEURON.simulation.extracellular_stim.sim__single_stim
     %   NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
     %   NEURON.simulation.extracellular_stim.sim__determine_threshold
     %   NEURON.simulation.extracellular_stim.sim__getActivationVolume
     %
-    %   Package Classes
-    %   ===================================================================
-    %   data_transfer
-    %   event_manager
-    %   threshold_analysis
-    %   threshold_options
-    %
 
-    
     %   PROPERTIES FROM OTHERS
     %   =================================================================
     %   FROM NEURON.simulation - NOTE: Unfortunately there are many more ...
@@ -36,9 +26,11 @@ classdef extracellular_stim < NEURON.simulation
     %OPTIONS =============================================================
     properties
         threshold_options_obj   %Class: NEURON.simulation.extracellular_stim.threshold_options
-        ev_man_obj              %Class: NEURON.simulation.extracellular_stim.event_manager
+    end
+    
+    properties (Hidden)
         data_transfer_obj       %Class: NEURON.simulation.extracellular_stim.data_transfer
-        threshold_analysis_obj  %Class: NEURON.simulation.extracellular_stim.threshold_analysis
+        threshold_analysis_obj  %Class: NEURON.simulation.extracellular_stim.threshold_analysis    
     end
     
     properties (SetAccess = private)
@@ -50,7 +42,7 @@ classdef extracellular_stim < NEURON.simulation
         cell_obj     %(Class neural_cell), singular
     end
     
-    properties
+    properties (Hidden)
         %.init__create_stim_info()
         %.computeStimulus()
         %-------------------------------------------------------
@@ -64,7 +56,8 @@ classdef extracellular_stim < NEURON.simulation
     end
     
     %Latest configurations
-    properties
+    %TODO: Document these ...
+    properties (Hidden)
        tissue_configuration    = []
        electrode_configuration = []
        cell_configuration      = []
@@ -91,7 +84,6 @@ classdef extracellular_stim < NEURON.simulation
             obj@NEURON.simulation(in);
             
             obj.threshold_options_obj  = threshold_options;
-            obj.ev_man_obj             = event_manager(obj);
             obj.data_transfer_obj      = data_transfer(obj,obj.sim_hash);
             obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd_obj);
             
