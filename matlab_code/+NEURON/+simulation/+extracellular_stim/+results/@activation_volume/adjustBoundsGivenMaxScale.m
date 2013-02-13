@@ -20,7 +20,13 @@ function adjustBoundsGivenMaxScale(obj,max_scale,varargin)
 in.sim_logger = [];
 in = processVarargin(in,varargin);
 
+min_history_all = zeros(100,4);
+bounds_all      = zeros(100,4);
+cur_index       = 0;
+
 [too_small,min_abs_value_per_side] = obj.checkBounds(max_scale,'sim_logger',in.sim_logger);
+
+min_history_all(1,:) = min_abs_value_per_side;
 
 if ~any(too_small)
     return
@@ -32,29 +38,50 @@ fprintf(2,'Updating bounds to encompass stim at %g, current min bound: %g\n',max
 %be resized ...
 done = false;
 while ~done
+    cur_index = cur_index + 1;
+    min_history_all(cur_index,:) = min_abs_value_per_side;
+    bounds_all(cur_index,:) = [obj.bounds(1,2) obj.bounds(2,2) obj.bounds(1,1) obj.bounds(2,1)];
+    cur_index = cur_index + 1;
     
-    %indices, bottom, top left, right
-    %           -y     y   -x     x
-    
-    if too_small(1)
-       obj.bounds(1,2) = obj.bounds(1,2) - obj.step_size;
-    end
-    
-    if too_small(2)
-       obj.bounds(2,2) = obj.bounds(2,2) + obj.step_size; 
-    end
-    
-    if too_small(3)
-       obj.bounds(1,1) = obj.bounds(1,1) - obj.step_size;
-    end
-    
-    if too_small(4)
-       obj.bounds(2,1) = obj.bounds(2,1) + obj.step_size; 
+    if cur_index == 3
+        for iSide = 1:4
+            new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'pchip','extrap');
+            switch iSide
+                case 1
+                    obj.bounds(1,2) = round2(new_bound,obj.step_size,@floor);
+                case 2
+                    obj.bounds(2,2) = round2(new_bound,obj.step_size,@ceil);
+                case 3
+                    obj.bounds(1,1) = round2(new_bound,obj.step_size,@floor);
+                case 4
+                    obj.bounds(2,1) = round2(new_bound,obj.step_size,@ceil);
+            end
+        end
+    else
+        
+        %indices, bottom, top left, right
+        %           -y     y   -x     x
+        
+        if too_small(1)
+            obj.bounds(1,2) = obj.bounds(1,2) - obj.step_size;
+        end
+        
+        if too_small(2)
+            obj.bounds(2,2) = obj.bounds(2,2) + obj.step_size;
+        end
+        
+        if too_small(3)
+            obj.bounds(1,1) = obj.bounds(1,1) - obj.step_size;
+        end
+        
+        if too_small(4)
+            obj.bounds(2,1) = obj.bounds(2,1) + obj.step_size;
+        end
     end
     
     [too_small,min_abs_value_per_side] = obj.checkBounds(max_scale,'sim_logger',in.sim_logger);
     
-    fprintf(2,'Current min bound: %g\n',min(min_abs_value_per_side))
+    fprintf(2,'Current min bound: %g\n, goal: %g',min(min_abs_value_per_side),max_scale);
     
     done = ~any(too_small);
     
