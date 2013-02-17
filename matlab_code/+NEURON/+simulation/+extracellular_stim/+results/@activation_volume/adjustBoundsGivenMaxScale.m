@@ -13,7 +13,16 @@ function adjustBoundsGivenMaxScale(obj,max_scale,varargin)
 %   IMPROVEMENTS
 %   -----------------------------------------------------------------------
 %   1) Grow bounds more efficiently than one layer at a time ...
-%
+%       - started implementation, I need to change order to be
+%       xmin,xmax,ymin,ymax so that we can index into the matrix 1 - 4
+%       - I also need to only test the extremes in the position and grow
+%       along the max gradient, or for simplicity, the limiting point
+%       - in other words, if the limit is the following for a side
+%       - 1 2 1 
+%         2 3 2         Then we should only test the middle value out
+%         1 2 1         until we max, then run this current approach 
+%                       after that point
+% 
 %   See Also:
 %       NEURON.simulation.extracellular_stim.results.activation_volume.checkBounds
 
@@ -41,11 +50,11 @@ while ~done
     cur_index = cur_index + 1;
     min_history_all(cur_index,:) = min_abs_value_per_side;
     bounds_all(cur_index,:) = [obj.bounds(1,2) obj.bounds(2,2) obj.bounds(1,1) obj.bounds(2,1)];
-    cur_index = cur_index + 1;
     
-    if cur_index == 3
+    if cur_index == 2
+        %NOTE: For right now we'll only run this once
         for iSide = 1:4
-            new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'pchip','extrap');
+            new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'linear','extrap');
             switch iSide
                 case 1
                     obj.bounds(1,2) = round2(new_bound,obj.step_size,@floor);
@@ -57,6 +66,9 @@ while ~done
                     obj.bounds(2,1) = round2(new_bound,obj.step_size,@ceil);
             end
         end
+        %TODO: Add on some check that things haven't flipped
+        %I had pchip interpolation and it made my positive bound negative
+        %and my negative bound positive
     else
         
         %indices, bottom, top left, right
@@ -81,7 +93,7 @@ while ~done
     
     [too_small,min_abs_value_per_side] = obj.checkBounds(max_scale,'sim_logger',in.sim_logger);
     
-    fprintf(2,'Current min bound: %g\n, goal: %g',min(min_abs_value_per_side),max_scale);
+    fprintf(2,'Current min bound: %g, goal: %g\n',min(min_abs_value_per_side),max_scale);
     
     done = ~any(too_small);
     
