@@ -2,7 +2,7 @@ classdef Peterson_2011
     %
     %   Class: NEURON.reproductions.Peterson_2011
     %   
-    
+    %   ??? - does this model support anodic excitation prediction?
     
     %Abbreviations:
     %EAS

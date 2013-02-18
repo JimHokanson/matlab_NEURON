@@ -51,19 +51,21 @@ while ~done
     min_history_all(cur_index,:) = min_abs_value_per_side;
     bounds_all(cur_index,:) = [obj.bounds(1,2) obj.bounds(2,2) obj.bounds(1,1) obj.bounds(2,1)];
     
-    if cur_index == 2
+    if cur_index == 3
         %NOTE: For right now we'll only run this once
         for iSide = 1:4
-            new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'linear','extrap');
-            switch iSide
-                case 1
-                    obj.bounds(1,2) = round2(new_bound,obj.step_size,@floor);
-                case 2
-                    obj.bounds(2,2) = round2(new_bound,obj.step_size,@ceil);
-                case 3
-                    obj.bounds(1,1) = round2(new_bound,obj.step_size,@floor);
-                case 4
-                    obj.bounds(2,1) = round2(new_bound,obj.step_size,@ceil);
+            if too_small(iSide)
+                new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'linear','extrap');
+                switch iSide
+                    case 1
+                        obj.bounds(1,2) = round2(new_bound,obj.step_size,@floor);
+                    case 2
+                        obj.bounds(2,2) = round2(new_bound,obj.step_size,@ceil);
+                    case 3
+                        obj.bounds(1,1) = round2(new_bound,obj.step_size,@floor);
+                    case 4
+                        obj.bounds(2,1) = round2(new_bound,obj.step_size,@ceil);
+                end
             end
         end
         %TODO: Add on some check that things haven't flipped

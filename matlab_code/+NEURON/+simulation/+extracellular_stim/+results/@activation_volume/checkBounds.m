@@ -3,7 +3,7 @@ function [too_small,min_abs_value_per_side] = checkBounds(obj,max_scale,varargin
 %
 %   [too_small,min_abs_value_per_side] = checkBounds(obj,max_scale,varargin)
 %
-%   TODO: Finish documentation
+%   
 %
 %   Return 4 sides activation volume, not interpolated
 %
@@ -22,11 +22,10 @@ function [too_small,min_abs_value_per_side] = checkBounds(obj,max_scale,varargin
 in.sim_logger = [];
 in = processVarargin(in,varargin);
 
-[x,y,z] = obj.getXYZlattice();
-
-xstim_obj  = obj.xstim_obj;
-
 threshold_sign = sign(max_scale);
+
+[x,y,z]   = obj.getXYZlattice();
+xstim_obj = obj.xstim_obj;
 
 %Step 1:  Get xyz
 %-------------------------------------------------------------
@@ -48,7 +47,6 @@ end
 
 n_elements_per_side = cellfun(@(x) size(x,1),xyz_linear);
 xyz_all = vertcat(xyz_linear{:});
-
 
 %Step 2: Compute thresholds
 %--------------------------------------------------------------------------
