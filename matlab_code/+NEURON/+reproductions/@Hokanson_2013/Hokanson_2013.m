@@ -21,15 +21,17 @@ classdef Hokanson_2013
         %ALL_DIAMETERS = [5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;];
         ALL_DIAMETERS = [5.7, 8.7, 10, 12.8, 15];
         ALL_ELECTRODE_PAIRINGS = {
-            [0 0 0]                          %1) Centered Electrode
-            [-400   0   0;  400  0   0]      %2) Transverse pairing
-            [-200   0   0;  200  0   0]      %3)
-            [-100   0   0;  100  0   0]      %4)
-            [0    -100 -400; 0   100 400]    %5) Longitudinal pairing
-            [0    -50  -200; 0   50  200]    %6)
-            [0    -25  -100; 0   25  100]    %7)
-            [-200 -50  -200; 200 50 200]     %8) Diagonal pairing
+            [0 0 0]                          %Centered Electrode
+            [-400   0   0;  400  0   0]      %Transverse pairing
+            [-200   0   0;  200  0   0]      %
+            [-100   0   0;  100  0   0]      %
+            [0    -100 -400; 0   100 400]    %Longitudinal pairing
+            [0    -50  -200; 0   50  200]    %
+            [0    -25  -100; 0   25  100]    %
+            [-200 -50  -200; 200 50 200]     %Diagonal pairing
             }
+        
+        %NOTE: Ideally this would be self generated ...
         ELECTRODE_PAIRING_DESCRIPTIONS = {
             'Centered Electrode'
             '800 apart X'
@@ -44,13 +46,7 @@ classdef Hokanson_2013
     end
     
     methods (Static)
-        function figure0()
-            %Steup figure, do later ...
-            %Thresholds in 3d (circle size and color is threshold)
-            %Do for both a two electrode case and the single electrode case
-            %Or do one for one and one for the other ...
-        end
-        
+        figure0()
         figure1()
         figure2()
         figure3()
@@ -111,6 +107,7 @@ classdef Hokanson_2013
             %
             
             in.current_diameter = [];
+            in.stim_width       = [];
             in = processVarargin(in,varargin);
             
             %The goal here is to get the point at which a single
@@ -135,6 +132,11 @@ classdef Hokanson_2013
             options = {...
                 'electrode_locations',single_electrode_location,...
                 'tissue_resistivity',obj.TISSUE_RESISTIVITY};
+            
+            if ~isempty(in.stim_width)
+               options = [options 'stim_durations' [in.stim_width 2*in.stim_width]];
+            end
+            
             xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
             
             xstim_obj.cell_obj.moveCenter(max_threshold_distance_vector)

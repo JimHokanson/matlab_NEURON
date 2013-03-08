@@ -38,11 +38,10 @@ for iPair = [3 6]
         cell_obj.props_obj.changeFiberDiameter(current_diameter);
         act_obj   = xstim_obj.sim__getActivationVolume();
         
-        x_stim_all{iPair,iDiameter} = 1:0.5:max_stim_all(iPair);
-        counts_all{iPair,iDiameter} = act_obj.getVolumeCounts(x_stim_all{iPair});
+        x_stim_all{iPair,iDiameter} = 1:0.5:max_stim_all(iPair,iDiameter);
+        counts_all{iPair,iDiameter} = act_obj.getVolumeCounts(x_stim_all{iPair,iDiameter});
     end
 end
-
 
 %Determining the "normalization factor"
 %--------------------------------------------------------------
@@ -64,15 +63,34 @@ for iDiameter = 1:n_diameters
 end
 
 figure
-hold all
-% for iPair = 2:n_electrode_pairings
-%     cur_counts   = counts_all{iPair};
-%     n_cur_counts = length(cur_counts);
-%     x_stim       = x_stim_all{iPair};
-%     %NOTE: We double count the single electrode to account for both
-%     %electrodes
-%     plot(x_stim,cur_counts./(2*counts_all{1}(1:n_cur_counts)));
-% end
+
+pairs_use = [3 6];
+ax = zeros(1,2);
+diameter_legends = cell(1,n_diameters);
+for iPair = 1:2
+    cur_pair = pairs_use(iPair);
+    ax(iPair) = subplot(1,2,iPair);
+    hold all
+    for iDiameter = 1:n_diameters
+        
+        diameter_legends{iDiameter} = sprintf('%g um',obj.ALL_DIAMETERS(iDiameter));
+        
+        cur_counts   = counts_all{cur_pair,iDiameter};
+        n_cur_counts = length(cur_counts);
+        x_stim       = x_stim_all{cur_pair,iDiameter};
+        %NOTE: We double count the single electrode to account for both
+%         n_cur_counts = length(x_stim);
+%         cur_counts = cur_counts(1:n_cur_counts);
+        %electrodes
+        plot(x_stim,cur_counts./(2*counts_all{1,iDiameter}(1:n_cur_counts)));
+    end
+    legend(diameter_legends)
+    title(obj.ELECTRODE_PAIRING_DESCRIPTIONS{cur_pair})
+    xlabel('Stimulus Amplitude (uA)')
+end
+
+%TODO: Remove hardcode
+set(ax,'YLim',[0 3],'XLim',[0 25])
 
 keyboard
 
