@@ -3,6 +3,17 @@ function result_obj = determine_threshold(obj,starting_value)
 %
 %   result_obj = determine_threshold(obj,starting_value)
 %
+%   This is the main method that actually implements determining threshold.
+%   In general it should not be called by the user. Instead one should
+%   refer to a similar method in the extracellular_stim class.
+%
+%   INPUTS
+%   =======================================================================
+%   starting_value : Absolute scalar value to start with when determining
+%       threshold. Threshold itself is assumed to be a scalar value,
+%       regardless of the complexity of the stimulus. The sign of the
+%       starting_value limits the solution to being of the same sign. 
+%
 %   OUTPUTS
 %   =======================================================================
 %   result_obj : (Class: NEURON.simulation.extracellular_stim.results.threshold_testing_history)
@@ -13,7 +24,8 @@ function result_obj = determine_threshold(obj,starting_value)
 %   1) Check applied stimuli to make sure it isn't identically zero
 %
 %   See Also:
-%       NEURON.simulation.extracellular_stim.results.single_sim;
+%       NEURON.simulation.extracellular_stim.results.sim__single_stim;
+%       NEURON.simulation.extracellular_stim.results.sim__determineThreshold;
 %
 %   FULL PATH: 
 %       NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold

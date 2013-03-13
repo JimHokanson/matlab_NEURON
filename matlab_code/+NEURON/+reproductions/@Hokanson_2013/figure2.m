@@ -1,47 +1,44 @@
 function figure2()
 %
-%       NEURON.reproductions.Hokanson_2013.figure2
+%   NEURON.reproductions.Hokanson_2013.figure2
 
-%??? - how to combine different diameters
+
 
 
 obj = NEURON.reproductions.Hokanson_2013;
 
+MAX_STIM_LEVEL = 30;
+
 single_electrode_location = obj.ALL_ELECTRODE_PAIRINGS{1};
+double_electrode_location = obj.ALL_ELECTRODE_PAIRINGS{7};
 
 n_diameters = length(obj.ALL_DIAMETERS);
 
+stim_amplitudes = 1:0.5:MAX_STIM_LEVEL;
+dual_counts_all   = cell(1,n_diameters);
+single_counts_all = cell(1,n_diameters); 
 
+%TODO: Replicate code for single electrodes as well ...
+%Make this a function ????
+for iDiameter = 1:n_diameters
 
-%We start at 2 to ignore the single electrode case ...
-for iPair = [3 6]
-    for iDiameter = 1:n_diameters
-        
-        fprintf('Running Pair: %d\n',iPair);
-        fprintf('Running Diameter: %d\n',iDiameter);
-        
-        current_pair     = obj.ALL_ELECTRODE_PAIRINGS{iPair};
-        current_diameter = obj.ALL_DIAMETERS(iDiameter);
-        
-        
-        max_stim_all(iPair,iDiameter) = obj.getMaxStimLevelToTest(current_pair,...
-            'current_diameter',current_diameter);
-        
-        
-        %Determine counts for electrode pairing given max stimulus
-        %---------------------------------------------------------------
-        options = {...
-            'electrode_locations',current_pair,...
-            'tissue_resistivity',obj.TISSUE_RESISTIVITY};
-        xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
-        cell_obj  = xstim_obj.cell_obj;
-        cell_obj.props_obj.changeFiberDiameter(current_diameter);
-        act_obj   = xstim_obj.sim__getActivationVolume();
-        
-        x_stim_all{iPair,iDiameter} = 1:0.5:max_stim_all(iPair,iDiameter);
-        counts_all{iPair,iDiameter} = act_obj.getVolumeCounts(x_stim_all{iPair,iDiameter});
-    end
+    fprintf('Running Diameter: %d\n',iDiameter);
+
+    current_diameter = obj.ALL_DIAMETERS(iDiameter);
+
+    %Determine counts for electrode pairing given max stimulus
+    %----------------------------------------------------------------------
+    options = {...
+        'electrode_locations',double_electrode_location,...
+        'tissue_resistivity',obj.TISSUE_RESISTIVITY};
+    xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
+    cell_obj  = xstim_obj.cell_obj;
+    cell_obj.props_obj.changeFiberDiameter(current_diameter);
+    act_obj   = xstim_obj.sim__getActivationVolume();
+
+    dual_counts_all{iDiameter} = act_obj.getVolumeCounts(stim_amplitudes);
 end
+
 
 %Determining the "normalization factor"
 %--------------------------------------------------------------

@@ -18,13 +18,18 @@ classdef Hokanson_2013
     end
     
     properties (Constant)
+        %MRG Diameters ...
         %ALL_DIAMETERS = [5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;];
         ALL_DIAMETERS = [5.7, 8.7, 10, 12.8, 15];
         ALL_ELECTRODE_PAIRINGS = {
             [0 0 0]                          %Centered Electrode
-            [-400   0   0;  400  0   0]      %Transverse pairing
-            [-200   0   0;  200  0   0]      %
-            [-100   0   0;  100  0   0]      %
+            [-700   0   0;  700  0   0]      %Transverse pairing
+            [-600   0   0;  600  0   0]      %3 3x
+            [-500   0   0;  500  0   0]      %4
+            [-400   0   0;  400  0   0]      %5 2x
+            [-300   0   0;  300  0   0]      %6
+            [-200   0   0;  200  0   0]      %7 x
+            [-100   0   0;  100  0   0]      %8
             [0    -100 -400; 0   100 400]    %Longitudinal pairing
             [0    -50  -200; 0   50  200]    %
             [0    -25  -100; 0   25  100]    %
@@ -50,61 +55,56 @@ classdef Hokanson_2013
         figure1()
         figure2()
         figure3()
-        
-        %------------------------------------------------------------------
-        
-        function create_log_data()
-            
-            %NEURON.reproductions.Hokanson_2013.create_log_data
-            
-            obj = NEURON.reproductions.Hokanson_2013;
-            
-            %             n_electrode_pairings = length(obj.ALL_ELECTRODE_PAIRINGS);
-            %             for iPair = 1:n_electrode_pairings
-            %                 for iDiameter = 1:length(obj.ALL_DIAMETERS)
-            %                     current_diameter = obj.ALL_DIAMETERS(iDiameter);
-            %                     fprintf('Running Pairing: %d\n',iPair);
-            %                     fprintf('Current Diameter: %d\n',iDiameter);
-            %                     options = {...
-            %                         'electrode_locations',obj.ALL_ELECTRODE_PAIRINGS{iPair},...
-            %                         'tissue_resistivity',obj.TISSUE_RESISTIVITY};
-            %                     xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
-            %                     cell_obj  = xstim_obj.cell_obj;
-            %                     cell_obj.props_obj.changeFiberDiameter(current_diameter);
-            %                     xstim_obj.sim__getThresholdsMulipleLocations({-500:20:500 -500:20:500 -500:20:500});
-            %                 end
-            %             end
-            
-            for iPair = [1 2 5]
-                for iDiameter = [2 3 4]
-                    for stim_width = [0.050 0.100 0.40]
-                        current_diameter = obj.ALL_DIAMETERS(iDiameter);
-                        fprintf('Running Pairing: %d\n',iPair);
-                        fprintf('Current Diameter: %d\n',iDiameter);
-                        options = {...
-                            'stim_durations',[stim_width 2*stim_width],...
-                            'electrode_locations',obj.ALL_ELECTRODE_PAIRINGS{iPair},...
-                            'tissue_resistivity',obj.TISSUE_RESISTIVITY};
-                        xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
-                        cell_obj  = xstim_obj.cell_obj;
-                        cell_obj.props_obj.changeFiberDiameter(current_diameter);
-                        xstim_obj.sim__getThresholdsMulipleLocations({-500:20:500 -500:20:500 -500:20:500});
-                    end
-                end
-            end
-            
-            %s = xstim_obj.sim__getLogInfo;
-            %s.simulation_data_obj.fixRedundantOldData
-            
-            
-        end
     end
     
     methods (Access = private,Hidden)
+        function [dual_counts,single_counts] = getCountData(obj,...
+                stim_amplitudes,electrode_locations,stim_widths,fiber_diameters)
+            %
+            %   stim_amplitudes     : vector, same for all inputs
+            %   electrode_locations : cell array
+            %   stim_widths         : cell array
+            %   fiber_diameters     : cell array
+            
+            %electrode_locations - cell array
+            %stim_amplitudes     
+            
+            assert(iscell(electrode_locations),'Electrode locations input must be a cell array')
+            assert(iscell(stim_widths),'Stim widths input must be a cell array')
+            assert(iscell(fiber_diameters),'Fiber diameters input must be a cell array')
+            
+            %Step 1 - replicate inputs if necessary
+            %--------------------------------------------------------------
+            n_e = length(electrode_locations);
+            n_f = length(fiber_diameters);
+            n_w = length(stim_widths);
+            
+            n_conditions = max([n_e n_f n_w]);
+            
+            base_error_str = 'Number of %s, %d is not singular and does not match the max # of variations given: %d';
+            
+            if n_e == 1
+                electrode_locations = repmat(electrode_locations,[1 n_conditions]);
+            elseif n_e ~= n_conditions
+                error(base_error_str,'electrode locations',n_e,n_conditions)
+            end
+            
+            %TODO: Finish the other two ...
+                
+                
+            %Step 2 - Base Counts
+            %--------------------------------------------------------------
+            
+        end
         function max_stim_level = getMaxStimLevelToTest(obj,current_electrode_pair,varargin)
             %getMaxStimLevelToTest
             %
-            %
+            %   This is an old method which was used to determine the
+            %   stimulus amplitude at which a neuron located halfway
+            %   between two electrodes would be recruited if one of the
+            %   electrodes were active. A new replication technique for
+            %   single electrodes was added to the getVolumeCounts method
+            %   of the activation_volume class, making this code obsolete.
             
             in.current_diameter = [];
             in.stim_width       = [];

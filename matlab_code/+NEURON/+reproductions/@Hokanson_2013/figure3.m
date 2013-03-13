@@ -10,9 +10,9 @@ obj = NEURON.reproductions.Hokanson_2013;
 
 %For fixed setup and diameter, vary pulse width
 
-current_diameter = obj.ALL_DIAMETERS(3);
+CELL_DIAMETER = 15;
 TEST_PAIRING  = 3; %400 um apart in X
-FONT_SIZE = 18;
+FONT_SIZE     = 18;
 
 stim_widths_all = [0.050 0.100 0.2 0.40];
 n_stim_widths   = length(stim_widths_all);
@@ -25,8 +25,10 @@ for iStimWidth = 1:n_stim_widths
     
     cur_stim_width = stim_widths_all(iStimWidth);
 
-    max_stim_level_all(iStimWidth) = obj.getMaxStimLevelToTest(obj.ALL_ELECTRODE_PAIRINGS{TEST_PAIRING},...
-        'current_diameter',current_diameter,'stim_width',cur_stim_width);
+    max_stim_level_all(iStimWidth) = obj.getMaxStimLevelToTest(...
+                    obj.ALL_ELECTRODE_PAIRINGS{TEST_PAIRING},...
+                    'current_diameter',CELL_DIAMETER,...
+                    'stim_width',cur_stim_width);
     
     for iOrig = 1:2
             fprintf('Running Width: %g\n',cur_stim_width);
@@ -44,7 +46,7 @@ for iStimWidth = 1:n_stim_widths
         
         xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
         cell_obj  = xstim_obj.cell_obj;
-        cell_obj.props_obj.changeFiberDiameter(current_diameter);
+        cell_obj.props_obj.changeFiberDiameter(CELL_DIAMETER);
         
         act_obj   = xstim_obj.sim__getActivationVolume();
         

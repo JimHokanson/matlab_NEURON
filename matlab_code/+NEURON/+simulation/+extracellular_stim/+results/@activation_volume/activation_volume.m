@@ -2,6 +2,7 @@ classdef activation_volume < handle
     %
     %   Class: NEURON.results.xstim.activation_volume
     %
+    %   TODO: Summarize purpose of this class
     
     %REFERENCE OBJECTS ====================================================
     properties
@@ -54,6 +55,11 @@ classdef activation_volume < handle
 
         end   
         function internode_length = getInternodeLength(obj)
+           %getInternodeLength    
+           %    
+           %    internode_length = getInternodeLength(obj)
+           %
+           
            if obj.spacing_model == 1
                
               %Known implementations:
@@ -65,8 +71,14 @@ classdef activation_volume < handle
            end
         end
         function varargout = getXYZlattice(obj,as_cell)
+           %getXYZlattice
            %
-           %
+           %    CALLING FORMS
+           %    ===========================================================
+           %    [x,y,z]   = getXYZlattice(obj,false)
+           %    
+           %    [{x,y,z}] = getXYZlattice(obj,true)
+           %    
            
            if ~exist('as_cell','var')
                as_cell = false;

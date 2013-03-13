@@ -2,91 +2,109 @@ function figure0()
 %
 %   NEURON.reproductions.Hokanson_2013.figure0
 %
-%
-    %Steup figure, do later ...
-    %Thresholds in 3d (circle size and color is threshold)
-    %Do for both a two electrode case and the single electrode case
-    %Or do one for one and one for the other ...
-    
-    %1 - show electrodes and thresholds as points
-    %2 - show interpolation, slice
-    %3 - diagram explaining single stim expansion
-    %4 - counting without double counting neurons
-    
-    
-    
-   obj = NEURON.reproductions.Hokanson_2013;
-    
-    current_pair = obj.ALL_ELECTRODE_PAIRINGS{6};
-    
-    CLIM_MAX = 20;
-    XLIM = [-800 800];
-    YLIM = [-200 200];
-    
-    %Let's do 2 electrodes 200 um apart
-    
-        options = {...
-        'electrode_locations',current_pair,...
-        'tissue_resistivity',obj.TISSUE_RESISTIVITY};
-        xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
+%   Design Notes
+%   1) Two electrodes 400 microns apart in X
+%   2) Default fiber size - 
 
-        
-        xyz_mesh = {-200:20:200 -200:20:200 -660:20:660};
-        
-        thresholds = xstim_obj.sim__getThresholdsMulipleLocations(xyz_mesh);
-        
-  
-        options = {...
-        'electrode_locations',[0 0 0],...
-        'tissue_resistivity',obj.TISSUE_RESISTIVITY};
-        xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
+%New thoughts on setup figure
+%-------------------------------------------
+%1) timeline of stimuli - maybe hold off for now ...
+%2) response to individual stimulus, show overlaps
+%3) dual response
+%4) show area overlap - it would be nice to know the volume result
+%even though I am only showing the area ...
 
-        %TODO: Shift thresholds to be on the one pair, crop results ....       
-        thresholds2 = xstim_obj.sim__getThresholdsMulipleLocations(xyz_mesh);
-        
-        
-        
-        
-%         scatter3(X(:),Y(:),Z(:),3*thresholds(:),thresholds(:),'filled')
-%         axis equal
-        subplot(3,1,1)
-        cla
-        imagesc(xyz_mesh{3},xyz_mesh{2},squeeze(thresholds(11,:,:)))
-        axis equal
-        hold on
-        scatter(current_pair(:,3),current_pair(:,2),200,'w','filled')
-        colorbar
 
-        set(gca,'CLim',[0 CLIM_MAX]);
-        set(gca,'XLim',XLIM,'YLim',YLIM)
-        set(gca,'XDir','reverse','YDir','normal')
-        %set(gca,'XLim'
-        
-        subplot(3,1,2)
-        cla
-        z_indices = 14:54;
-        imagesc(xyz_mesh{3}(z_indices)+200,xyz_mesh{2}+50,squeeze(thresholds2(11,:,z_indices)))
-        axis equal
-        hold on
-        scatter(current_pair(2,3),current_pair(2,2),200,'w','filled')
-        scatter(0,0,100,'w','filled','^')
-        colorbar
-        set(gca,'XLim',XLIM,'YLim',YLIM)
-        set(gca,'CLim',[0 CLIM_MAX]);
-        set(gca,'XDir','reverse','YDir','normal')
-        
-        subplot(3,1,3)
-        cla
-        [X,Y,Z] = meshgrid(xyz_mesh{3},xyz_mesh{1},xyz_mesh{2});
-        p = patch(isosurface(X,Y,Z,permute(thresholds,[2 3 1]),3.5));
-        set(p, 'FaceColor','r', 'EdgeColor','none')
-        alpha(p,0.25)
-        axis equal
-        [X2,Y2,Z2] = meshgrid(xyz_mesh{3}(z_indices),xyz_mesh{1},xyz_mesh{2});
-        p2 = patch(isosurface(X2+200,Y2+50,Z2,permute(thresholds2(:,:,z_indices),[2 3 1]),3.5));
-        p3 = patch(isosurface(X2-200,Y2-50,Z2,permute(thresholds2(:,:,z_indices),[2 3 1]),3.5));
-        set(gca,'XDir','reverse')
-        set(gca,'XLim',XLIM,'YLim',YLIM)
-        keyboard
+PAIRING_USE = 7; %400 um separation in X direction
+XYZ_MESH_DOUBLE = {-400:20:400 0 -600:20:600};
+XYZ_MESH_SINGLE = {-180:20:180 0 -600:20:600};
+X_SHIFT_SINGLE  = 200;
+X_LIM           = [-400 400];
+Y_LIM           = [-800 800];
+C_LIM           = [0 25];
+THRESHOLD_TEST  = 10;
+
+obj          = NEURON.reproductions.Hokanson_2013;
+current_pair = obj.ALL_ELECTRODE_PAIRINGS{PAIRING_USE};
+
+%Thresholds single electrode
+%--------------------------------------------------------------------------
+options = {...
+    'electrode_locations',[0 0 0],...
+    'tissue_resistivity',obj.TISSUE_RESISTIVITY};
+xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
+
+%TODO: Shift thresholds to be on the one pair, crop results ....
+thresholds_single = xstim_obj.sim__getThresholdsMulipleLocations(XYZ_MESH_SINGLE);
+
+thresholds_single = squeeze(thresholds_single)';
+
+act_obj   = xstim_obj.sim__getActivationVolume();
+
+threshold_counts_single = act_obj.getVolumeCounts(THRESHOLD_TEST,...
+               'replication_points',current_pair);
+           
+%Thresholds double electrode
+%---------------------------------------------------------------------------
+options = {...
+    'electrode_locations',current_pair,...
+    'tissue_resistivity',obj.TISSUE_RESISTIVITY};
+xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
+
+thresholds_double = xstim_obj.sim__getThresholdsMulipleLocations(XYZ_MESH_DOUBLE);
+
+thresholds_double = squeeze(thresholds_double)';
+
+act_obj   = xstim_obj.sim__getActivationVolume();
+
+threshold_counts_double = act_obj.getVolumeCounts(THRESHOLD_TEST);
+
+%Plotting Results
+%--------------------------------------------------------------------------
+subplot(1,3,1)
+imagesc(XYZ_MESH_SINGLE{1}-X_SHIFT_SINGLE,XYZ_MESH_SINGLE{3},thresholds_single)
+hold all
+imagesc(XYZ_MESH_SINGLE{1}+X_SHIFT_SINGLE,XYZ_MESH_SINGLE{3},thresholds_single)
+scatter(current_pair(:,1),current_pair(:,3),100,'w','filled','^')
+hold off
+set(gca,'XLim',X_LIM,'CLim',C_LIM,'YLim',Y_LIM);
+axis equal
+colorbar
+title('Single Electrode Replicated')
+
+subplot(1,3,2)
+imagesc(XYZ_MESH_DOUBLE{1},XYZ_MESH_DOUBLE{3},thresholds_double)
+hold all
+scatter(current_pair(:,1),current_pair(:,3),100,'w','filled','^')
+hold off
+set(gca,'XLim',X_LIM,'CLim',C_LIM,'YLim',Y_LIM);
+axis equal
+colorbar
+title('Sync Stim Results')
+
+
+subplot(1,3,3)
+[c1,h1] = contour(XYZ_MESH_SINGLE{1}-X_SHIFT_SINGLE,XYZ_MESH_SINGLE{3},...
+    thresholds_single,[THRESHOLD_TEST THRESHOLD_TEST]);
+hold on
+[c2,h2] = contour(XYZ_MESH_SINGLE{1}+X_SHIFT_SINGLE,XYZ_MESH_SINGLE{3},...
+    thresholds_single,[THRESHOLD_TEST THRESHOLD_TEST]);
+[c3,h3] = contour(XYZ_MESH_DOUBLE{1},XYZ_MESH_DOUBLE{3},...
+    thresholds_double,[THRESHOLD_TEST THRESHOLD_TEST]);
+scatter(current_pair(:,1),current_pair(:,3),100,'k','filled','^')
+hold off
+set(h1,'Linewidth',2,'LineColor','r')
+set(h2,'Linewidth',2,'LineColor','r')
+%NOTE: Often the export of the contour produces a bunch of lines
+%that don't play well together in Illustrator, minimal style
+%editing in Illustrator is desired
+set(h3,'Linewidth',2,'LineColor','k','LineStyle',':')
+set(gca,'XLim',X_LIM,'CLim',C_LIM,'YLim',Y_LIM);
+axis equal
+colorbar
+title(sprintf('Volume Ratio %0.2f, %d uA threshold',...
+    threshold_counts_double/threshold_counts_single,THRESHOLD_TEST))
+
+keyboard
 
 end
