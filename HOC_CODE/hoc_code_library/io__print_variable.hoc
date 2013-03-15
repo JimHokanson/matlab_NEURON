@@ -1,6 +1,11 @@
 proc io__print_variable() {
 /* io__print_variable
 
+USE OF THIS METHOD IS DISCOURAGED
+I remove functionality support in Matlab
+This method was meant to write a variable
+to standard out so that Matlab could extract 
+the value
 
 io__print_variable(variable_name,value)
 
