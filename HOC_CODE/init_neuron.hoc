@@ -1,8 +1,3 @@
-//print "Loading Library Files"
-//load_file("noload.hoc")	  //Method below is preferred due to bug:
-//see http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/ocfunc.html#load_proc
-{xopen("$(NEURONHOME)/lib/hoc/noload.hoc")}  //loads library files, NOTE: We need load_file because this file is not in our directory
-
 //NOTE: This needs to be before these other things ...
 strdef sim_hash //This is a string which can be used to differentiate between 
 //different concurrent simulations when using files to transfer data between Matlab and NEURON
@@ -22,7 +17,7 @@ chdir("hoc_code_library/file_manipulations")
 chdir("../..")
 
 //IO -----------------------------------------------------------------------------------
-{load_file("hoc_code_library/io__print_variable.hoc")}
+//{load_file("hoc_code_library/io__print_variable.hoc")}
 
 //Extracellular Stim Simulation --------------------------------------------------------
 chdir("hoc_code_library/extracellular_stim")
