@@ -3,47 +3,70 @@ classdef neural_cell < handle
     %
     %   Generic class for inheriting cells from ...
     %
-    %   KNOWN CELLS:
+    %   KNOWN CELL CLASSES
     %   =================================================
     %   NEURON.cell.axon.MRG
-    %   
     
     properties
-       simulation_obj   %(class NEURON.simulation or subclass)
-       cmd_obj          %(class NEURON.cmd)
+       path_obj   %Class: NEURON.paths
+       cmd_obj    %Class: NEURON.cmd
     end
     
     properties (Abstract,Hidden,Constant)
        HOC_CODE_DIRECTORY %Location of the cell
     end
     
-    properties (Dependent)
+    properties (Dependent,Access = private)
        model_directory 
     end
         
-    methods 
-        function value = get.model_directory(obj)
-           value = fullfile(obj.simulation_obj.path_obj.hoc_code_model_root,obj.HOC_CODE_DIRECTORY);
+    %MAIN CONSTRUCTOR METHOD   %===========================================
+    methods (Static)
+        function obj = create_cell(sim_obj,cell_type,cell_location)
+           %
+           %    NEURON.neural_cell.create_cell(sim_obj,cell_type,cell_location)
+           %
+           %    INPUTS
+           %    ===========================================================
+           %    sim_obj       : Class: NEURON.simulation or derived
+           %    cell_type     : (string), valid types include:
+           %        - 'MRG'
+           %        - 'generic'
+           %        - 'generic_unmyelinated'
+           %    cell_location : [x,y,z], location of the cell.
+           %        Interpretation of this value is up to the cell. Most
+           %        often it is the center of the cell.
+           
+           switch lower(cell_type)
+               case 'mrg'
+                  obj = NEURON.cell.axon.MRG(cell_location);
+               case 'generic'
+                  obj = NEURON.cell.axon.generic(in.cell_center);
+               case 'generic_unmyelinated'
+                  obj = NEURON.cell.axon.generic_unmyelinated(in.cell_center);
+               otherwise
+                  error('Unrecognized cell type: %s',cell_type)
+           end
+           
+           obj.path_obj = sim_obj.path_obj;
+           obj.cmd_obj  = sim_obj.cmd_obj;
         end
     end
     
-    methods
+    methods 
+        function value = get.model_directory(obj)
+           value = fullfile(obj.path_obj.hoc_code_model_root,obj.HOC_CODE_DIRECTORY);
+        end
+        
         function root_path = getModelRootDirectory(obj)
            root_path = obj.model_directory; 
-        end
-        %I don't like this. Too much work to remember ...
-        function setSimObjects(obj,cmd_obj,simulation_obj)
-        %NOTE: This function should be called when the object is attached
-        %to the simulation environment
-        
-           obj.simulation_obj = simulation_obj;
-           obj.cmd_obj        = cmd_obj;
         end
     end
     
     methods (Abstract)
        %created_status - indicates that the cell was defined (or redefined) in NEURON 
-       created_status = createCellInNEURON(obj)
+       created_status = createCellInNEURON(obj) %This method should define 
+       %the cell in NEURON
     end
     
     methods
