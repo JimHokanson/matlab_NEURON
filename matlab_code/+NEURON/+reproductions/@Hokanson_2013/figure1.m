@@ -5,16 +5,22 @@ function figure1()
 %   This method examines the volume-ratio for a range of distances and
 %   amplitudes.
 
-CELL_DIAMETER       = 15;
-MAX_STIM_TEST_LEVEL = 30;
+MAX_STIM_TEST_LEVEL      = 30;
+ELECTRODE_LOCATIONS_TEST = 2:8; %This is the transverse set ...
+STIM_WIDTH               = {[0.2 0.4]};
+FIBER_DIAMETER           = 15;
+
 obj = NEURON.reproductions.Hokanson_2013;
 
-n_electrode_pairings = length(obj.ALL_ELECTRODE_PAIRINGS);
 
-counts_all   = cell(1,8);
-base_counts  = cell(1,8);
 
 x_stim = 1:0.5:MAX_STIM_TEST_LEVEL;
+
+
+[dual_counts,single_counts] = getCountData(obj,...
+    x_stim,obj.ALL_ELECTRODE_PAIRINGS(ELECTRODE_LOCATIONS_TEST),...
+    STIM_WIDTH,FIBER_DIAMETER);
+return
 
 
 for iPair = 1:8

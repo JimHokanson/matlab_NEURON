@@ -2,9 +2,13 @@ function figure0()
 %
 %   NEURON.reproductions.Hokanson_2013.figure0
 %
+%   This is a figure which attempts to summarize the calculations being
+%   made in this paper.
+%
 %   Design Notes
 %   1) Two electrodes 400 microns apart in X
-%   2) Default fiber size - 
+%   2) Default fiber size - 10 microns
+
 
 %New thoughts on setup figure
 %-------------------------------------------
@@ -34,7 +38,6 @@ options = {...
     'tissue_resistivity',obj.TISSUE_RESISTIVITY};
 xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
 
-%TODO: Shift thresholds to be on the one pair, crop results ....
 thresholds_single = xstim_obj.sim__getThresholdsMulipleLocations(XYZ_MESH_SINGLE);
 
 thresholds_single = squeeze(thresholds_single)';
@@ -104,7 +107,5 @@ axis equal
 colorbar
 title(sprintf('Volume Ratio %0.2f, %d uA threshold',...
     threshold_counts_double/threshold_counts_single,THRESHOLD_TEST))
-
-keyboard
 
 end

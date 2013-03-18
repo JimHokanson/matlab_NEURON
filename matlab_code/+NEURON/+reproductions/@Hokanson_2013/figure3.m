@@ -2,9 +2,9 @@ function figure3()
 %
 %   NEURON.reproductions.Hokanson_2013.figure3
 %
-
-%TODO: Create pairing requests - 400x instead of some magic number
-
+%
+%   Impact of Stimulus Width on Result
+ 
 obj = NEURON.reproductions.Hokanson_2013;
 
 
