@@ -5,24 +5,19 @@ classdef props < handle_light
     %
     %   Relevant NEURON files:
     %   ==================================
-    %   create_mrg_axon.hoc - see method ....MRG.createCellInNEURON()
+    %   create_mrg_axon.hoc - see method:
+    %               NEURON.cell.axon.MRG.createCellInNEURON
     %
-    %
-
-    %
-    %TODO: Still finishing this class
-    %
-    %   NEURON UNITS
-    %   =================================================
-    %   Section Units
-    %   L      - microns
-    %   diam   - microns
-    %   Ra     - ohm-cm
-    %
+    %   FULL PATH:
+    %       NEURON.cell.axon.MRG.props
+    
+    
     %   IMPROVEMENTS
     %   ===================================================================
     %   1) Documentation
     %   2) Change properties method
+    %   3) Implement changes to population of dependent variables
+    %   4) Write a display method ...
     
     %DIRTY INFORMATION
     %======================================================================
@@ -39,34 +34,71 @@ classdef props < handle_light
     
     
     %PROPERTY CONSISTENCY
-    %NOTE: This is not fully implemented, specifically the property 
+    %NOTE: This is not fully implemented, specifically the property
     %changing methods are not implemented
     %======================================================================
     %1) Any change to a property that is not dependent on fiber will
     %   cause a reevaluation of all property dependent variables
-    %2) Changing the fiber diameter will cause a reevaluation of all 
+    %2) Changing the fiber diameter will cause a reevaluation of all
     %   fiber diameter dependent variables
     %3) To manually change fiber diameter dependent variables, these should
     %   be changed after any non-fiber diameter dependent variables
-    % 
+    %
     %   IMPORTANT: The goal with this setup is to always have the
     %   properties be internally consistent, i.e. never needing to call
     %   populateDependentVariables()
+    
+    properties (Constant)
+        FIBER_DEPENDENT_PROPERTIES = {'node_diameter' 'paranode_diameter_1' ...
+            'paranode_diameter_2' 'axon_diameter' 'paranode_length_2' 'internode_length' ...
+            'stin_seg_length' 'number_lemella' 'rho_axial_i' 'rho_axial_1' 'rho_axial_2' ...
+            'cm_i' 'cm_1' 'cm_2' 'g_1' 'g_2' 'g_i' 'g_pas_i' 'g_pas_1' 'g_pas_2' 'xraxial_node' ...
+            'xraxial_1' 'xraxial_2' 'xraxial_i' 'xg_1' 'xg_2' 'xg_i' 'xc_1' 'xc_2' ...
+            'xc_i'}  %This is a list of properties that is dependent upon
+            %the fiber diameter.
+        
+        NON_FIBER_DEPENDENT_PROPERTIES = {'node_length' 'paranode_length_1' ...
+            'space_p1' 'space_p2' 'space_i' 'n_STIN' 'n_internodes' 'v_init' ...
+            'rho_periaxonal' 'rho_axial_node' 'cap_nodal' 'cap_internodal' 'cap_myelin' ...
+            'g_myelin' 'xg_node' 'xc_node'} %This is a list of properties
+        %that are not dependent on the fiber diameter size.
+        
+        CURRENT_OFF_LIMIT_PROPERTIES = {'n_STIN' 'v_init'} %These are properties
+        %which will be in one of the two above lists but which at this time
+        %I would like to have as constants.
+        
+        NON_PROPERTY_PROPS = {'parent' 'spatial_obj' 'props_up_to_date_in_NEURON' ...
+            'NON_PROPERTY_PROPS' 'CURRENT_OFF_LIMIT_PROPERTIES' 'NON_FIBER_DEPENDENT_PROPERTIES' ...
+            'FIBER_DEPENDENT_PROPERTIES' 'null_divider_1'} %These are properties of the class
+        %which should not be counted as properties of the model. They are
+        %used in the static analysis method to ensure proper assignment of
+        %properties to either the fiber or non-fiber class. It isn't super
+        %critical that this list is up to date as once the FIBER and
+        %NON-FIBER lists are populated, we should be all set.
+    end
     
     properties (Hidden)
         parent       %Class: NEURON.cell.axon.MRG
         spatial_obj  %Class: NEURON.cell.axon.MRG.spatial_info
     end
     
-    properties
+    properties (Hidden)
         props_up_to_date_in_NEURON = false
-        %Set true by: 
+        %Set true by:
         %   .placeVariablesIntoNEURON()
-        %Set false by: 
+        %Set false by:
         %   .changeProperty()
         %
         %
     end
+    
+    %   Relevant NEURON units
+    %   =================================================
+    %   Section Units
+    %   L      - microns
+    %   diam   - microns
+    %   Ra     - ohm-cm
+    %
     
     properties (SetAccess = private)
         %------------------------------------------------------------------
@@ -74,8 +106,9 @@ classdef props < handle_light
         %------------------------------------------------------------------
         
         %==================================================================
-        %morphological parameters -----------------------------------------
+        %Morphological Parameters -----------------------------------------
         %==================================================================
+        null_divider_1    = '-------------------------------------'
         fiber_diameter    = 10 %um choose from 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
         node_diameter          %um
         paranode_diameter_1    %um
@@ -86,33 +119,34 @@ classdef props < handle_light
         paranode_length_1 = 3  %um  %PAPER: MYSA length
         paranode_length_2      %um
         internode_length       %um
+        %Total internode length. This includes FLUT, MYSA, and STIN.
         stin_seg_length        %um
         
-        number_lemella         %#
+        number_lemella         %# of layers of myelin
         space_p1 = 0.002       %um, %PAPER: MYSA periaxonal space width
         space_p2 = 0.004       %um, %PAPER: FLUT periaxonal space width
         space_i	 = 0.004       %um, %PAPER: STIN perixaonal space width
         
-        %DONT CHANGE THIS YET, see function create_mrg_axon.hoc
-        n_STIN   = 6      %In this model, each internode is broken up into 
-        %parts instead of a single internode with multiple segments
+        n_STIN   = 6      %In this model, each internode is broken up into
+        %parts instead of a single internode with multiple segments.
+        %Changing this property is not currently allowed. See NEURON code:
+        %create_mrg_axon.hoc
         
-        %NOTE: In general it is desirable to make this even, as this
-        %provides an odd number of nodes (given terminating nodes on both
-        %ends) which allows for a "center" node
-        %NOTE: This parameter is CRUCIAL in terms of execution time
-        n_internodes   = 20     %# of internodes
+        n_internodes   = 20     %# of internodes. In general it is
+        %desirable to make this even, as this provides an odd number of
+        %nodes (given terminating nodes on both ends) which allows for a
+        %truly "center" node.
+        %
+        %This parameter is CRUCIAL in terms of execution time
         %NOTE: n_nodes = n_internodes + 1
         
-        %Electrical Parameters --------------------------------------------
-        %NOTE: Careful about changing this since the model dynamics
-        %will impose force this to be v_rest, given sufficient time
+        %Electrical Parameters
+        %------------------------------------------------------------------
         v_init         = -80   %mV              %PAPER: Rest Potential
-        
-        
-        %NOTE: No specified sources for these values ...
-        %NOTE: Raspopovic 2011 cites Frijins 1995
-        
+        %Changing the resting potential only changes the initial properties
+        %of the model. Given sufficient time the model will return to its
+        %internal resting potential. In general I don't recommend changing
+        %this parameter.
         
         rho_periaxonal = 70    %Ohm-cm   %PAPER: Periaxonal Resistivity
         
@@ -121,13 +155,11 @@ classdef props < handle_light
         rho_axial_1            %Ohm-cm
         rho_axial_2            %Ohm-cm
         
-        
-        
         cap_nodal      = 2     %uF/cm2          %PAPER: Nodal capicitance
         %Frankenhaeuser & Huxley, 1964
         
         cap_internodal = 2     %uF/cm2          %PAPER: Internodal capicitance
-        %Bostock & Sears 1978 
+        %Bostock & Sears 1978
         
         cap_myelin     = 0.1   %uF/cm2/lamella  %PAPER: Myelin capacitance
         
@@ -140,15 +172,10 @@ classdef props < handle_light
         g_2         = 0.0001;  %S/cm2   %PAPER: FLUT conductance
         g_i         = 0.0001;  %S/cm2   %PAPER: STIN conductance
         
-    end
-    
-    %Fiber Diameter Dependent Variables ==============================
-    properties
         
-        %PASSIVE MECHANISM VARIABLES -----------------------------
-        g_pas_i
         g_pas_1
         g_pas_2
+        g_pas_i
         
         %Mohms/cm
         xraxial_node
@@ -162,55 +189,94 @@ classdef props < handle_light
         xg_2
         xg_i
         
-        %uF/cm2
-        xc_node = 0
-        xc_1
-        xc_2
-        xc_i
-        
+        xc_node = 0     %uF/cm2
+        xc_1            %uF/cm2
+        xc_2            %uF/cm2
+        xc_i            %uF/cm2
     end
     
+    %Constructor    %======================================================
     methods
         function obj = props(parent_obj,spatial_info_obj)
+            %
+            %
+            %   obj = props(parent_obj,spatial_info_obj)
+            %
+            %   obj = props('testing')
+            %
+            if nargin == 1
+                first_input = parent_obj;
+                if ischar(first_input) && strcmp(first_input,'testing')
+                    return
+                else
+                    error('Form of input to constructor not recognized')
+                end
+            end
+            
             obj.parent = parent_obj;
             obj.spatial_obj = spatial_info_obj;
             obj.populateDependentVariables();
         end
+    end
+    
+    methods (Static)
+        function checkPropertyNames
+            %Call constructor
+            %Get all props, verify that FIBER and NON-FIBER cover all props
+            %except the NON_PROPERTY_PROPS
+            %
+            %Check that FIBER_DEPENDENT are all defaulted at empty
+            %
+            %    Provide summary of results to user
+            %
+            %
+            
+        end
+    end
+    
+    
+    methods
         function changeFiberDiameter(obj,new_fiber_diameter)
-           %TODO: Add check on range
-           
-           obj.fiber_diameter = new_fiber_diameter;
-           obj.populateDependentVariables();
-           %NOTE: The dependent variables method will
-           %set all necessary dirty bits
+            %TODO: Add check on range
+            %
+            %    NOTE: The valid range will be dependent on
+            %
+            %    TODO: move this into the function below
+            
+            obj.fiber_diameter = new_fiber_diameter;
+            obj.populateDependentVariables();
+            %NOTE: The dependent variables method will
+            %set all necessary dirty bits
         end
         function changeProperty(obj,varargin)
-           %
-           %    INPUTS
-           %    ===========================================
-           %    props_and_values
-           
-           props = varargin(1:2:end);
-           values = varargin(2:2:end);
-           
-           if length(props) ~= length(values)
-               error('# of properties must equal the # of values')
-           end
-           
-           %TODO: Need to separate order into fiber dependent
-           %& non-fiber dependent variables ....
-           
-           for iProp = 1:length(props)
-              cur_prop  = props{iProp};
-              cur_value = values{iProp};
-              obj.(cur_prop) = cur_value;
-           end
-           
-           
-           obj.props_up_to_date_in_NEURON = false;
-           obj.populateDependentVariables();
-           %TODO: Need to conditionally call this method ...
-           
+            %
+            %    INPUTS
+            %    ===========================================
+            %    props_and_values
+            
+            props = varargin(1:2:end);
+            values = varargin(2:2:end);
+            
+            if length(props) ~= length(values)
+                error('# of properties must equal the # of values')
+            end
+            
+            %TODO: Need to separate order into fiber dependent
+            %& non-fiber dependent variables ....
+            %i.e. change non-fiber dependent variables first, recompute
+            %dependent parameters, then apply fiber dependent overrides
+            
+            for iProp = 1:length(props)
+                cur_prop  = props{iProp};
+                cur_value = values{iProp};
+                obj.(cur_prop) = cur_value;
+            end
+            
+            
+            obj.props_up_to_date_in_NEURON = false;
+            obj.populateDependentVariables();
+            %TODO: Need to conditionally call this method ...
+            
         end
     end
     
@@ -218,9 +284,18 @@ classdef props < handle_light
         %NOTE: Could build in mechanism which allows overriding these values
         %NOTE: This function needs a lot of work ...
         function populateDependentVariables(obj)
+            
+            
+            %IMPROVEMENTS:
+            %--------------------------------------------------------------
+            %1) Provide regression equations instead
+            %2) Provide option which doesn't do what I consider to be
+            %incorrect scaling operations
+            
             %See Table 1 in paper
             
             %NOTE: Matt has replaced this with regression equations ...
+            
             
             %See determineFiberEquations
             
@@ -259,8 +334,8 @@ classdef props < handle_light
             obj.paranode_diameter_2  = paranode_diameter_2_all(FIBER_INDEX);
             obj.stin_seg_length      = (obj.internode_length - obj.node_length - 2*obj.paranode_length_1 - 2*obj.paranode_length_2)/obj.n_STIN;
             obj.axon_diameter        = axon_diameter_all(FIBER_INDEX);
-
-
+            
+            
             %{
             
             NOTE: I'm working on this code but it at least
@@ -284,7 +359,7 @@ classdef props < handle_light
             obj.paranode_diameter_1 = obj.node_diameter;
             
             obj.axon_diameter       = [0.0188 0.4787 0.1204]*fiber_poly_2;
-            obj.paranode_diameter_2 = obj.axon_diameter;         
+            obj.paranode_diameter_2 = obj.axon_diameter;
             
             %}
             
@@ -321,7 +396,7 @@ classdef props < handle_light
             %       instead of the other diameters
             %   2) This code below also uses the fiber diameter
             %      for rho_axial values
-            %   3) 
+            %   3)
             %
             %   Default values from MRG
             %   node: 70
@@ -342,12 +417,12 @@ classdef props < handle_light
             %Let's assume e_r*e_0/d is constant for all of the axon
             %
             %   C1/A1 = C2/A2
-            %   
+            %
             %   C2 = A2/A1*C1
             %
             %   A = length*diameter*pi
             %   A => diameter (lengths specified in model, pi cancels)
-            %   
+            %
             %   C2 = d2/d1*C1
             %
             %   QUESTIONS?
@@ -443,7 +518,7 @@ classdef props < handle_light
             %PARAMETER: xc uF/cm2
             %
             %   Hmm, this seems to instead include the myelin as well
-            %   
+            %
             %   NOTE: We are not actually using the extracellular
             %   mechanism with two additional layers, only 1. This is
             %   obvious if looking closely at Figure 1 in the MRG paper.

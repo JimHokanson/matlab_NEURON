@@ -1,0 +1,71 @@
+/* Frankenhaeuser-Huxley action potential, Fig 1 to Fig 6 */
+load_file("nrngui.hoc")
+
+// Physical properties
+create node
+access node
+{ nseg=1  L=2  diam=8  cm=2
+  insert fh
+  nai=13.74  nao=114.5  ki=120 ko=2.5
+}
+areafac = PI*L*diam/100		/* mamps/cm^2 to namps (units of 1e-6 cm^2) */
+{celsius=20}
+
+// experimental tools
+objref stim
+stim = new IClamp(.5)
+stim.dur=.12
+stim.amp = 1*areafac
+
+// run parameters
+cvode_active(1)
+
+// graphical interface appearance
+objref g
+g = new Graph(0)
+g.view(0, 0, 2, 100, 120, 110, 300, 200)
+addplot(g,1)
+
+// simulation control
+v_init = -70
+
+proc fig1() {
+	g.erase_all()
+	g.size(0,2.2,-5,120)
+	g.addexpr("v+70",2,1)
+	tstop = 2
+	run()
+}
+
+proc fig3() {
+	g.erase_all()
+	g.size(0,3,0,1)
+	g.addexpr("m_fh",2,1)
+	g.addexpr("h_fh",3,1)
+	g.addexpr("n_fh",4,1)
+	g.addexpr("p_fh",5,1)
+	tstop=3
+	run()
+}
+
+proc fig6() {
+	g.erase_all
+	g.size(0,2,-10,5)
+	g.addexpr("ina",2,1)
+	g.addexpr("ik",3,1)
+	g.addexpr("ip_fh",4,1)
+	g.addexpr("il_fh",5,1)
+	tstop = 2
+	run()
+}
+
+proc menu() {
+	xpanel("Frankenhaeuser-Huxley action potential")
+	xbutton("fig 1", "fig1()")
+	xbutton("fig 3", "fig3()")
+	xbutton("fig 6", "fig6()")
+	xpanel(0,100)
+}
+// run simulation
+menu()
+

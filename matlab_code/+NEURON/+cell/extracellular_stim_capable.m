@@ -18,12 +18,8 @@ classdef extracellular_stim_capable < handle
     %
     %   IMPROVEMENTS:
     %   ===================================================================
-    %   1) Write method that verifies that all of the NEURON related code
-    %      is setup
-    %           TODO: add specifics of what this would entail ...
-    %
-    %
-    %   2)
+    %   1) Figure out how to ensure this class has the cmd_obj instead
+    %   of passing it in to every method
     %
     %   See Also:
     %       NEURON.simulation.extracellular_stim
@@ -46,12 +42,13 @@ classdef extracellular_stim_capable < handle
         opt__use_local_stim_sectionlist_code = false; %If true code should
         %implement create_stim_sectionlist.hoc. If false the default method
         %will be used. The default is usually sufficient for cases with no
-        %cell branching (e.g. axons)
+        %cell branching (e.g. axons).
         
         opt__first_section_access_string = 'access node[0]'; %This is the
         %access statement used when using the default creation method
         %of the section list. This in general should be a pointer to the
-        %first section ...
+        %first section. The generic code then transverses the connectivity
+        %list of all following objects.
     end
     
     %.create_node_sectionlist() -------------------------------------------
@@ -90,14 +87,18 @@ classdef extracellular_stim_capable < handle
         
         
         threshold_info_obj = getThresholdInfo(obj)  %See Class:
-        %       NEURON.cell.threshold_info
+        %NEURON.cell.threshold_info
+        %
         %This method should return an object of the class threshold_info.
-        %Who uses this??????
+        %
+        %This object is used by:
+        %NEURON.simulation.extracellular_stim.threshold_analysis
+        %It is called during initialization of the simulation.
         
         xyz_nodes = getXYZnodes(obj) %Written for sim logger where
         %I want to look at the stimulus applied to the nodes, adding
         %internodes adds considerable size and is hopefully not
-        %necessary ..
+        %necessary ...
         %
         %   NOTE: In the event of multiple segments per node section, or
         %   even multiple sections per nodes, this should only return a
@@ -146,7 +147,6 @@ classdef extracellular_stim_capable < handle
                 %This command executes the function ...
                 cmd_obj.run_command('create_stim_sectionlist(xstim__all_sectionlist)');
             else
-                
                 %This accesses the head section and uses transverses the
                 %connections from this section.
                 cmd_obj.run_command(obj.opt__first_section_access_string);
@@ -162,16 +162,18 @@ classdef extracellular_stim_capable < handle
             %   that correspond to nodes in the model. This section list is
             %   traversed in NEURON to tell NEURON to record the membrane
             %   potential at these nodes during the simulation. The
-            %   membrane potential results are used to determine threshold
-            %   information.
+            %   membrane potential results are used for threshold analysis.
+            %   The default behavior is to grab all sections named "node".
+            %   
             %
             %   NEURON.cell.extracellular_stim_capable.create_node_sectionlist
             
             if obj.opt__use_local_node_sectionlist_code
                 %This command defines the function ...
-                %NOTE: It is assumed that the current directory is the model directory ...
-                
+                %NOTE: It is assumed that the current directory is the
+                %model directory.
                 cmd_obj.load_file('create_node_sectionlist.hoc');
+                
                 %This command executes the function ...
                 cmd_obj.run_command('create_node_sectionlist(xstim__node_sectionlist)');
             else
@@ -179,7 +181,7 @@ classdef extracellular_stim_capable < handle
             end
         end
         function xyz_out = getCellXYZMultipleLocations(obj,cell_centers)
-            %   getCellXYZMultipleLocations
+            %getCellXYZMultipleLocations
             %
             %   xyz_out = getCellXYZMultipleLocations(obj,cell_centers)
             %
@@ -228,64 +230,70 @@ classdef extracellular_stim_capable < handle
             
             xyz_out = bsxfun(@plus,permute(xyz_cell_centers,[1 3 2]),permute(xyz_cell,[3 1 2]));
         end
-        function runDefaultXstimSetup(obj,cmd_obj)
+        function runDefaultXstimSetup(obj,cmd_obj,display_NEURON_steps)
             %runDefaultXstimSetup
             %
-            %
-            %NOTE: current directory should point to cell
-            %TODO: Add on check mechanism that ensures this ...
-            %simulation property - current_neuron_directory
-            %   cmd obj - query this before changing
+            %   runDefaultXstimSetup(obj,cmd_obj,display_NEURON_steps)
+            
+            
+            if display_NEURON_steps
+               disp('Creating list of all sections to apply stimulus to') 
+            end
             
             %NEURON.cell.extracellular_stim_capable.create_stim_sectionlist
             obj.create_stim_sectionlist(cmd_obj);
             
+            if display_NEURON_steps
+               disp('Creating list of points to record membrane voltage') 
+            end
+            
+            %NEURON.cell.extracellular_stim_capable.create_node_sectionlist
             obj.create_node_sectionlist(cmd_obj);
             
+            if display_NEURON_steps
+               disp('Setting up record instructions for all points in membrane voltage (node) list') 
+            end
+            
+            %Static library call
             NEURON.lib.sim_logging.record_membrane_voltages(...
                 cmd_obj,'xstim__node_sectionlist','xstim__node_vm_hist')
             
-            %Not needed right now, default to recreating, might reoptimize
-            %later
-            %cmd_obj.run_command('xstim__cell_setup_changed_since_last_playback_initialization = 1');
-            
         end
         
-        function createExtracellularStimCell(obj)
+        function createExtracellularStimCell(obj,cmd_obj,display_NEURON_steps)
             %
             %
             %
-            %   TODO: FIX THIS CLASS
+            %   FULL PATH
+            %   =============================================
+
+            if display_NEURON_steps
+                disp('Asking cell to create instance in NEURON')
+            end
             
-            
-            
-            %This method is currently not required by 
-            %this class, not sure how I am supposed to clean this up ...
-            %
-            %   TODO: Ask Matt about this ...
-            %
-            
-            %   KNOWN IMPLEMENTATIONS:
-            %       NEURON.cell.axon.MRG.createCellInNEURON
             cell_defined = obj.createCellInNEURON();
             
-            %??? How do we know if we need to reinitialize the spatial info????
+            if display_NEURON_steps
+                switch cell_defined
+                    case 0
+                        disp('Cell definition already up to date, no chages made')
+                    case 1
+                        disp('Cell defined in NEURON for the first time')
+                    case 2
+                        disp('Cell redefined in NEURON due to property changes')
+                    case 3
+                        disp('Cell automatically redefined in NEURON, no history code in place')
+                end
+            end
             
-            %NOTE: I think we currently have a potential error case
-            %If we recompute the xstim setup, but we don't change
-            %the spatial info, then we might not recompute the stimlus
-            %even though our vectors have been redefined in NEURON
-            %
-            %TODO: Fix this ...
-            %
-            %For now, link to neuron creation ...
-            
-            %The cmd_obj is also something that only the cell
-            %has, it isn't clear how this class would know about that ...
-            if cell_defined
-                cmd_obj = obj.cmd_obj;
+            %Redefinition of a cell in NEURON most often means that we will
+            %need to recreate any SectionLists that we have in place. Given
+            %the code structure this is not always true, but conditionally
+            %running the code is not expected to save a lot of time.
+
+            if cell_defined ~= 0
                 %NEURON.cell.extracellular_stim_capable.runDefaultXstimSetup
-                obj.runDefaultXstimSetup(cmd_obj);
+                obj.runDefaultXstimSetup(cmd_obj,display_NEURON_steps);
             end
         end
     end

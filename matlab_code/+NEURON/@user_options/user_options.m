@@ -1,7 +1,11 @@
 classdef user_options
     %
-    %   
+    %   This class is meant to handle parsing of user defined variables.
     %
+    %   Class:
+    %   NEURON.user_options
+    %
+    %   TODO: Create singleton pattern
     
     properties
        sim_logger_root_path

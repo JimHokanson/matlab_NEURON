@@ -3,71 +3,95 @@ classdef single_sim < handle_light
     %   Class: 
     %       NEURON.simulation.extracellular_stim.results.single_sim;
     %
+    %   This class is supposed to the results of running a single
+    %   extracellular stimulation simulation. This class is created by:
+    %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
+    %
     %   See Also:
     %       NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
-    %       NEURON.simulation.extracellular_stim
-    %       NEURON.simulation.extracellular_stim.plot <-?
     %
     %   IMPROVEMENTS:
     %   ===================================================================
-    %   1) Fix propagation spelling.
-    %   2) Get accurate labels of space & time for plotting method
+    %   1) Get accurate labels of space & time for plotting method
     
     properties (Hidden)
-       xstim_obj 
+        xstim_obj          %Class: NEURON.simulation.extracellular_stim
+        
+        cell_obj           %Class: Subclass of NEURON.neural_cell &
+        %NEURON.cell.extracellular_stim_capable
+        
+        threshold_info_obj %Class: NEURON.cell.threshold_info
     end
     
     properties
-        vm_threshold             %Threshold that needed to be crossed to consider
-        %AP at a given point point in space
-        
-        ap_propogation_index     %index that needed to cross threshold
-        %for considering propogation to have occurred
+       tested_scale        %Scaling amplitude tested.
+       
+       success             %Whether or not simulation ran without an error
+       %NOTE: Currently if this is false it indicates that the tissue is
+       %fried, as otherwise an error will be thrown. It might eventually be
+       %changed to have other reasons.
+       
+       tissue_fried        %Numerical overflow due to too strong a stimulus
     end
     
     properties
-        %see NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
-        success                  %Result ran without error
-        %NOTE: Currently if this is false it indicates that the tissue is
-        %fried, as otherwise an error will be thrown ...
+       simulation_time_extended = false;
+       initial_simulation_time
+       final_simulation_time
+    end
+    
+    properties
+        membrane_potential       = []    %[time x space] Potential recorded
+        %at each point in space. Spatial interpretation is left up to the
+        %cell.
         
-        tested_scale             %Value tested ...
-        
-        tissue_fried             %Numerical overflow due to too strong a stimulus
-        membrane_potential       %potential at nodes, time x space
-        threshold_crossed        = false %Whether threshold was crossed at any point
-        max_membrane_potential   = NaN %max(membrane_potential(:))
-        ap_propogated            = false %Whether or not a particular node crossed threshold
-        max_vm_per_node          %For each node this is the maximum potential recorded
+        ap_propagated            = false %Whether or not propagation was
+        %detected.
     end
     
     methods
-        function setFriedTissueValues(obj)
-            
-            %Not sure if I should put anything else in here ...
-            obj.max_membrane_potential = Inf;
+        function obj = single_sim(xstim_obj,tested_scale,threshold_info_obj,initial_tstop)
+           obj.xstim_obj               = xstim_obj;
+           obj.cell_obj                = obj.cell_obj;
+           obj.tested_scale            = tested_scale;
+           obj.threshold_info_obj      = threshold_info_obj;
+           obj.initial_simulation_time = initial_tstop;
         end
         function plot(obj,varargin)
 
-            in.font_size = 18;
-            in = processVarargin(in,varargin);
-            %TODO: Reference this to some plotting method of the cell
-            %This functionaly could be useful elsewhere ...
+            %TODO:
+            %=========================================================
+            %This method is out of date.
+            %1) Implement movie of voltage over time
+            %2) Provide method in cell for parsing spatial response
+            %into parts and for providings spatial scales
             
-            time_vector    = obj.xstim_obj.props_obj.time_vector;
-            n_space_points = size(obj.membrane_potential,2);
-            mesh(1:n_space_points,time_vector,obj.membrane_potential)
+            vm_local       = obj.membrane_potential;
             
-            x = obj.ap_propogation_index;
-            y = time_vector([1 end]);
-            z = obj.vm_threshold;
+            %NOTE: Due to time extension dt may be wrong ...
+            time_vector    = (0:size(vm_local,1)-1)*obj.xstim_obj.props_obj.dt;
+            n_space_points = size(vm_local,2);
+            mesh(1:n_space_points,time_vector,vm_local)
             
-            line([x x],y,[z z],'Linewidth',3,'Color','k')
-            zlabel('Membrane Potential','FontSize',in.font_size)
-            xlabel('Space','FontSize',in.font_size)
-            ylabel('time','FontSize',in.font_size)
-            title(sprintf('Stimulus Scale: %0.2f',obj.tested_scale),...
-                'FontSize',in.font_size)
+% % %             in.font_size = 18;
+% % %             in = processVarargin(in,varargin);
+% % %             %TODO: Reference this to some plotting method of the cell
+% % %             %This functionaly could be useful elsewhere ...
+% % %             
+% % %             
+% % %             
+% % %             
+% % %             
+% % %             x = obj.ap_propogation_index;
+% % %             y = time_vector([1 end]);
+% % %             z = obj.vm_threshold;
+% % %             
+% % %             line([x x],y,[z z],'Linewidth',3,'Color','k')
+% % %             zlabel('Membrane Potential','FontSize',in.font_size)
+% % %             xlabel('Space','FontSize',in.font_size)
+% % %             ylabel('time','FontSize',in.font_size)
+% % %             title(sprintf('Stimulus Scale: %0.2f',obj.tested_scale),...
+% % %                 'FontSize',in.font_size)
         end
     end
     

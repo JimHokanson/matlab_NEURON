@@ -3,23 +3,37 @@ classdef threshold_analysis < handle_light
     %   Class: 
     %       NEURON.simulation.extracellular_stim.threshold_analysis
     %
-    %   This class handles things related to analyzing stimulation data.
-    %   Eventually it might need to be expanded to handle intracellular
-    %   stimulation. In other words this would move to being a part of
-    %   stimulation with possible subclassing for exracellular versus
-    %   intracellular.
+    %   This class handles things related to analyzing extracellular
+    %   stimulation. In general it should not be called directly by the
+    %   user. It is mainly a location to hide methods related to threshold
+    %   analysis. Access to this class is obtained through method calls to
+    %   an instance of the extracellular stimulation simulation class.
     %
+    %   Relevant Clases
+    %   ==================================================================
+    %   For instructions on how to process the threshold information, the
+    %   cell must produce an object of the class:
+    %   NEURON.cell.threshold_info
+    %
+    %   For other instructions for this class, see the object:
+    %   NEURON.simulation.extracellular_stim.threshold_options
+    %
+    %   The following are result classes that this class produces:
+    %   from .run_stimulation() -
+    %       NEURON.simulation.extracellular_stim.results.single_sim
+    %   from .determine_threshold()
+    %       NEURON.simulation.extracellular_stim.results.threshold_testing_history
     %
     %   IMPROVEMENTS:
     %   ===================================================================
-    %   1) For propogation index, don't allow within a certain distance of
+    %   1) For propagation index, don't allow within a certain distance of
     %   the stimulation maximum. I'm not sure how to quantify this yet ...
-    %   2) Move options into threshold options class
     %
     %   PUBLIC ACCESS METHODS
     %   ===================================================================
     %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
     %   NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
+    %
     %
     %   See Also:
     %       NEURON.simulation.extracellular_stim.sim_determine_threshold
@@ -27,20 +41,30 @@ classdef threshold_analysis < handle_light
     %       NEURON.simulation.extracellular_stim.results.threshold_testing_history
     
     properties (Hidden)
-        parent
-        cmd_obj
+        parent    %Class: NEURON.simulation.extracellular_stim
+        cmd_obj   %Class: NEURON.cmd
     end
     
-    %Threshold analysis options ===========================================
-    properties
-        threshold_info %Class: NEURON.cell.threshold_info
+    %Threshold analysis options   %========================================
+    properties (Access = private,Hidden)
+        threshold_info  %Class: NEURON.cell.threshold_info
+        %This property is set just before running a simulation.
+        %See: NEURON.simulation.extracellular_stim.init__simulation
+    end
+    
+    %Temporary Properties     %============================================
+    properties (Hidden)
+       ap_propagation_observed = false %This is a temporary variable used by
+       %the determine_threshold() method to ensure that we actually get an
+       %action potential to propagate, not just oscillations between
+       %nothing and a super strong stimulus.
     end
     
     properties (Constant, Hidden)
        %This is the string that is returned by NEURON when we apply a stimulus
        %that is too large. Instead of throwing an error often times we will
        %just indicate that the stimulus is too large. This is primarily
-       %used by the .determine_threshold() code
+       %used by the .determine_threshold() code.
        FRIED_TISSUE_MESSAGE = 'out of range, returning exp(700)' 
     end
     
@@ -55,25 +79,61 @@ classdef threshold_analysis < handle_light
     %METHODS IN OTHER FILES ===============================================
     %NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
     
-    methods
-        function result_obj = run_stimulation(obj,scale)
+    methods (Hidden)
+        function setThresholdInfo(obj,threshold_info_obj)
+           %setThresholdInfo
+           %
+           %    setThresholdInfo(obj,threshold_info_obj)
+           %
+           %    I created this method to discourage direct manipulation 
+           %    of the property.
+           
+           obj.threshold_info = threshold_info_obj;
+        end
+        function result_obj = run_stimulation(obj,scale,auto_expand)
             %run_stimulation
             %
-            %   result_obj = run_stimulation(obj,scale)
+            %   result_obj = run_stimulation(obj,scale, *auto_expand)
+            %
+            %   This is the main method for running a single extracellular
+            %   stimulation. It should only be called by an instance of the
+            %   extracellular stimulation simulation class.
+            %
+            %   Specifically, this method is called by:
+            %       NEURON.simulation.extracellular_stim.sim__single_stim
+            %
+            %   INPUTS
+            %   ===========================================================
+            %   scale :  Multiplier of loaded data
             %
             %   OUTPUTS
             %   ===========================================================
             %   result_obj : Class: NEURON.simulation.extracellular_stim.results.single_sim
             %
-            %   Class:
-            %   NEURON.simulation.extracellular_stim.threshold_analysis
+            %   See Also:
+            %   NEURON.simulation.extracellular_stim.sim__single_stim
+            %   NEURON.simulation.extracellular_stim.results.single_sim
             %
+            %   FULL PATH:
+            %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
             
-            result_obj = NEURON.simulation.extracellular_stim.results.single_sim;
+
+            
+            t_info = obj.threshold_info;
+            if isempty(t_info)
+                error('Threshold info must be set before calling this class')
+                %See: NEURON.simulation.extracellular_stim.init__simulation
+            end
+            
+            initial_tstop = obj.parent.props_obj.tstop;
+            
+            result_obj = NEURON.simulation.extracellular_stim.results.single_sim(...
+                            obj.parent,scale,t_info,initial_tstop);
             result_obj.tested_scale = scale;
             result_obj.xstim_obj    = obj.parent;
             
             %Running the simulation
+            %--------------------------------------------------------------
             str = sprintf('{xstim__run_stimulation2(%0g)}',scale);
             [result_obj.success,result_str] = obj.cmd_obj.run_command(str,'throw_error',false);
             
@@ -86,7 +146,6 @@ classdef threshold_analysis < handle_light
                 if ~result_obj.tissue_fried
                    error(result_str) 
                 else
-                   result_obj.setFriedTissueValues();
                    return
                 end
             end
@@ -95,23 +154,100 @@ classdef threshold_analysis < handle_light
             %--------------------------------------------------------------
             %NOTE: This could get a lot more complicated with time varying
             %stimuli. For now we'll keep it simple ...
+            %vm [time x space]
             vm = obj.parent.data_transfer_obj.getMembranePotential;
             
-            max_vm_by_space = max(vm); %i.e. take max over time at each point in space
-            
-            t_info = obj.threshold_info;
-            if isempty(t_info)
-                error('Threshold info must be set before calling this class')
+            %Simulation time expansion code
+            %--------------------------------------------------------------
+            if auto_expand
+               %This current expansion approach relies on an assumption
+               %of a stable membrane voltage. Should we get oscillating
+               %dynamics then we need to fix this approach.
+               
+               %Test diff of voltage
+               %- need max time
+               %- need growth instructions - what time instructions
+               %continuerun(new_time)
+                
+               %TODO: Clean this code up ...
+               if any(vm(end-1,:) - vm(end,:) < 0)
+                  sim_ext_options = obj.parent.sim_ext_options_obj;
+                   
+                  tstop_growth   = sim_ext_options.sim_growth_rate;
+                  current_t_stop = initial_tstop;
+                  max_t_stop     = current_t_stop + sim_ext_options.max_absolute_sim_growth;
+                   
+                  extension_successful = false;
+                  
+                  c = obj.cmd_obj;
+                  
+                  n_loops = 0;
+                  while current_t_stop < max_t_stop
+                      current_t_stop = current_t_stop + tstop_growth;
+                      n_loops = n_loops + 1;
+                      
+                      str = sprintf('{xstim__continue_simulation(%0g)}',current_t_stop);
+                      c.run_command(str);
+                      vm = obj.parent.data_transfer_obj.getMembranePotential;
+                      
+                      extension_successful = ~any(vm(end-1,:) - vm(end,:) < 0);
+                      if extension_successful
+                          break
+                      end
+                  end
+                  
+                  %TODO: provide more details
+                  if ~extension_successful
+                      error('Attempt to extend simulaton failed')
+                  end
+                  result_obj.final_simulation_time = current_t_stop; 
+               end
+            else
+                result_obj.final_simulation_time = initial_tstop;
             end
             
-            result_obj.vm_threshold            = t_info.v_ap_threshold;
-            result_obj.ap_propogation_index = t_info.v_ap_propogation_index;
+            result_obj.membrane_potential = vm;
+            result_obj.ap_propagated      = obj.analyzeMembranePotential(vm);  
+
+        end
+    end
+    
+    %Membrane Voltage Analysis   %=========================================
+    %----------------------------------------------------------------------
+    % I'm not sure that I want this code here. I'm not sure how it is best
+    % to organize this. These functions might become their own class or be
+    % placed into the threshold_info class. The threshold_info class is
+    % strongly dependent on, and is populated in, the cell class, as the
+    % action potential properteis are a function of the cell type.
+    methods (Hidden)
+        function ap_propagated = analyzeMembranePotential(obj,vm)
+            %
+            %   
+            %   ap_propagated = analyzeMembranePotential(obj,vm)   
+            %
+            %   INPUTS
+            %   ===========================================================
+            %   vm : [time x space], membrane potential
+            %   
+            %
             
-            result_obj.max_membrane_potential = max(max_vm_by_space);
-            result_obj.membrane_potential     = vm;
-            result_obj.threshold_crossed      = result_obj.max_membrane_potential > t_info.v_ap_threshold;
-            result_obj.ap_propogated          = max_vm_by_space(t_info.v_ap_propogation_index) > t_info.v_ap_threshold;
-            result_obj.max_vm_per_node        = max_vm_by_space;
+            
+            t_info = obj.threshold_info;
+
+            %Currently only a very basic check mechanism is implemented
+            max_vm_desired_location = max(vm(:,t_info.v_ap_propagation_index));
+            ap_propagated = max_vm_desired_location > t_info.v_ap_threshold;        
+        end
+        function any_above_threshold = anyAboveThreshold(obj,vm)
+            %anyAboveThreshold
+            %
+            %   any_above_threshold = anyAboveThreshold(obj,vm)
+            
+            
+            t_info = obj.threshold_info;
+            
+            max_vm_all          = max(vm,[],1);
+            any_above_threshold = any(max_vm_all > t_info.v_ap_threshold);
         end
     end
 end

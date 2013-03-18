@@ -1,0 +1,16 @@
+/*
+
+When is the variable a referenced? I am guessing it is global and thus
+updates but I wanted to be sure ...
+
+
+
+*/
+
+a = 3
+proc test(){
+	print a
+}
+
+a = 5
+test()

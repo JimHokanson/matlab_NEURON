@@ -1,6 +1,9 @@
 function initialize
 % INITIALIZE Initialize the NEURON toolbox
 
+
+%TODO: Add on compiled objects check ...
+
 %Addition of main Matlab code folder ...
 my_path          = fileparts(mfilename('fullpath'));
 matlab_code_path = fullfile(my_path,'matlab_code');

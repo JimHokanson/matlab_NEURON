@@ -1,75 +1,80 @@
 classdef threshold_testing_history < handle_light
-    %threshold_testing_history
     %
     %   Class:
     %       NEURON.simulation.extracellular_stim.results.threshold_testing_history
+    %
+    %   This is a results class which summarizes our attempt to determine
+    %   threshold for a given extracellular simulation setup.
+    %
     %
     %   See Also:
     %       NEURON.simulation.extracellular_stim.threshold_analyis.determine_threshold
     
     properties
-        success         %Not yet defined ...
-        
         n_loops = 0 
         n_above = 0
         n_below = 0
         
         threshold_info  %Class: NEURON.cell.threshold_info
         
-        stimulus_threshold %Main result of this class. This is the stimulus
-        %threshold required to fire an action potential ...
+        stimulus_threshold %Main result of this class. This is the estimated
+        %stimulus threshold required to fire an action potential.
         
-        tested_stimuli  = zeros(1,20) %
-        ap_propogated   = false(1,20) %(logical array)
-        max_vm          = zeros(1,20)
+        tested_stimuli  = zeros(1,20) %Stimulus scalars tested
+        response_type   = zeros(1,20) %
+        %1 - propagation
+        %2 - too strong a stimulus - no propagation
+        %3 - way too strong a stimulus - NEURON threw an error (tissue fried case)
+        %4 - no propagation, stimulus too weak
         
-        last_threshold_vm = []
+        last_threshold_stimuli
+        last_threshold_vm = [] %[time x space] Potential recorded
+        %at each point in space. Spatial interpretation is left up to the
+        %cell. Values are for the last tested stimuli which showed action
+        %potential propagation.
     end
     
     methods
         function obj = threshold_testing_history(threshold_info)
-           %Nothing currently
+           %threshold_testing_history
            %
            %    NOTE: Object should be finalized after simulation. See
            %    method finalizeData()
-           obj.threshold_info = threshold_info;
            
+           obj.threshold_info = threshold_info;
         end
         function plot(obj)
            mesh(obj.last_threshold_vm)
            title(sprintf('Stimulus Threshold: %0.2f',obj.stimulus_threshold))
         end
-        function logResult(obj,tested_value,ap_fired,max_vm,vm)
+        function logResult(obj,tested_value,response_type,vm)
+           %logResult
+           %
+           %    logResult(obj,tested_value,response_type,vm)
+           
            n_local = obj.n_loops + 1;
            
-           if ap_fired
+           if response_type == 1
               obj.last_threshold_vm = vm; 
            end
            
            obj.tested_stimuli(n_local) = tested_value;
-           obj.ap_propogated(n_local)  = ap_fired;
-           obj.max_vm(n_local)         = max_vm;
+           obj.response_type(n_local)  = response_type;
+           obj.n_loops                 = n_local;
            
-           %if ~ap_fired
-           %if max_vm > max_vm_not_fired
-           %    update object property ...
-           %end
-           %end
-           
-           obj.n_loops = n_local;
-           
-           if ap_fired
-               obj.n_above = obj.n_above + 1;
+           if response_type == 4
+               obj.n_below = obj.n_below + 1;
            else
-               obj.n_below = obj.n_below + 1;               
+               obj.n_above = obj.n_above + 1;               
            end
         end
 
         function finalizeData(obj,stimulus_threshold)
            obj.tested_stimuli(obj.n_loops+1:end) = [];
-           obj.ap_propogated(obj.n_loops+1:end)  = [];
-           obj.max_vm(obj.n_loops+1:end)         = [];
+           obj.response_type(obj.n_loops+1:end)  = [];
            obj.stimulus_threshold = stimulus_threshold; 
+           obj.last_threshold_stimuli = ...
+                    obj.tested_stimuli(find(obj.response_type == 1,1,'last'));
         end
         function str = getSummaryString(obj)
             str = sprintf('SIMULATION FINISHED: THRESHOLD = %0g, n_loops = %d',...

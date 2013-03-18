@@ -3,9 +3,12 @@ classdef extracellular_stim < NEURON.simulation
     %   Class: 
     %       NEURON.simulation.extracellular_stim
     %
+    %   This class is meant to implement extracellular stimulation of a
+    %   cell.
+    %
     %   HOW TO CALL
     %   ===================================================================
-    %   1) NEURON.simulation.extracellular_stim.create_standard_sim
+    %   NEURON.simulation.extracellular_stim.create_standard_sim
     %
     %   Simulation Methods
     %   ===================================================================
@@ -14,23 +17,31 @@ classdef extracellular_stim < NEURON.simulation
     %   NEURON.simulation.extracellular_stim.sim__determine_threshold
     %   NEURON.simulation.extracellular_stim.sim__getActivationVolume
     %
-
-    %   PROPERTIES FROM OTHERS
-    %   =================================================================
-    %   FROM NEURON.simulation - NOTE: Unfortunately there are many more ...
-    %   -------------------------
-    %   n_obj    : (Class NEURON)
-    %   cmd_obj  : (Class NEURON.cmd)
-    %   sim_hash : String
+    %   DOCUMENTATION
+    %   ===================================================================
+    %   Additional documentation can be found in the documentation folder
+    %   of this class.
+    %   
+    %   IMPROVEMENTS
+    %   ===================================================================
+    %   1) Write display method
+    %   2) Refactor stimulus data to allow better superposition and
+    %   computing of stimuli in NEURON
     
     %OPTIONS =============================================================
     properties
         threshold_options_obj   %Class: NEURON.simulation.extracellular_stim.threshold_options
+        sim_ext_options_obj     %Class: NEURON.simulaton.extracellular_stim.sim_extension_options 
     end
     
     properties (Hidden)
         data_transfer_obj       %Class: NEURON.simulation.extracellular_stim.data_transfer
-        threshold_analysis_obj  %Class: NEURON.simulation.extracellular_stim.threshold_analysis    
+        %This object is meant to facilitate data transfer to and from the
+        %NEURON environment.
+        
+        threshold_analysis_obj  %Class: NEURON.simulation.extracellular_stim.threshold_analysis
+        %This object performs the actual stimulation and analyzes the
+        %result.
     end
     
     properties (SetAccess = private)
@@ -51,77 +62,88 @@ classdef extracellular_stim < NEURON.simulation
         %NOTE: Stim times is any time in which any stimulus changes (i.e.
         %from any electrode), as this will change the electric field that
         %the cell is in. It will also include a time at zero (NOTE: This
-        %night change) to indicate that at time zero there is generally no
+        %might change) to indicate that at time zero there is generally no
         %stimulus.
     end
     
-    %Latest configurations
-    %TODO: Document these ...
+    %Latest configurations ================================================
     properties (Hidden)
+       %These properties can be used by methods of this class to hold onto
+       %the most recent configuration
        tissue_configuration    = []
        electrode_configuration = []
        cell_configuration      = []
     end
     
     %INITIALIZATION METHODS ==============================================
-    methods
-        function obj = extracellular_stim(varargin)
+    methods (Access = private)
+        function obj = extracellular_stim(xstim_options)
             %
             %   obj = extracellular_stim(varargin)
-            %
-            %   NOTE: I am considering making this constructor private ...
             %
             %   See Also:
             %       NEURON.simulation.extracellular_stim.create_standard_sim
             
+            if ~exist('xstim_options','var')
+               xstim_options = NEURON.simulation.extracellular_stim.options; 
+            end
+            
             import NEURON.simulation.extracellular_stim.*
             
-            in.launch_NEURON_process = true;
-            in.debug                 = false;
-            in.log_commands          = false;
-            in = processVarargin(in,varargin);
-            
-            obj@NEURON.simulation(in);
+            obj@NEURON.simulation(xstim_options.sim_options);
             
             obj.threshold_options_obj  = threshold_options;
+            obj.sim_ext_options_obj    = sim_extension_options;
             obj.data_transfer_obj      = data_transfer(obj,obj.sim_hash);
             obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd_obj);
             
         end
+    end
+    methods
         function init__simulation(obj)
            %init__simulation Initializes simulation before being run
            %
            %    init__simulation(obj)
            %
-           %    NOTE: Most simulation methods should call this class before
-           %    running. A known current exception is the simulation
-           %    logging calls which call methods which call this function
-           %    ...
+           %    Simulation methods of this class, indicated by sim__ should
+           %    call this method before running their code.
            %
            %    For more information on event order see the Event Order
            %    documentation file in the private folder of this class.
            %
            %    FULL PATH:
            %        NEURON.simulation.extracellular_stim.init__simulation
-           
-           obj.init__verifyAssignedObjects();
-           
+            
+           %Retrieval of the threshold info object from the cell for use in
+           %analyzing action potentials.
+           %NEURON.simulation.extracellular_stim.init__setupThresholdInfo
            obj.init__setupThresholdInfo(); 
            
-           obj.cell_obj.createExtracellularStimCell();
+           %Base definition:
+           %NEURON.cell.extracellular_stim_capable.createExtracellularStimCell
+           obj.cell_obj.createExtracellularStimCell(obj.cmd_obj,...
+                                    obj.options.display_NEURON_steps);
            
            obj.init__create_stim_info();
            
         end
-        
     end
     
     methods (Static)
        obj = create_standard_sim(varargin)  
     end
     
-    %EVENT HANDLING  ======================================================
+    %EVENT HANDLING  %=====================================================
     methods
+        %IMPROVEMENTS:
+        %==============================================
+        %1) Check input type (low priority)
+        %2) Provide support for changing the object. Currently these
+        %methods are only called once and it is not clear that they would
+        %work properly if a new object were assigned to these properties.
+        %Most likely the configuration settings would need to be reset but
+        %other code might need to be executed in NEURON as well.
+        
         function set_Tissue(obj,tissue_obj)
             obj.tissue_obj = tissue_obj;
         end
@@ -130,13 +152,6 @@ classdef extracellular_stim < NEURON.simulation
         end
         function set_CellModel(obj,cell_obj)
             obj.cell_obj = cell_obj;
-            
-            %NOTE: We might need to clear everything
-            %if a new cell object is defined ...
-            %In other words, if the cell_obj is not empty
-            %we might need to change things ...
-            
-            obj.cell_obj.setSimObjects(obj.cmd_obj,obj);
             
             %NOTE: This must follow population of this object
             %in the cell class
@@ -154,6 +169,13 @@ classdef extracellular_stim < NEURON.simulation
             %   This method gets the sim_logger class after initialization
             %   so that the data object it contains is valid given the
             %   current extracellular stimulation being used.
+            %
+            %   OUTPUTS
+            %   ===========================================================
+            %   sim_logger : Class: NEURON.simulation.extracellular_stim.sim_logger
+            %
+            %   See Also:
+            %       NEURON.simulation.extracellular_stim.sim_logger
             
             sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
             
@@ -206,58 +228,34 @@ classdef extracellular_stim < NEURON.simulation
                t = reshape(thresholds,[sz(2) sz(1) sz(3)]);
                thresholds = permute(t,[2 1 3]);
             end
-            
-        end
-    end
-    
-    methods
-        function n = getNumberNonZeroStimTimes(obj)
-            %getNumberNonZeroStimTimes
-            %
-            %    Why was this method written?????
-            %
-            %   I'd like to delete it
-            n = length(find(any(obj.v_all,2)));
         end
     end
     
     %INITIALIZATION  =====================================================
     methods (Access = private)
-        function init__verifyAssignedObjects(obj)
-            %init__verifyAssignedObjects
-            %
-            %    Verifies that all objects which are necessary for this
-            %    simulation are defined. These incldue:
-            %       1) Electrode Object
-            %       2) Tissue Object
-            %       3) Cell Object
-            %
-            %    init__verifyAssignedObjects(obj)
-            %
-            %    See Also:
-            %       NEURON.simulation.extracellular_stim.init__simulation
-            
-            if ~isobject(obj.tissue_obj)
-                error('Tissue object must be specified before initializing system')
-            end
-
-            if ~isobject(obj.elec_objs)
-                error('Electrodes must be specified before running simulations')
-            end
-            
-            if ~isobject(obj.cell_obj)
-                error('Neural cell must be specified before running simulation')
-            end
-        end
         function init__setupThresholdInfo(obj)
+            %init__setupThresholdInfo
             %
-            %   init__setupThresholdInfo
+            %   init__setupThresholdInfo(obj)
             %
             %    See Also:
             %        NEURON.simulation.extracellular_stim.sim__single_stim
             %        NEURON.simulation.extracellular_stim.sim__determine_threshold
+            %
+            %   FULL PATH:
+            %   NEURON.simulation.extracellular_stim.init__setupThresholdInfo
 
-            obj.threshold_analysis_obj.threshold_info = obj.cell_obj.getThresholdInfo();
+            
+            %This method is required by:
+            %NEURON.cell.extracellular_stim_capable
+            obj.threshold_analysis_obj.setThresholdInfo(obj.cell_obj.getThresholdInfo());
+        end
+    end
+    
+    %Info Retrieval   %====================================================
+    methods
+        function nobj = getNEURONobjects(obj)
+           nobj = NEURON.simulation.extracellular_stim.NEURON_objects(obj.cmd_obj); 
         end
     end
     

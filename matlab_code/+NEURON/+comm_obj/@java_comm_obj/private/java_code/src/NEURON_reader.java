@@ -46,12 +46,17 @@ public class NEURON_reader {
 	boolean ran_once_after_process_exiting; 
 
 	//We start everything in Matlab and pass in the relevant objects here ...
+	//CONSTRUCTOR ===================================================================
 	public NEURON_reader(BufferedInputStream pin, FileInputStream perr, Process p) {
 		this.p    = p;
 		this.perr = perr;
 		this.pin  = pin;
 	}
 
+	public static boolean test_install(){
+		return true;
+	}
+	
 	public String getCurrentInputString(){
 		return input_data.toString();
 	}

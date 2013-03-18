@@ -12,7 +12,7 @@ function output = compute__showPotentialPlane(obj,varargin)
 %
 %   Class: NEURON.simulation.extracellular_stim
 %
-%   STATUS: Function is unfinished ...
+%   STATUS: FUCNTION IS UNFINISHED
 
 %
 %

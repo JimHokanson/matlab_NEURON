@@ -22,19 +22,25 @@ function result_obj = determine_threshold(obj,starting_value)
 %   IMPROVEMENTS
 %   =======================================================================
 %   1) Check applied stimuli to make sure it isn't identically zero
-%
+%   
 %   See Also:
 %       NEURON.simulation.extracellular_stim.results.sim__single_stim;
 %       NEURON.simulation.extracellular_stim.results.sim__determineThreshold;
 %
+%   ERROR CASES
+%   =======================================================================
+%   1) Failure to find a stimulus which causes action potential
+%   propagation. One example in which this can happen is for the HH model
+%   at higher temperatures.
+%
 %   FULL PATH: 
 %       NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
 
+AUTO_EXPAND_SIM_TIME = true;
 
 %in.throw_error = true;
 %in = processVarargin(in,varargin);
 
-%TODO: Check applied stimulus ...
 %What about if there is:
 %1) No applied stimulus 
 %   - this can come in if exactly half way between two opposite signed stimuli
@@ -49,18 +55,25 @@ function result_obj = determine_threshold(obj,starting_value)
 
 t = obj.parent.threshold_options_obj;
 
-%First simulation ---------------------------------------------------------
-r = run_stimulation(obj,starting_value);
+obj.ap_propagation_observed = false;
 
 result_obj = NEURON.simulation.extracellular_stim.results.threshold_testing_history(obj.threshold_info);
 
+%First simulation 
+%--------------------------------------------------------------------------
+r = run_stimulation(obj,starting_value,AUTO_EXPAND_SIM_TIME);
+
+[lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,starting_value,result_obj);
+%One of the values from the previous function will be empty, and one will
+%be the starting_value that we tested.
+
+
 %Bounding the solution
 %--------------------------------------------------------------------------
-lower_bound = helper__getNewestBounds(obj,r,t,starting_value,result_obj);
 if isempty(lower_bound)
-    [lower_bound,upper_bound] = helper__getLowerBound(obj,t,starting_value,result_obj);
+    [lower_bound,upper_bound] = helper__getLowerBound(obj,t,upper_bound,result_obj);
 else
-    [lower_bound,upper_bound] = helper__getHigherBound(obj,t,starting_value,result_obj);
+    [lower_bound,upper_bound] = helper__getHigherBound(obj,t,lower_bound,result_obj);
 end
 
 %Binary search until solution is found
@@ -70,12 +83,12 @@ while true
    %Stopping condition check
    %----------------------------------------------------------
    bound_difference = abs(upper_bound - lower_bound);
-   if bound_difference < t.threshold_accuracy
+   if bound_difference < t.max_threshold_error_absolute
        break
    end
     
    next_value = helper__getNextValue(lower_bound,bound_difference);
-   r = run_stimulation(obj,next_value);
+   r = run_stimulation(obj,next_value,AUTO_EXPAND_SIM_TIME);
    
    [lower_bound_temp,upper_bound_temp] = helper__getNewestBounds(obj,r,t,next_value,result_obj);
    if isempty(lower_bound_temp)
@@ -83,6 +96,10 @@ while true
    else
        lower_bound = lower_bound_temp;
    end
+end
+
+if ~obj.ap_propagation_observed
+    error('Unable to find a stimulus which produces action potential propagation')
 end
 
 %Threshold - upper bound or halfsies?
@@ -98,15 +115,33 @@ result_obj.finalizeData(stimulus_threshold);
 end
 
 function [lower_bound,upper_bound,n_loops] = helper__getLowerBound(obj,t,starting_value,result_obj)
+%helper__getLowerBound
+%   
+%   [lower_bound,upper_bound,n_loops] = helper__getLowerBound(obj,t,starting_value,result_obj)
+%
+%   This function is called when it is determined that we need to reduce
+%   the stimulus amplitude to find a lower stimulus bound for the halving
+%   approach. Specifically we are looking for a stimulus amplitude which
+%   does not elicit a response.
+%
+%   OUTPUTS
+%   =======================================================================
+%   lower_bound : First stimulus amplitude encountered which does not 
+%           elicit a response. This is the primary answer we are looking
+%           for.
+%   upper_bound : In the process of searching for a lower bound, tests
+%       which elicit a response allow us to lower the upper bound. 
+%   n_loops     : # of simulations run in this function
+%
+%   INPUTS
+%   =======================================================================
 
-%1) Get lower stimulus options
-%2) Start testing 
 
 testing_values = getLowerStimulusTestingPoints(t,starting_value);
 upper_bound    = starting_value;
 for iTest = 1:length(testing_values)
    cur_value = testing_values(iTest);
-   r = run_stimulation(obj,cur_value);
+   r = run_stimulation(obj,cur_value,true);
    [lower_bound,temp_upper_bound] = helper__getNewestBounds(obj,r,t,cur_value,result_obj);
    if isempty(lower_bound)
        upper_bound = temp_upper_bound;
@@ -120,11 +155,17 @@ if isempty(lower_bound)
     error('Unable to find a lower stimulus bound ...')
 end
 
-n_loops = iTest + 1;
+n_loops = iTest + 1; %+1 is for the initial simulation ...
 
 end
 
 function [lower_bound,upper_bound,n_loops] = helper__getHigherBound(obj,t,starting_value,result_obj)
+%
+%
+%   [lower_bound,upper_bound,n_loops] = helper__getHigherBound(obj,t,starting_value,result_obj)
+%   
+%
+
 
 %1) Get higher stimulus options
 %2) Start Testing
@@ -134,7 +175,7 @@ testing_values = getHigherStimulusTestingPoints(t,starting_value);
 lower_bound    = starting_value;
 for iTest = 1:length(testing_values)
    cur_value = testing_values(iTest);
-   r = run_stimulation(obj,cur_value);
+   r = run_stimulation(obj,cur_value,true);
    [temp_lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,cur_value,result_obj);
    if isempty(upper_bound)
        lower_bound = temp_lower_bound;
@@ -144,7 +185,11 @@ for iTest = 1:length(testing_values)
 end
 
 %TODO: Change into specific error for class
+%??? - not sure what I meant by this - I think I meant
+%just to provide more detail ...
 if isempty(upper_bound)
+   %This indicates that given the stimuli tested, we
+   %keep on seeing a response ...
    error('Unable to find a upper stimulus bound ...') 
 end
 
@@ -166,59 +211,26 @@ function next_value = helper__getNextValue(lower_bound,bound_difference)
    end
 end
 
-function isShort = helper__isShortSimCondition(obj,r,t)
-%helper__isShortSimCondition
-%
-%   isShort = helper__isShortSimCondition(obj,r,t)
-%
-%   INPUTS
-%   =======================================================================
-%   r :
-%   t :
-%
-%   In this code we are trying to distinguish between a strong stimulus
-%   which does not propogate, and a sufficiently strong stimulus which just
-%   does not have enough time to propogate because the simulation is too
-%   short.
-%
-%   In general, if the stimulus is too strong, we won't expect any of the
-%   membrane to be above threshold close to the end of the simulation. The
-%   parameter that tells us how far back to go from the end of the simulation
-%   is in the threshold options as:
-%       .short_simulation_test_time
-%
-%   NOTE: This obtains the time vector from the simulation object. 
-%   This might eventually change to being an object of its own ...
-
-sim_props = obj.parent.props_obj;
-first_index_end_time = find(sim_props.time_vector >= sim_props.tstop - t.short_simulation_test_time,1);
-if isempty(first_index_end_time)
-    %??? Is our simulation too short?
-    %
-    error('See code')
-end
-temp_vm = r.membrane_potential(first_index_end_time:end,:);
-isShort = any(temp_vm(:) > r.vm_threshold);
-end
-
-function [lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,tested_value,result_obj)
+function [lower_bound,upper_bound] = helper__getNewestBounds(obj,r,~,tested_value,result_obj)
 %helper__getNewestBounds
 %
 %   [lower_bound,upper_bound] = helper__getNewestBounds(obj,r,t,tested_value,result_obj
 %
 %   This is the main function that is responsible for analyzing the
 %   membrane potential and determining whether or not to go higher or lower
-%   with the stimulus ...
+%   with the stimulus.
 %
 %   INPUTS
 %   =======================================================================
 %   r : NEURON.simulation.extracellular_stim.results.single_sim
 %
-%
 %   OUTPUTS
 %   =======================================================================
-%   Important, an empty output indicates that the bound was not set.
-%   lower_bound :
+%   Important, an empty output indicates that the bound was not set. Only
+%   one of these two values is set in this function.
+%
+%   lower_bound : New lower bound where the cell doesn't respond to the
+%                 stimulus.
 %   upper_bound :
 %
 %   
@@ -227,31 +239,32 @@ lower_bound = [];
 upper_bound = [];
 
 if r.success
-    %Cases:
-    %1) AP propogation
-    %2) failure due time out
-    %3) failure due to too strong a stimulus
-    if r.ap_propogated
+    if r.ap_propagated
         upper_bound = tested_value;
-    elseif r.threshold_crossed %Too strong a stimulus OR too long
-        %Need to write code to differentiate ...
-        %NOTE: We need a time vector
-        if helper__isShortSimCondition(obj,r,t)
-            lower_bound = tested_value;
-        else
-            upper_bound = tested_value;
-        end
+        obj.ap_propagation_observed = true;
+        response_option = 1;
+    elseif anyAboveThreshold(obj,r.membrane_potential)
+        %Too strong a stimulus OR simulation ran an insufficient amount of time
+        %------------------------------------------------------------------
+        %The idea of too strong a stimulus comes from monophasic stimuli
+        %where a sufficiently strong stimulus can theoretically cause
+        %inhibition of propogation. Insufficient run time should not happen
+        %due to automatically prolonging the duration of the stimulus
+        %should the membrane potential be increasing at the end.
+        
+        %NOTE: ap propagation was not observed, it is just inferred
+        upper_bound = tested_value;
+        response_option = 2;
     else
         lower_bound = tested_value;
+        response_option = 4;
     end
 elseif r.tissue_fried
     upper_bound = tested_value;
+    response_option = 3;
 else
     error('Unhandled case')
 end
 
-
-result_obj.logResult(tested_value,isempty(lower_bound),r.max_membrane_potential,r.membrane_potential)
-
-
+result_obj.logResult(tested_value,response_option,r.membrane_potential)
 end

@@ -67,17 +67,22 @@ classdef comm_obj < handle_light
         function hideWindow_dotnet(obj,dotnet_process)
            %hideWindow
             %
-            %   hideWindow(p)
+            %   hideWindow_dotnet(obj,dotnet_process)
             %
             %   INPUTS
-            %   ======================================
-            %   p.System.Diagnostics.Process
+            %   ===========================================================
+            %   dotnet_process : System.Diagnostics.Process (.NET)
             %
-            %   After much searching I haven't been able to find
-            %   a way to hide the window without using user32.dll
-
+            %   After much searching I haven't been able to find a way to 
+            %   hide the window without using user32.dll
+            %
+            %   See Also:
+            %   NEURON.comm_obj.windows_comm_obj.init_dotnet_code    
+            %   NEURON.comm_obj.java_comm_obj.hideWindow
+            
             HIDE_WINDOW_OPTION = 0;
-            LAUNCH_TIMEOUT     = 2; %seconds, How long to wait for window to launch before throwing an error
+            LAUNCH_TIMEOUT     = 2; %(seconds) How long to wait for 
+            %window to launch before throwing an error
 
             ti = tic;
             while 1

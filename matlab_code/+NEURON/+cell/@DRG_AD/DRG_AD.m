@@ -7,20 +7,11 @@ classdef DRG_AD < NEURON.neural_cell & NEURON.cell.extracellular_stim_capable
     %   ...
     %  
     %
-    %PROPERTIES ====================================================
-    %From NEURAL_CELL
-    %----------------------
-    %simulation_obj %(class NEURON.simulation or subclass)
-    %cmd_obj        %(class NEURON.cmd)
-    %
-    %From NEURON.cell.axon
-    %----------------------
-    %-none
-    %
     %   IMPROVEMENTS
     %   ==============================================================
     %
-    %   METHODS IN OTHER FILES ============================================
+    %   METHODS IN OTHER FILES 
+    %   ============================================
     %   NEURON.cell.axon.MRG.createCellInNEURON   (main NEURON interface method)
     %   NEURON.cell.axon.MRG.populateSpatialInfo
     %   NEURON.cell.axon.MRG.getOtherScale
@@ -34,7 +25,7 @@ classdef DRG_AD < NEURON.neural_cell & NEURON.cell.extracellular_stim_capable
         HOC_CODE_DIRECTORY = 'Amir_Devor_2003'
     end
     
-    properties
+    properties (SetAccess = private)
         xyz_center %Location of the axon center in global space
         %This is important for stimulation with electrodes
         %This is specified by the user in the constructor ...
@@ -42,7 +33,6 @@ classdef DRG_AD < NEURON.neural_cell & NEURON.cell.extracellular_stim_capable
         
         props_obj   %(Class NEURON.cell.axon.MRG.props)
         xyz_all     %populate_xyz()
-        
     end
     
     %INTERNAL PROPS REGARDING SIZE

@@ -6,6 +6,7 @@ classdef Grill_1997
     %   
     
     properties
+       resistivity = 55; %Ohm-cm, isotropic
     end
     
     methods

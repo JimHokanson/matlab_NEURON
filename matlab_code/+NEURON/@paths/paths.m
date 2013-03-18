@@ -1,11 +1,11 @@
-classdef paths < handle
+classdef paths < handle_light
     %
     %   Class: NEURON.paths 
     %
-    %   This is the main path for handling NEURON related pathing
+    %   This is the main class for handling NEURON related pathing.
     %
     %   USER CONSTANTS NEEDED
-    %   ==================================================================
+    %   ===================================================================
     %   C.NEURON_EXE_PATH 
     %
     %   IMPROVEMENTS

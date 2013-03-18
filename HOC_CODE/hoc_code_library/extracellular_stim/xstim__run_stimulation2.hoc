@@ -16,7 +16,14 @@ stim_scale :
 SEE ALSO
 -----------------------------------------------------------
 
+IMPROVEMENTS
+-----------------------------------------------------------
+Eventually I would like to place the derivative detection in here
+
 */
+
+	
+
 
 	//Can I make this local somehow?
 	//Do I have to use a String object????

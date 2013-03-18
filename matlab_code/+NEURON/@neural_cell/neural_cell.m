@@ -67,6 +67,11 @@ classdef neural_cell < handle
        %created_status - indicates that the cell was defined (or redefined) in NEURON 
        created_status = createCellInNEURON(obj) %This method should define 
        %the cell in NEURON
+       %created_status
+       %    0 - not created
+       %    1 - created, initialized all code
+       %    2 - recreated cell
+       %    3 - always created or recreated cell
     end
     
     methods

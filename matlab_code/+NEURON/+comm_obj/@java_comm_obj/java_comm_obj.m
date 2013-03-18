@@ -2,23 +2,37 @@ classdef java_comm_obj < NEURON.comm_obj
     %
     %   Class:
     %       NEURON.comm_obj.java_comm_obj
-    %   
+    %
     %   java_comm_obj < NEURON.comm_obj
     %
     %   This is a Java implementation of the communication object. It
-    %   relies upon a Java class in the private directory, called 
+    %   relies upon a Java class in the private directory, called
     %   NEURON_reader.
+    %
+    %   The Java implementation is the preferred communication object as it
+    %   seems to run a bit faster, works on all os systems, and seems less
+    %   susceptible to random Matlab crashes.
     %
     %   IMPROVEMENTS
     %   ===================================================================
     %   1) Change the java reader to dynamically update string sizes when
     %   an overflow occurs.
+    %
+    %   Installation
+    %   ===================================================================
+    %   Installation requires calling the static method:
+    %       NEURON.comm_obj.java_comm_obj.init_system_setup
+    %   This method is called by the static method, NEURON.init_system
+    %   JAH NOTE: I'm working on an install class to make these things a
+    %   bit clearer.
+    %
+    % 
     
     properties
-        paths      %Class: NEURON.paths
+        paths            %Class: NEURON.paths
         
-        %j => Java
-        j_process  %Class: java.lang.ProcessImpl
+        %j => prefix to indicate Java class
+        j_process        %Class: java.lang.ProcessImpl
         
         %Streams   ---------------------------------------------------------
         j_error_stream   %Class: java.io.FileInputStream
@@ -29,43 +43,53 @@ classdef java_comm_obj < NEURON.comm_obj
         
         j_output_stream  %Class: java.io.BufferedOutputStream
         %http://download.java.net/jdk7/archive/b123/docs/api/java/io/BufferedOutputStream.html
+        %------------------------------------------------------------------
         
-        j_reader
+        j_reader         %Class: NEURON_reader, local Java class implemented
+        %specifically for communication with NEURON
     end
     
-    %DEBUGGING   -----------------------------------------------
+    %DEBUGGING    %========================================================
     properties
         %.write()
         %--------------------------------------------------------
         debug           %if
         last_cmd_str
-        
-        %.setResultAndTerminateWait()
-        %-----------------------------------------------------
-        termination_str_observed  %I don't think I really need this
-        %Could probably remove the code ...
-        
-        %.setFinalString()
-        %------------------------------------------------------------
-        partial_good_str         %Set if an error occurred but the stdout is not empty
-        %termination_str_observed %String observed that caused termination
+        %JAH TODO: Remove after testing
+        % % % %
+        % % % %         %.setResultAndTerminateWait()
+        % % % %         %-----------------------------------------------------
+        % % % %         termination_str_observed  %I don't think I really need this
+        % % % %         %Could probably remove the code ...
+        % % % %
+        % % % %         %.setFinalString()
+        % % % %         %------------------------------------------------------------
+        % % % %         partial_good_str         %Set if an error occurred but the stdout is not empty
+        % % % %         %termination_str_observed %String observed that caused termination
     end
     
     properties (Constant, Hidden)
         % -isatty vs -notatty
-        % check here
+        % Forum discussion on topic here:
         % http://www.neuron.yale.edu/phpBB/viewtopic.php?f=4&t=2732
-        cmd_options_pc = {'-nogui' '-nobanner' '-isatty'}
+        cmd_options_pc   = {'-nogui' '-nobanner' '-isatty'}
         cmd_options_unix = {'-nogui' '-nobanner' '-notatty'}
     end
     
-    methods
+    methods (Hidden)
         function obj = java_comm_obj(paths_obj)
+            %java_comm_obj
             %
-            %   For direct call testing:
-            %   NEURON.comm_obj.java_comm_obj(NEURON.paths);
+            %   obj = java_comm_obj(paths_obj)
             %
+            %   INPUTS
+            %   ==================================
+            %   paths_obj : NEURON.paths
             %
+            %   FULL PATH:
+            %   NEURON.comm_obj.java_comm_obj
+            
+            
             obj.paths = paths_obj;
             
             if ispc
@@ -83,7 +107,7 @@ classdef java_comm_obj < NEURON.comm_obj
                 
                 %For focus management ...
                 mde = com.mathworks.mde.desk.MLDesktop.getInstance;
-                cw = mde.getClient('Command Window');
+                cw  = mde.getClient('Command Window');
                 cw_has_focus  = cw.hasFocus;
                 %                if ~cw_has_focus
                 %                    ed = mde.getGroupContainer('Editor').getTopLevelAncestor;
@@ -100,6 +124,8 @@ classdef java_comm_obj < NEURON.comm_obj
             obj.j_output_stream = obj.j_process.getOutputStream;
             
             %Java Reader class - local code, added during initialization
+            %NEURON.comm_obj.java_comm_obj.init_system_setup
+            %See: \private\java_code\src\NEURON_reader.java
             obj.j_reader        = NEURON_reader(obj.j_input_stream,...
                 obj.j_error_stream,obj.j_process);
             
@@ -128,19 +154,78 @@ classdef java_comm_obj < NEURON.comm_obj
         end
     end
     
-    methods (Static)
-        function init_system_setup
+    methods (Static,Hidden)
+        function reinstall_java()
+            %reinstall_java
             %
+            %   NEURON.comm_obj.java_comm_obj.reinstall_java
             
-            %NOTE: For non-jar files we add the directory, not the class
-            %files
+            current_breakpoints = dbstatus('-completenames');
+            evalin('base', 'clear java');
+            pause(0.1)
+            dbstop(current_breakpoints);
+            
+            NEURON.comm_obj.java_comm_obj.init_system_setup
+        end
+        function [flag,reason] = validate_installation
+           %validate_installation
+           %
+           %    [flag,reason] = NEURON.comm_obj.java_comm_obj.validate_installation
+           %
+           %    The goal of this method is to verify that things are
+           %    properly installed.
+           
+           java_paths    = javaclasspath(); %Current paths
+           java_bin_path = NEURON.comm_obj.java_comm_obj.getJavaBinPath; %Desired path
+           
+           %??? - does this work for unix and mac?
+           flag = any(cellfun(@(x) strcmp(x,java_bin_path),java_paths));
+           
+           if flag
+               reason =  '';
+               try
+                   %Static method call to class to test installation
+                   NEURON_reader.test_install;
+               catch ME %#ok<NASGU>
+                  flag = false; 
+                  %Should also do: usejava('awt')
+                  reason = ['Sources is on path but calling class failed'...
+                      ', perhaps Java versions differ???'];
+               end
+           else
+               reason = 'NEURON_reader not found in java class path';
+           end
+           
+        end
+        function java_bin_path = getJavaBinPath()
+            %
+            %   java_bin_path = NEURON.comm_obj.java_comm_obj.getJavaBinPath()
+            %
+            %   Returns path to 
+            
             my_path       = getMyPath;
             java_bin_path = fullfile(my_path,'private','java_code','bin');
-            javaaddpath(java_bin_path);
+        end
+        function init_system_setup
+            %init_system_setup
+            %
+            %   NEURON.comm_obj.java_comm_obj.init_system_setup()
+            %
+            %   Adds the NEURON_reader
+            %
+            %   NOTE: For non-jar files we add the directory, not the
+            %   class files
+            
+            %Let's first check that the class is not in the static path
+            if NEURON.comm_obj.java_comm_obj.validate_installation
+                %Do nothing
+            else
+                javaaddpath(NEURON.comm_obj.java_comm_obj.getJavaBinPath);
+            end
         end
     end
     
-    %COMMUNICATION METHODS  ======================================
+    %COMMUNICATION HELPER METHODS  ========================================
     methods (Hidden)
         function writeLine(obj,str_to_write)
             %writeLine
@@ -163,6 +248,7 @@ classdef java_comm_obj < NEURON.comm_obj
             out.flush;
         end
         function [success,results] = readResult(obj,wait_time)
+            %readResult
             %
             %    [success,results] = readResult(obj,wait_time,debug)
             %
@@ -210,12 +296,12 @@ classdef java_comm_obj < NEURON.comm_obj
                     %result_str
                     error('Read timeout');
                 else
-                   %If this runs I must have added an extra case
-                   %which would cause this to error
-                   
-                   fprintf(2,'\nERROR MSG (might be empty)\n%s\n\n',results);
-                   
-                   error('Unhandled java comm error case, see code') 
+                    %If this runs I must have added an extra case
+                    %which would cause this to error
+                    
+                    fprintf(2,'\nERROR MSG (might be empty)\n%s\n\n',results);
+                    
+                    error('Unhandled java comm error case, see code')
                 end
             end
             
@@ -223,6 +309,7 @@ classdef java_comm_obj < NEURON.comm_obj
         end
     end
     
+    %MAIN COMMUNICATION METHOD   %=========================================
     methods
         function [success,results] = write(obj,command_str,option_structure)
             %

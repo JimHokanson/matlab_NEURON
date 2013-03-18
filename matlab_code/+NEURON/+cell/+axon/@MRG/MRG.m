@@ -33,23 +33,19 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     %   See Also:
     %   ===================================================================
     %   NEURON.cell.axon.MRG.props
-    
-    
-    %   PROPERTIES
-    %   ===================================================================
-    %   From NEURON.neural_cell
-    %   -------------------------------------------------------------------
-    %   simulation_obj %Class: NEURON.simulation or subclass
-    %                       -  NEURON.simulation.extracellular_stim
-    %   cmd_obj        %Class: NEURON.cmd
-    
+
     properties (Hidden,Constant)
         HOC_CODE_DIRECTORY = 'MRG_Axon' %This gets used by a superclass
         %to cd to this directory, as well as to manage files written
         %back and forth between NEURON and Matlab
     end
     
-    properties (SetAccess = private)
+    properties 
+        %%(SetAccess = private)
+        %For right now we'll go with just don't do anything stupid ...
+        %Not sure of reason for difference in value vs handle behavior
+        %http://www.mathworks.com/help/matlab/matlab_oop/properties-containing-objects.html
+        
         %.MRG()
         props_obj           %Class: NEURON.cell.axon.MRG.props
         threshold_info_obj  %Class: NEURON.cell.threshold_info
@@ -57,32 +53,31 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     end
     
     properties (SetAccess = private)
-       xyz_all 
+       xyz_all
        xyz_center
-    end
-    
-    %??? - Do I want to move this to a separate class
-    %DESIGN NOTE FOR DIRTY BITS
-    %----------------------------------------------------------------------
-    %Goal is to go into more specific classes and grab values
-    %not to keep track of this here
-    %
-    %NOTE: event manager should be obsolete with this approach ...
-    
-    properties (SetAccess = private)
-       %.createCellInNEURON()
-       cell_initialized_in_neuron_at_least_once = false;
-    
-       %Other sub properties:
-       %    props_obj.props_up_to_date_in_NEURON
-       %    spatial_info_obj.spatial_props_up_to_date
     end
     
     methods
         function value = get.xyz_all(obj)
            value = obj.spatial_info_obj.get__xyz_all; 
         end
+        function value = get.xyz_center(obj)
+           value = obj.spatial_info_obj.xyz_center; 
+        end
     end
+    
+    properties (SetAccess = private,Hidden)
+       %NEURON.cell.axon.MRG.createCellInNEURON
+       cell_initialized_in_neuron_at_least_once = false; %This currently
+       %is used to limit the amount of code we run when we need to recreate
+       %the cell in NEURON.
+
+       %Other sub properties:
+       %    props_obj.props_up_to_date_in_NEURON
+       %    spatial_info_obj.spatial_props_up_to_date
+    end
+    
+
     
     %INITIALIZATION ====================================================
     methods
@@ -93,23 +88,32 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
             %   INPUTS
             %   ========================================================
             %   xyz_center - center in xyz, relative to electrodes ...
-            
+                        
             obj = obj@NEURON.cell.axon;
             
             %see method: 
             %   NEURON.cell.axon.MRG.getThresholdInfo()
-            obj.threshold_info_obj = NEURON.cell.threshold_info;
-            obj.threshold_info_obj.v_rest            = -80; %Can I get this from props?
-            obj.threshold_info_obj.v_rough_threshold = -50;
-            obj.threshold_info_obj.v_ap_threshold    = 0;
-            
-            obj.spatial_info_obj = NEURON.cell.axon.MRG.spatial_info(obj,xyz_center);
-            obj.props_obj        = NEURON.cell.axon.MRG.props(obj,obj.spatial_info_obj);
+            obj.threshold_info_obj = NEURON.cell.threshold_info;            
+            obj.spatial_info_obj   = NEURON.cell.axon.MRG.spatial_info(obj,xyz_center);
+            obj.props_obj          = NEURON.cell.axon.MRG.props(obj,obj.spatial_info_obj);
             obj.spatial_info_obj.setPropsObj(obj.props_obj);
         end
     end
     
     %CHANGING METHODS =====================================================
+    methods
+        function moveCenter(obj, newCenter)
+           % moveCenter
+           %
+           %    moveCenter(obj, newCenter)
+           
+           obj.spatial_info_obj.moveCenter(newCenter);
+        end
+    end
+    
+    %INFO FOR OTHERS     %=================================================
+    %Some are required methods and others have defaults implemented by: 
+    %   NEURON.cell.extracellular_stim_capable
     methods
         function [hasChanged,new_config] = hasSpatialInformationChanged(obj,previous_config)
             %
@@ -121,14 +125,6 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
             
            [hasChanged,new_config] = obj.spatial_info_obj.hasConfigurationChanged(previous_config); 
         end
-        function moveCenter(obj, newCenter)
-           obj.spatial_info_obj.moveCenter(newCenter);
-        end
-    end
-    
-    %INFO FOR OTHERS ======================================================
-    %Required methods by: NEURON.cell.extracellular_stim_capable
-    methods
         function xyz_nodes = getXYZnodes(obj)
            %getXYZnodes
            %
@@ -157,6 +153,8 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
            
            threshold_info_obj = obj.threshold_info_obj;
         end
+        
+        %NOTE: The design of this is going to change ...
         function cell_log_data_obj = getXstimLogData(obj)
            %NEURON.cell.axon.MRG.props.getPropertyValuePairing
            [pv,pv_version] = obj.props_obj.getPropertyValuePairing(true);

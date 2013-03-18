@@ -1,4 +1,14 @@
 classdef windows_comm_obj < NEURON.comm_obj
+    %
+    %   Class:
+    %       NEURON.comm_obj.windows_comm_obj
+    %   
+    %   IMPORTANT**********   The Java implementation is preffered as
+    %   random Matlab crashes would occur with this class.
+    %
+    %   See Also:
+    %       NEURON.comm_obj.java_comm_obj
+    %
     %   This class wraps a .NET process allowing back and forth
     %   communication with NEURON. Specifically it makes use of
     %   System.Diagnostics.Process to launch the NEURON executable as a
@@ -11,13 +21,12 @@ classdef windows_comm_obj < NEURON.comm_obj
     %   finish, and I could get the results of the process having run. This
     %   was essentially how I interacted with NEURON before hand. Now I can
     %   send a command, get the result, and then send another command to
-    %   the same process.
+    %   the same process without NEURON restarting.
     %
     %   METHODS IN OTHER FILES
     %   ===========================================================
     %   NEURON.comm_obj.cleanNeuronStr
     %   NEURON.comm_obj.windows_comm_obj.init_dotnet_code
-    %   
     
     properties
         paths       %Class: NEURON.paths

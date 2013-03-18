@@ -1,4 +1,14 @@
 function hideWindow(obj,old_process_array)
+%hideWindow
+%
+%   hideWindow(obj,old_process_array)
+%
+%   PC only function for hiding the window that pops up when launching
+%   NEURON.
+%
+%   FULL PATH:
+%   NEURON.comm_obj.java_comm_obj.hideWindow
+
 if ispc
     process_array = System.Diagnostics.Process.GetProcessesByName('nrniv');
     

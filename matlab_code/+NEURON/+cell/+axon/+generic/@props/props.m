@@ -1,24 +1,17 @@
 classdef props < handle_light
     %
-    %
     %   Class: NEURON.cell.axon.generic.props
     %
-    % Relevant NEURON files:
-    % create_generic_axon.hoc - see method
-    % NEURON.cell.axon.generic.createCellInNeuron()
-    %
-    %   NEURON UNITS
-    %   =================================================
-    %   Section Units
-    %   L      - microns
-    %   diam   - microns
-    %   Ra     - ohm-cm
+    %   Relevant NEURON files:
+    %   ===================================================================
+    %       create_generic_axon.hoc - see method
+    %                   NEURON.cell.axon.generic.createCellInNeuron()
+    
     
     
     properties (Hidden)
-        parent %Class: NEURON.cell.axon.generic
-        spatial_obj %Class: NEURON.cell.axon.generic.spatial_info
-        node_dynamics
+        parent          %Class: NEURON.cell.axon.generic
+        spatial_obj     %Class: NEURON.cell.axon.generic.spatial_info
     end
     
     properties
@@ -27,37 +20,45 @@ classdef props < handle_light
         %Set false by?
     end
     
-    %Initial properties based loosely on McNeal 1976
+    %Initial properties based loosely on McNeal 1976 ======================
     properties
         
         % Node props
-        number_internodes = 20 % general design situation
-        
-        node_length = 1% (um)
-        node_axial_resistivity = 110 % Ra (ohm-cm) - Stampfli, year?
-        node_capacitance = 1% cm (uF/cm2)
+        %------------------------------------------------------------------
+        number_internodes = 20
+        node_length            = 1   %(um)     (Neuron property - L)
+        node_axial_resistivity = 110 %(ohm-cm) (Neuron property - Ra) - Stampfli, year?
+        node_capacitance       = 1   %(uF/cm2) (Neuron property - cm)
         
         % Myelin props
-        myelin_n_segs = 9
-        %myelin_n_segs = 10 %Default value, could change this via settings
-        %for the different implementations in different papers
-        %This will be important for determining spatial info
-        %In general we only have 1 segment for nodes. We tend to have many
-        %more for myelin
+        %------------------------------------------------------------------
+        myelin_n_segs = 9 %# of segments per internode.
         
         myelin_conductance = 0 % (S/cm2), perfectly insulating ...
         myelin_capacitance = 0 % (uF/cm2)
         %rename to internode_axial_resistivity
-        myelin_axial_resistivity = 110% Ra (ohm-cm)
+        internode_axial_resistivity = 110% Ra (ohm-cm)
         
-        % fiber props
+        %Fiber Properties
+        %------------------------------------------------------------------
         fiber_diameter = 1% (um)
         
         node_membrane_dynamics = 'fh' %string hh, fh, etc
-
+    end
+    
+    properties (Constant)
+        MEMBRANE_DYNAMICS_OPTIONS = {'hh' 'fh' 'crrss'} %etc
+    end
+    
+    %TODO: make dependent
+    properties
+        node_dynamics  %Numeric value of
+    end
+    
+    properties
         %FIBER DIAMETER DEPENDENT PROPERTIES
-        myelin_length = 500% (um)
-        node_diameter = 0.75% (um) aka axon diameter, usually some fraction of fiber diameter
+        myelin_length = 500     %(um)
+        node_diameter = 0.75    %(um) aka axon diameter, usually some fraction of fiber diameter
         
         % Electrical props
         v_init = -70; % mV
@@ -65,20 +66,21 @@ classdef props < handle_light
     
     methods
         function obj = props(parent_obj,spatial_info_obj)
-            obj.parent = parent_obj;
+            obj.parent      = parent_obj;
             obj.spatial_obj = spatial_info_obj;
             obj.populateDependentVariables();
         end
         
         function set.node_membrane_dynamics(obj,value)
+            %TODO: Add validity check here ...
+            
             obj.node_membrane_dynamics = value;
+            %node_dynamics
             populateDependentVariables(obj);
         end
     end
     
-    properties (Constant)
-        MEMBRANE_DYNAMICS_OPTIONS = {'hh' 'fh'} %etc
-    end
+    
     
     methods
         function populateDependentVariables(obj) % There might not be many for a generic axon...
@@ -137,21 +139,21 @@ classdef props < handle_light
             % node length, use default
             obj.node_membrane_dynamics = 'fh'; % calls populateDependentVariables, currently this only sets property node_dynamics (an integer interpreted by hoc code)
             
-            obj.myelin_axial_resistivity = obj.node_axial_resistivity;
+            obj.internode_axial_resistivity = obj.node_axial_resistivity;
             obj.myelin_conductance = 0;
             obj.myelin_capacitance = 0;
-
+            
             %NOTE: This isn't that realistic but it wasn't all that critical
             %for their results ...
             obj.myelin_length = 1000; % 1 mm - see pg 344 (delta x reference)
             %                           see also figure 6 caption
-   
+            
         end
         
         function set_McNeal_1976(obj)
             % axoplasm resistivity = 110 ohm-cm
             obj.node_axial_resistivity = 110;
-            obj.myelin_axial_resistivity = 110;
+            obj.internode_axial_resistivity = 110;
             %membrance capacitiance/area (FH) = 2 uF/cm2
             obj.node_capacitance = 2;
             % nodal gap width (Dodge & Frankenhaeuser) = 2.5 um

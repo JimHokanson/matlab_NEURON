@@ -1,6 +1,18 @@
 proc file__saveDataMatrix(){localobj file_ref, temp_save_vec, temp_list_obj
-// 
-//	saveDataMatrix(file_path,list_obj)
+/*
+
+CALLING FORM
+--------------------------------------------------------
+saveDataMatrix(file_path,list_obj)
+
+IMPROVEMENTS
+--------------------------------------------------------
+1) Allow specification of data type
+2) The ability to specify start and stop indices
+
+*/
+
+//argtype(i) - -1 if it doesn't exist
 //
 
 	file_ref      = new File()
@@ -14,7 +26,8 @@ proc file__saveDataMatrix(){localobj file_ref, temp_save_vec, temp_list_obj
 	for ii = 0, temp_list_obj.count()-1 {
 		temp_save_vec = temp_list_obj.object(ii)
 		temp_save_vec.vwrite(file_ref,4)
-		//NOTE: I believe 4 indicates a double
+		//4 indicates a double
+		//
 	} 
 	file_ref.close()
 }

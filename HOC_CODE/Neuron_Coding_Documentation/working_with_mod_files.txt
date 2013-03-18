@@ -1,0 +1,86 @@
+Discussed in Chapters 9 & 10 of NEURON book
+Ch 9: page 409 in pdf
+
+Comments:
+1) COMMENT { } ENDCOMMENT
+2) : character
+
+It appears that with Notepad++ the : character must have a space after it to be 
+properly considered a comment (for highlighting), even though the parser has 
+no such restriction 
+
+
+
+
+
+
+
+
+
+
+
+Some old notes:
+
+COMMENT
+{
+--
+Special variables to NEURON such as celsius, area, v, etc. if used in a model should be declared as parameters
+These are variables which are set by the user and not changed by the model itself
+
+%Can they be changed by the user in a model if they wanted to from the default?
+--
+}
+ENDCOMMENT
+
+
+COMMENT
+{
+--
+
+DESIGN FLOW
+
+
+INPUT PARAMETERS
+-------------------------------------
+- need to specifiy celsius, and maybe ena and el, not sure
+
+nai=13.74  nao=114.5  ki=120 ko=2.5
+{celsius=20  secondorder=2 dt=.025}
+
+
+
+
+NEURON -> need to be set
+PARAMETER
+STATE
+ASSIGNED 
+
+THEN
+INITIAL -> set state variables to some value, probably their value at inf
+-> use procedure that calls alpha and beta, then defines taus and inf, use table function
+
+BREAKPOINT
+- calls appropriate derivative
+  - derivative updates the alphas and betas, and the taus and inf, then updates the derivative values
+- sets the current equations using the states
+
+
+
+suffix fh -> used with insert
+
+outward total current carried by this ion, iion; internal and external concentrations 
+of this ion, ioni and iono; and reversal potential of this ion, eion
+
+USEION ionname Read Parameters WRITE
+
+NONSPECIFIC_CURRENT -> what does this do?
+
+FUNCTION's written in a model are global and may be used in other models if they do not involve range variables.
+It is extremely important that mechanisms have consistent units. To ensure this use the modlunit exexcutable
+
+BASIC NMODEL COMPONENTS
+http://www.neuron.yale.edu/neuron/docs/help/neuron/nmodl/nmodl.html#BasicNMODLStatements
+
+--
+}
+ENDCOMMENT

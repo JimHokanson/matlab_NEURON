@@ -5,6 +5,9 @@ function init_dotnet_code(obj)
 %
 %   This launches the NEURON process and sets it up so that stdout and
 %   stderr are directed to Matlab.
+%
+%   FULL PATH:
+%   NEURON.comm_obj.windows_comm_obj.init_dotnet_code
 
 %IMPORTANT:
 %https://www.neuron.yale.edu/phpBB/viewtopic.php?f=8&t=2185

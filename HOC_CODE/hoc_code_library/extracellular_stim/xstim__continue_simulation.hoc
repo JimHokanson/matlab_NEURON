@@ -1,0 +1,41 @@
+proc xstim__continue_simulation(){ local new_tstop, pre_run_length localobj temp_save_vec
+/*
+	
+	xstim__continue_simulation(new_tstop)
+
+	This function continues exectuion of a previous simulation. It requires
+    specification of the new stop time.
+	
+GLOBALS
+-------------------------------------------------------
+xstim__node_vm_hist : output of sim_logging__record_node_voltages()
+
+IMPROVEMENTS
+---------------------------------------------------------
+1) Update the write instructions to allow only transmitting a subset
+
+SEE ALSO
+--------------------------------------------------------
+xstim__run_stimulation2
+
+*/
+
+	strdef vm_save_path
+
+	new_tstop      = $1
+	
+	temp_save_vec  = new Vector()
+	
+	temp_save_vec  = xstim__node_vm_hist.object(0)
+	
+	pre_run_length = temp_save_vec.size()
+	
+	continuerun(new_tstop)
+	
+	sprint(vm_save_path,"%s%s%s","data/",sim_hash,"xstim__vm.bin")
+	file__saveDataMatrix(vm_save_path,xstim__node_vm_hist)
+	
+	//Let's get the # of 
+
+
+}

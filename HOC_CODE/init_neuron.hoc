@@ -28,6 +28,7 @@ chdir("hoc_code_library/extracellular_stim")
 {load_file("xstim__setup_stim_playback.hoc")}
 {load_file("xstim__run_stimulation2.hoc")}
 {load_file("xstim__apply_stimulus.hoc")}
+{load_file("xstim__continue_simulation.hoc")}
 chdir("../..")
 
 //Simulation Logging --------------------------------------------------------------

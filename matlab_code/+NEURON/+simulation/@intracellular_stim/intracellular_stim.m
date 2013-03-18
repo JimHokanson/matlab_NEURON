@@ -1,6 +1,6 @@
 classdef intracellular_stim < NEURON.simulation
     %
-    %   Class: 
+    %   Class:
     %       NEURON.simulation.intracellular_stim
     %
     %
@@ -11,9 +11,38 @@ classdef intracellular_stim < NEURON.simulation
     %           - how to handle location
     
     properties
+        cell_obj
+        elec_obj
     end
     
-    methods
+    methods (Access = private)
+        function obj = intracellular_stim(istim_options)
+            %
+            %
+            %
+            %
+            
+            if ~exist('istim_options','var')
+                istim_options = NEURON.simulation.intracellular_stim.options;
+            end
+            
+            obj@NEURON.simulation(in);
+        end
+    end
+    
+    methods (Static)
+        function obj = create_standard_sim(varargin)
+            
+            
+            in.istim_options = NEURON.simulation.intracellular_stim.options;
+            
+            
+            in = processVarargin(in,varargin);
+            
+            obj = NEURON.simulation.intracellular_stim(in.istim_options);
+            
+            
+        end
     end
     
 end

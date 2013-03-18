@@ -7,35 +7,45 @@ classdef threshold_options < handle_light
     %   a singular stimulus threshold. It's main function is to hold
     %   relevant property values in a single location.
     %
-    %   Documentation
-    %   ===================================================================
-    %   1) This class relies on the scaling extracellular stimulation
-    %   concept where threshold is really a scaling factor on some default
-    %   stimulus. Only the two in combination provide an absolute value.
-    %
     %   IMPROVEMENTS
     %   ===================================================================
     %   1) Allow absolute or relative threshold accuracy. This might
     %   require changing the property names
+    %   2) 
     %
     %   See Also:
     %       NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
+    %       NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
     
     properties
-        use_halfway_value_as_threshold = true %If true, the threshold
-        %reported is not actually tested for threshold but is half way
-        %between the minimum and maximum. In general this will be a more
-        %accurate estimate of threshold.
+        use_halfway_value_as_threshold = true  %(default: true) If true, the
+        %threshold reported is not actually tested for threshold but is
+        %half way between the lowest tested value which provided a response
+        %and the highest tested value which did not give a response. In
+        %general this will be a more accurate estimate of threshold. If
+        %false threshold is the lowest tested value which gave a response.
+        %Setting the value false guarantees that the tested amplitude is
+        %sufficient to yield a response.
         
-        threshold_accuracy_option = 'absolute' %Not yet implemented
+        threshold_error_option = 'absolute' %Not yet implemented
+    end
+    
+    properties (Constant)
+        THERSHOLD_ERROR_OPTIONS = {'NOT YET IMPLEMENTED'} %Goal is to
+        %provide accuracy and 
+    end
         
-        threshold_accuracy = 0.1  %How fine to get when determining threshold. 
-        %The current implementation is actually at worst half this value
-        %due to halving. (better explanation needed) I might want to change
-        %the implementation to reflect reality. This could also use a name
-        %change as this is a worst case value.
+    properties
+        max_threshold_error_absolute = 0.1  %How fine to get when determining 
+        %threshold. As implemented, when the halfway value is used 
+        %(see prop above) the max error is actually half the value of this
+        %property.
         
-        %.changeGuessAmount() - recommended, not required
+        %NOT YET IMPLEMENTED
+        %max_threshold_error_relative = 1    %Maximum percent difference
+        %between true threshold and reported threshold
+        
+        %.changeGuessAmount() - method is recommended but not required
         guess_amounts = 2.^(1:8)  %When determining threshold a binary search 
         %algorithm is used. The algorithm itself however must first be
         %bound. These are the amounts that are added to one side in order
@@ -43,15 +53,16 @@ classdef threshold_options < handle_light
         %cases where the starting point is more exact to limit halving
         %steps.
         
-        throw_error_on_no_solution = true %otherwise NaN returned
-        
-        short_simulation_test_time = 0.1; %This is the time from the end of
-        %the simulation that is examined to try and distinguish between
-        %insufficient time to propogate and too strong a stimulus.
+        %NOT YET IMPLEMENTED
+        %throw_error_on_no_solution = true %otherwise NaN returned
     end
     
     methods 
         function set.guess_amounts(obj,new_value)
+           %
+           %    set.guess_amounts(obj,new_value)
+           %
+           
            %TODO: Implement checks
            %1) positive
            %2) not empty
@@ -61,7 +72,10 @@ classdef threshold_options < handle_light
     end
     
     properties
-        max_threshold = 10000 %Units uA 
+        max_threshold = 10000 %(Units uA), This is the maximum stimulus
+        %amplitude to test when trying to find threshold bounds before
+        %throwing an error. After all guess amounts have been tried to try
+        %and bound a stimulus threshold
     end
     
     properties (Constant)
@@ -70,6 +84,16 @@ classdef threshold_options < handle_light
     
     methods 
         function changeGuessAmount(obj,guess_unit,varargin)
+           %changeGuessAmount
+           %
+           %    changeGuessAmount(obj,guess_unit,varargin)
+           %
+           %    Helper method to set the growth rate of guessing
+           %    
+           %
+           %    INPUTS
+           %    ===========================================================
+           %    guess_unit : 
            %
            in.scaling   = 2;
            in.n_guesses = length(obj.guess_amounts);

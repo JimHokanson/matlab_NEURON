@@ -16,37 +16,15 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     %   The idea is that you might say.
     %       settings_obj.init_to_Brill_1977 or something like that
     %
+    %   IMPROVEMENTS
+    %   ===================================================================
+    %   1) Provide static method for providing path for compiling mod files
     %
     %
-    %   Should be like : NEURON.cell.axon.MRG
     %
-    %   BASIC OUTLINE
-    %   ==================================
-    %   1) Initialize NEURON
-    %   2) Create cell in NEURON - this code needs to run NEURON code which
-    %       accomplishes that goal
-    %   3) Create stimulus - code needs to know spatial information about
-    %   the cell, this class will tell the extracellular_stimulation code
-    %   the 3d info
-    %   4) Extracellular Stim runs simulation
     %
-    %   COMPILE MECHANISMS BEFORE RUNNING CODE
-    %   ================================================
-    %   C:\respositories\matlabToolboxes\NEURON\HOC_CODE\models\axon_models\mod_files
-    %   NEURON.compile(path_above)
-    %
-    %   SUMMARY OF TODOS
-    %   ======================================================
-    %   1) Define hoc file for creating axon in NEURON, replace constants
-    %   with variables that are populated via Matlab class
-    %   2) Define Matlab class that will
-    %       - create cell - i.e. run hoc code
-    %       - know spatial info about the cell
-    %   3) Implement this for fh model
-    %   4) Recreate figure from Rattay
-    %
-    %   FH dynamics - use .mod file, which is the NMODL language
-    %   http://www.neuron.yale.edu/neuron/static/docs/help/neuron/nmodl/nmodl.html#NMODL
+    %   See Also:
+    %       NEURON.cell.axon.MRG
     
     properties (Hidden,Constant)
         HOC_CODE_DIRECTORY = 'axon_models';
@@ -55,9 +33,9 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     properties (SetAccess = private)
         %xyz_center %Location of the axon center in global space (moved to
         %spatial_info
-        props_obj %Class NEURON.cell.axon.generic.props
-        threshold_info_obj %Class: NEURON.cell.threshold_info
-        spatial_info_obj %Class: NEURON.cell.axon.generic.spatial_info
+        props_obj           %Class: NEURON.cell.axon.generic.props
+        threshold_info_obj  %Class: NEURON.cell.threshold_info
+        spatial_info_obj    %Class: NEURON.cell.axon.generic.spatial_info
         
         xstim_event_manager_obj
         xyz_all   % populate_xyz()
@@ -71,9 +49,9 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         props_populated = false; % props.populateDependentVariables
         %ev_man_obj;
         
-        section_ids % ID of sections, see populate_section_id_info
-        center_I % index into node that is center of axon
-        L_all % populate_axon_length_info
+        section_ids     % ID of sections, see populate_section_id_info
+        center_I        % index into node that is center of axon
+        L_all           % populate_axon_length_info
         spatial_info_populated = false
     end
     
@@ -105,7 +83,7 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
             
 
             obj.spatial_info_obj = NEURON.cell.axon.generic.spatial_info(obj,xyz_center);
-            obj.props_obj = NEURON.cell.axon.generic.props(obj,obj.spatial_info_obj);
+            obj.props_obj        = NEURON.cell.axon.generic.props(obj,obj.spatial_info_obj);
             obj.spatial_info_obj.setPropsObj(obj.props_obj);
         end  
     end
@@ -113,15 +91,12 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     
     % CHANGING METHODS
     methods
-       function setEventManagerObject(obj,ev_man_obj)
-           obj.xstim_event_manager_obj = ev_man_obj;
-        end
         function moveCenter(obj, newCenter) 
             obj.spatial_info_obj.moveCenter(newCenter);
         end   
     end
     
-    % INFO FOR OTHERS
+    % INFO FOR OTHERS =====================================================
     methods
         function xyz_nodes = getXYZnodes(obj)
            xyz_nodes = obj.spatial_info_obj.get__XYZnodes();
@@ -129,7 +104,7 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         function avg_node_spacing = getAverageNodeSpacing(obj)
             %getAverageNodeSpacing
             %
-            %   Written For ...
+            %   avg_node_spacing = getAverageNodeSpacing(obj)
             
             avg_node_spacing = obj.spatial_info_obj.get__avg_node_spacing;
 

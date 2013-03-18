@@ -27,6 +27,7 @@ classdef spatial_info < handle_light
         avg_node_spacing
     end
     
+    %DATA RETRIEVAL METHODS    %===========================================
     methods
         function xyz_all = get__xyz_all(obj)
             obj.populate_spatialInfo();
@@ -47,19 +48,30 @@ classdef spatial_info < handle_light
     end
     
     %======================================================================
-    
-    %IMPORTANT: These were made private to respect the property:
-    %   .spatial_info_up_to_date
+    %IMPORTANT: The following properties were made private to respect 
+    %the property: .spatial_info_up_to_date
     %
-    %In general these are never accessed directly, unless in the method
-    %   .populate_spatialInfo()
-    properties (Access = private)
-        %.spatial_info()   %Constructor
+
+    properties (SetAccess = private)
+        %.spatial_info()   %i.e. Constructor
         %.moveCenter
         xyz_center
-        
+    end
+    
+    methods 
+        function value = get__xyz_center(obj)
+            value = obj.xyz_center;
+        end
+    end
+    
+    %In general these properties are never accessed directly, unless 
+    %in the method: .populate_spatialInfo()
+    
+    properties (Access = private)
+        %.populate_spatialInfo()
+        %------------------------------------------------------------------
         xyz_before_shift %Temporary variable, allows us to compute
-        %xyz quicker when moving
+        %xyz_all quicker when moving to a different center.
         
         %.populate_sectionIdInfo()
         %------------------------------------------------------------------
@@ -70,6 +82,7 @@ classdef spatial_info < handle_light
         % 2 - MYSA
         % 3 - FLUT
         % 4 - STIN
+        
         center_I     %index into section_ids, L_all, etc that is
         %the "center" of the axon, this currently indexes into
         %the center most node
@@ -100,7 +113,10 @@ classdef spatial_info < handle_light
         %set this to be false. This indicates that the spatial properties
         %need to be recomputed. Any access to variables should first query
         %this before returning values.
-        spatial_configuration = 1;
+        
+        %.hasConfigurationChanged()
+        spatial_configuration = 1;  %This property can be used by the code
+        %that determines
     end
     
     properties
@@ -121,8 +137,8 @@ classdef spatial_info < handle_light
         end
     end
     
-    %Configuration/Dirty Status -------------------------------------------
-    methods
+    %Configuration/Dirty Status    %=======================================
+    methods (Hidden)
         function [hasChanged,current_config] = hasConfigurationChanged(obj,previous_config)
            current_config = obj.spatial_configuration;
            if isempty(previous_config)
@@ -141,9 +157,15 @@ classdef spatial_info < handle_light
             obj.spatial_configuration = obj.spatial_configuration + 1;
         end
         function moveCenter(obj,newCenter)
+            %moveCenter
+            %
+            %   moveCenter(obj,newCenter)
+            %
+            %   Normally one should access the moveCenter method in the
+            %   parent.
+            %
             
             obj.xyz_center = newCenter;
-
             if obj.spatial_info_up_to_date
                 obj.xyz_all = bsxfun(@plus,obj.xyz_before_shift,newCenter);
                 obj.spatial_configuration = ...

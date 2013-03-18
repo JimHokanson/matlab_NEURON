@@ -1,0 +1,4 @@
+This is a small list of things that I would like to include in the user options file
+- editor for hoc files
+	- create static edit method
+- optional exe path
