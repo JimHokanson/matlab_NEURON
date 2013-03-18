@@ -3,12 +3,37 @@ function adjustBoundsGivenMaxScale(obj,max_scale,varargin)
 %
 %   adjustBoundsGivenMaxScale(obj,max_scale)
 %
+%   The goal of this method is to ensure that we encompass a sufficient
+%   testing volume so that for the maximum tested stimulus, we are aware of
+%   the tissue that would be activated by the given scale.
+%
+%   To do this, we find the thresholds at the current bounds. If any of the
+%   thresholds are less than the maximum stimulus to test, we grow the
+%   bounds.
+%
+%   Performance note:
+%   -----------------------------------------------------------------------
+%   The growth of the bounds is less efficient than requesting stimulus
+%   thresholds over the appropriate range to begin with. Reasons for this
+%   include:
+%       1) overhead associated with code
+%       2) currently very poor threshold prediction given exptrapolation
+%               - may be slightly improved
+%       3) in general better peformance given extremes of the stimulus
+%       inputs and the ability to improve prediction methods given more
+%       data
+%
+%   For this reason it is desirable to accurately know the bounds as
+%   quickly as possible.
+%
+%   At the same time overgrowth of the bounds results in additional work
+%   solving extra simulations.
+%
 %   Implementation note:
 %   -----------------------------------------------------------------------
 %   This approach currently assumes an axon model where we don't need to
 %   adjust bounds in the z direction since the axon is assumed to occupy an
 %   infinite length (or much larger than the stimulation region).
-%
 %
 %   IMPROVEMENTS
 %   -----------------------------------------------------------------------
@@ -22,7 +47,24 @@ function adjustBoundsGivenMaxScale(obj,max_scale,varargin)
 %         2 3 2         Then we should only test the middle value out
 %         1 2 1         until we max, then run this current approach 
 %                       after that point
-% 
+%   2) In higher level function after getting thresholds ensure that we
+%   never observed reverse recruitment order as this would invalidate
+%   the results from this object. In other words, we should never see lower
+%   thresholds on an outer shell than on an inner shell. If this happens it
+%   is unclear how far we need to grow the bounds before we have
+%   encompassed all stimulus activity for a given threshold. Given the
+%   right stimuli this is technically possible to accomplish, so an error
+%   checking mechanism should be in place.
+%       min_shells = min(...) %Would need to finish code
+%       Where is the center? 
+%       center can be defined as the minimum
+%       if any(diff(min_shells) > 0)
+%           error
+%       end
+%   NOTE: We already observe this depending upon the location of electrodes
+%   NOTE: This needs to be in a higher level function to ensure that we
+%   have all thresholds available (at the coarse resolution)
+%
 %   See Also:
 %       NEURON.simulation.extracellular_stim.results.activation_volume.checkBounds
 

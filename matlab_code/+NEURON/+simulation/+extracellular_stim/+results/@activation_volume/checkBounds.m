@@ -4,6 +4,12 @@ function [too_small,min_abs_value_per_side] = checkBounds(obj,max_scale,varargin
 %   [too_small,min_abs_value_per_side] = checkBounds(obj,max_scale,varargin)
 %
 %   
+%   IMPROVEMENTS
+%   =======================================================================
+%   1) Change output return order to match bounds indexing order:
+%       x_min,x_max,y_min,y_max -> left,right,bottom,top
+%       This would allow us to index 1:4 bounds(1) -> too_small(1)
+%
 %
 %   Return 4 sides activation volume, not interpolated
 %
