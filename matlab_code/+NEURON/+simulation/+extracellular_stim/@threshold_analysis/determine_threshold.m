@@ -53,6 +53,14 @@ AUTO_EXPAND_SIM_TIME = true;
 %r - NEURON.simulation.extracellular_stim.results.single_sim
 %result_obj - NEURON.simulation.extracellular_stim.results.threshold_testing_history
 
+if isnan(starting_value)
+    error('Starting value may not be NaN')
+end
+
+if starting_value == 0
+    error('Starting value may not be equal to 0')
+end
+
 t = obj.parent.threshold_options_obj;
 
 obj.ap_propagation_observed = false;

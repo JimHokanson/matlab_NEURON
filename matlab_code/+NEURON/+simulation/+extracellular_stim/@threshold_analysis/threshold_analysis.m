@@ -117,7 +117,7 @@ classdef threshold_analysis < handle_light
             %   FULL PATH:
             %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
             
-
+            BASE_VOLTAGE_ADDED_VALUE = 5;
             
             t_info = obj.threshold_info;
             if isempty(t_info)
@@ -170,7 +170,13 @@ classdef threshold_analysis < handle_light
                %continuerun(new_time)
                 
                %TODO: Clean this code up ...
-               if any(vm(end-1,:) - vm(end,:) < 0)
+               
+               %< 0 indicates newer voltage is greater than older voltage,
+               %i.e. growth, and we also check that we are significantly
+               %above baseline
+               continue_test = (@(vm) any(vm(end-1,:) - vm(end,:) < 0) && any(vm(end,:) > vm(1,:) + BASE_VOLTAGE_ADDED_VALUE));
+               
+               if continue_test(vm)
                   sim_ext_options = obj.parent.sim_ext_options_obj;
                    
                   tstop_growth   = sim_ext_options.sim_growth_rate;
@@ -190,7 +196,7 @@ classdef threshold_analysis < handle_light
                       c.run_command(str);
                       vm = obj.parent.data_transfer_obj.getMembranePotential;
                       
-                      extension_successful = ~any(vm(end-1,:) - vm(end,:) < 0);
+                      extension_successful = ~continue_test(vm);
                       if extension_successful
                           break
                       end
