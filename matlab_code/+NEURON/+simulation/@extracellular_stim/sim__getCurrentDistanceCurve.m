@@ -1,76 +1,98 @@
-function t_all = sim__getCurrentDistanceCurve(obj,xyz_test,starting_value)
+function result_obj = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,all_distances,dim_move)
 %sim__getCurrentDistanceCurve
 %
-%   t_all = sim__getCurrentDistanceCurve(obj,distance_steps,dim,starting_value)
+%   t_all = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,all_distances,dim_move)
+%
+%   The cell location will be centered at [0,0,0]
 %
 %   INPUTS
-%   =====================================================
-%   xyz_test       : 
-%   starting_value : starting stimulus level, SIGN is important
-% 
-%   IMPROVEMENTS
-%   =====================================================
-%   1) Eventually return a result object
-%   2) Should have class that explicity tries to estimate thresholds from
-%      previous thresholds ...
+%   =======================================================================
+%   starting_value : Starting stimulus scale, SIGN is important, applies
+%       for the first distance tested.
+%   base_xyz : 
 %
-%   class: NEURON.simulation.extracellular_stim
+%   TODO: - finish documentation 
+%
+%   IMPROVEMENTS
+%   =========================================================
+%   1) Integrate sim logger option
 %
 %   See Also:
-%       
+%
+%   FULL PATH:
+%       NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
 
-in.use_sim_logger = true;
-in = processVarargin(in,varargin);
 
+elec_obj_local   = obj.elec_objs;
+thresh_opt_local = obj.threshold_options_obj;
 
-if in.use_sim_logger
-
-elec_obj_local    = obj.elec_objs;
-threshold_options = obj.threshold_options_obj;
+assert(length(elec_obj_local) == 1,'Function is only designed for a singular electrode')
+assert(issorted(all_distances),'Distances must be sorted')
+assert(isequal(size(base_xyz),[1 3]),'Base xyz must be size [1 x 3]')
 
 moveCenter(obj.cell_obj,[0 0 0])
 
+n_steps = length(all_distances);
+
+result_obj = NEURON.simulation.extracellular_stim.results.current_distance;
+
+step_indices_order = zeros(1,n_steps);
+step_indices_order(1) = 1;
+if n_steps > 1
+    step_indices_order(2) = n_steps;
+    %Going in reverse seems to work much better as rate of change
+    %tends to increase with distance
+    step_indices_order(3:end) = (n_steps-1):-1:2;
+end
+
+
 next_stim_start_guess = starting_value;
-%Check assumptions
-%Move electrode relative to cell
-nSteps = length(distance_steps);
-t_all  = zeros(1,nSteps);
-elec_location = zeros(1,3);
-for iStep = 1:nSteps
+xyz_electrode         = base_xyz;
+all_thresholds        = zeros(1,n_steps);
 
+for iStep = 1:n_steps
     
-    elec_location(dim) = distance_steps(iStep);
-    moveElectrode(elec_obj_local,elec_location)
-    t_all(iStep) = sim__determine_threshold(obj,next_stim_start_guess);
-
-    %ADJUSTING GUESS FOR NEXT LOOP
+    cur_index  = step_indices_order(iStep);
+    
+    xyz_electrode(dim_move) = all_distances(cur_index);
+    moveElectrode(elec_obj_local,xyz_electrode)
+    temp = sim__determine_threshold(obj,next_stim_start_guess);
+    all_thresholds(cur_index) = temp.stimulus_threshold;
+    
+    last_error = abs(next_stim_start_guess - all_thresholds(cur_index));
+    
+    %Interpolation
     %----------------------------------------------------------------------
-    if iStep > 1 && iStep ~= nSteps
-       %Adjust things accordingly
-       %threshold_obj_local
-       %    => guess_amount
-       %NOTE: Could probably improve this ...
-       %NOTE: Tried spline, not nearly as good
-       next_stim_start_guess = interp1(distance_steps(1:iStep),t_all(1:iStep),distance_steps(iStep+1),'pchip','extrap');
-       
-       %Only needs to be set once ...
-       if iStep == 2
-           %I originally had just equal to the threshold accuracy
-           %If I hit that target, then I only need to run twice to
-           %determine threshold with sufficient resolution, once below, and
-           %once above
-           threshold_obj_local.guess_amount = 2*threshold_obj_local.threshold_accuracy;
-       end
-       %NOTE: We don't want to hit the target exactly, because we are not
-       %sure which side we will end up on. Instead we want to bound the
-       %side, then go the other direction and bound the side again
-       %Here we guess low, hope to get a no AP, and then go high and get an AP
-       next_stim_start_guess = next_stim_start_guess - threshold_obj_local.guess_amount/2; 
-    else
-       next_stim_start_guess = t_all(iStep); 
+    if iStep ~= n_steps
+        next_index = step_indices_order(iStep+1);
+        if iStep == 1
+            %Do linear extrapolation with zero threshold at zero distance
+            %Might be innaccurate for distances not along node but 0 should
+            %be less than current value
+            next_stim_start_guess = interp1([all_distances(cur_index) 0],...
+                [all_thresholds(cur_index) 0],all_distances(next_index),'linear','extrap');
+        else
+            previous_indices = step_indices_order(1:iStep);
+            if iStep == 2
+                next_stim_start_guess = interp1(all_distances(previous_indices),...
+                    all_thresholds(previous_indices),all_distances(next_index),'linear');
+            else
+                %In a very limited test pchip works much better
+                next_stim_start_guess = interp1(all_distances(previous_indices),...
+                    all_thresholds(previous_indices),all_distances(next_index),'pchip');
+                
+                %This can improve the results but causes problems
+                %if set inaccurately ...
+                thresh_opt_local.changeGuessAmount(last_error)
+                
+            end
+        end
     end
-    %disp(iStep) %debugging
     
 end
+
+result_obj.base_xyz         = base_xyz;
+result_obj.tested_distances = all_distances;
+result_obj.thresholds       = all_thresholds;
 
 end
