@@ -58,44 +58,6 @@ classdef Hokanson_2013
     end
     
     methods (Access = private,Hidden)
-        function [dual_counts,single_counts] = getCountData(obj,...
-                stim_amplitudes,electrode_locations,stim_widths,fiber_diameters)
-            %
-            %   stim_amplitudes     : vector, same for all inputs
-            %   electrode_locations : cell array
-            %   stim_widths         : cell array
-            %   fiber_diameters     : cell array
-            
-            %electrode_locations - cell array
-            %stim_amplitudes     
-            
-            assert(iscell(electrode_locations),'Electrode locations input must be a cell array')
-            assert(iscell(stim_widths),'Stim widths input must be a cell array')
-            assert(iscell(fiber_diameters),'Fiber diameters input must be a cell array')
-            
-            %Step 1 - replicate inputs if necessary
-            %--------------------------------------------------------------
-            n_e = length(electrode_locations);
-            n_f = length(fiber_diameters);
-            n_w = length(stim_widths);
-            
-            n_conditions = max([n_e n_f n_w]);
-            
-            base_error_str = 'Number of %s, %d is not singular and does not match the max # of variations given: %d';
-            
-            if n_e == 1
-                electrode_locations = repmat(electrode_locations,[1 n_conditions]);
-            elseif n_e ~= n_conditions
-                error(base_error_str,'electrode locations',n_e,n_conditions)
-            end
-            
-            %TODO: Finish the other two ...
-                
-                
-            %Step 2 - Base Counts
-            %--------------------------------------------------------------
-            
-        end
         function max_stim_level = getMaxStimLevelToTest(obj,current_electrode_pair,varargin)
             %getMaxStimLevelToTest
             %

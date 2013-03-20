@@ -20,7 +20,13 @@ function setStimPattern(objs,start_times,phase_durations,phase_amplitudes)
 %
 %   FULL PATH:
 %   NEURON.simulation.extracellular_stim.electrode.setStimPattern
-   
+%
+%   TODO
+%   -------------------------------------
+%   1) Update documentation to reflect the different types of inputs that
+%   can be specified for start_times, phase_durations, and
+%   phase_amplitudes.
+%   
 
 n_electrodes = length(objs);
 

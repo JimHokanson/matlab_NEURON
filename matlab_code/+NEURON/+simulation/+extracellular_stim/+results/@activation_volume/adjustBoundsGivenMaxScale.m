@@ -83,7 +83,7 @@ if ~any(too_small)
     return
 end
 
-fprintf(2,'Updating bounds to encompass stim at %g, current min bound: %g\n',max_scale,min(min_abs_value_per_side));
+fprintf(2,'Updating bounds to encompass a stimulation scale at %g\nCurrent min bound: %0.1f',max_scale,min(min_abs_value_per_side));
 
 %IMPORTANT: This is only valid for the axon model where z shouldn't need to
 %be resized ...
@@ -137,8 +137,8 @@ while ~done
     
     [too_small,min_abs_value_per_side] = obj.checkBounds(max_scale,'sim_logger',in.sim_logger);
     
-    fprintf(2,'Current min bound: %g, goal: %g\n',min(min_abs_value_per_side),max_scale);
+    fprintf(2,', %0.1f',min(min_abs_value_per_side));
     
     done = ~any(too_small);
-    
 end
+fprintf(2,'\n');

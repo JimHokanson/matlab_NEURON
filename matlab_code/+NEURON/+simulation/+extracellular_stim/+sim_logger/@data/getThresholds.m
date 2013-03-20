@@ -1,13 +1,14 @@
 function thresholds = getThresholds(obj,cell_locations,threshold_sign)
 %getThresholds
-%s
+%
 %   thresholds = getThresholds(obj,cell_locations,threshold_sign)
 %
 %   INPUTS
 %   =======================================================================
 %   cell_locations : either [samples by xyz] or {x_values y_values z_values}
 %   threshold_sign : Whether the stimulus should look for a positive or
-%           negative threshold. Expected values are 1 (positive) or -1 (negative).
+%           negative threshold. Expected values are 1 (positive) or 
+%           -1 (negative).
 %           See paragraph below for more details.
 %
 %   Threshold Sign Handling
@@ -64,7 +65,10 @@ m_obj = obj.matching_stim_obj;
 %Any old repeats, throw warning
 old_stim_indices_use = find(~m_obj.old_index_for_redundant_old_source__mask);
 if length(old_stim_indices_use) ~= m_obj.n_old
-    fprintf(2,'Old applied stimuli have duplicates present, run SOMETHING to clean up\n');
+    if ~obj.duplicate_data_warning_shown
+        fprintf(2,'Old applied stimuli have duplicates present, run SOMETHING to clean up\n');
+        obj.duplicate_data_warning_shown = true;
+    end
     %NEURON.simulation.extracellular_stim.sim_logger.data.fixRedundantOldData
     %Need access method in xstim class
 end

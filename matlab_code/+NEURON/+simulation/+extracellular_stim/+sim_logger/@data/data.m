@@ -72,7 +72,12 @@ classdef data < handle_light
         %NOTE: These stimuli have been corrected so that the threshold
         %to be found is a positive one
         new_stimuli_matrix      = []
-        
+    end
+    
+    properties (Hidden)
+        %.getThresholds()
+        duplicate_data_warning_shown = false  %Use this to only show the
+        %warning message in getThresholds once
     end
     
     properties (Constant)
