@@ -21,6 +21,11 @@ classdef pathing
                       
            obj.root_data_path = user_options.sim_logger_root_path;
            
+           if isempty(obj.root_data_path)
+               error(['Please add and define the following variable in' ...
+                   ' your user options file: sim_logger_root_path'])
+           end
+           
            if ~exist(obj.root_data_path,'dir')
               success = mkdir(obj.root_data_path);
               if ~success

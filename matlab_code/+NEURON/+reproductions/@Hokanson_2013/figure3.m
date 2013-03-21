@@ -2,60 +2,77 @@ function figure3()
 %
 %   NEURON.reproductions.Hokanson_2013.figure3
 %
-%
-%   Impact of Stimulus Width on Result
- 
+%   Impact of Stimulus Width on Result.
+
 obj = NEURON.reproductions.Hokanson_2013;
 
+ELECTRODE_LOCATION       = {obj.ALL_ELECTRODE_PAIRINGS{7}};
+FIBER_DIAMETER           = 10;
+STIM_START_TIME          = 0.1;
+PHASE_AMPLITUDES         = [-1 0.5];
+MAX_STIM_AMPLITUDE_DEFAULT = 30;
+STIM_WIDTHS_ALL = [0.050 0.100 0.2 0.40];
+DEFAULT_WIDTH_INDEX = 3; %references the 0.2 we've been testing ...
+n_stim_widths   = length(STIM_WIDTHS_ALL);
 
-%For fixed setup and diameter, vary pulse width
+%Determining rough scaling factors to test
+%--------------------------------------------------------------------------
+x_dist_test   = 20:20:800;
+n_x_dist_test = length(x_dist_test);
 
-CELL_DIAMETER = 15;
-TEST_PAIRING  = 3; %400 um apart in X
-FONT_SIZE     = 18;
+thresholds_current_distance = zeros(n_x_dist_test,n_stim_widths);
 
-stim_widths_all = [0.050 0.100 0.2 0.40];
-n_stim_widths   = length(stim_widths_all);
-
-max_stim_level_all = zeros(1,n_stim_widths);
-x_stim_all         = cell(1,n_stim_widths);
-counts_all         = cell(2,n_stim_widths);
-
-for iStimWidth = 1:n_stim_widths
+for iStim = 1:n_stim_widths
+    cur_widths = [STIM_WIDTHS_ALL(iStim) 2*STIM_WIDTHS_ALL(iStim)];
     
-    cur_stim_width = stim_widths_all(iStimWidth);
-
-    max_stim_level_all(iStimWidth) = obj.getMaxStimLevelToTest(...
-                    obj.ALL_ELECTRODE_PAIRINGS{TEST_PAIRING},...
-                    'current_diameter',CELL_DIAMETER,...
-                    'stim_width',cur_stim_width);
+    %TODO: make this a class method that is exposed ...
+    %------------------------------------------
+    options = {...
+        'tissue_resistivity',obj.TISSUE_RESISTIVITY};
+    xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
     
-    for iOrig = 1:2
-            fprintf('Running Width: %g\n',cur_stim_width);
-            fprintf('Running iOrig: %d\n',iOrig);
-        
-        options = {...
-            'stim_durations',[cur_stim_width 2*cur_stim_width],...
-            'tissue_resistivity',obj.TISSUE_RESISTIVITY};
-        
-        if iOrig == 1
-            options = [options 'electrode_locations',obj.ALL_ELECTRODE_PAIRINGS{1}];
-        else
-            options = [options 'electrode_locations',obj.ALL_ELECTRODE_PAIRINGS{TEST_PAIRING}];
-        end
-        
-        xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
-        cell_obj  = xstim_obj.cell_obj;
-        cell_obj.props_obj.changeFiberDiameter(CELL_DIAMETER);
-        
-        act_obj   = xstim_obj.sim__getActivationVolume();
-        
-        x_stim_all{iStimWidth} = 1:0.5:max_stim_level_all(iStimWidth);
-        
-        counts_all{iOrig,iStimWidth} = act_obj.getVolumeCounts(x_stim_all{iStimWidth});
-    end
+    xstim_obj.cell_obj.props_obj.changeFiberDiameter(FIBER_DIAMETER);
+    xstim_obj.elec_objs.setStimPattern(STIM_START_TIME,cur_widths,PHASE_AMPLITUDES);
     
+    temp_result_obj = xstim_obj.sim__getCurrentDistanceCurve(1,[0 0 0],x_dist_test,2);
+    thresholds_current_distance(:,iStim) = temp_result_obj.thresholds;
 end
+
+dist_given_max_default_amp = interp1(...
+            thresholds_current_distance(:,DEFAULT_WIDTH_INDEX),...
+            x_dist_test(:),MAX_STIM_AMPLITUDE_DEFAULT);
+        
+amps_given_desired_distance = zeros(1,n_stim_widths);
+for iStim = 1:n_stim_widths
+   amps_given_desired_distance(iStim) = interp1(...
+       x_dist_test(:),thresholds_current_distance(:,iStim),...
+       dist_given_max_default_amp);
+end
+      
+%This is a rough approximation which is only correct if the volume
+%grows the same way for all stim widths, as we have only examined point on
+%the volume, really we would need to also take into account longitudinal
+%direction
+max_stim_amplitudes_by_width = ceil(amps_given_desired_distance);
+
+%Obtaining volume data
+%--------------------------------------------------------------------------
+dual_counts_all   = cell(1,n_stim_widths);
+single_counts_all = cell(1,n_stim_widths);
+stim_amps_all     = cell(1,n_stim_widths);
+
+for iStim = 1:n_stim_widths
+    cur_widths = [STIM_WIDTHS_ALL(iStim) 2*STIM_WIDTHS_ALL(iStim)];
+   
+    [dual_counts_all{iStim},single_counts_all{iStim},stim_amps_all{iStim}] = ... 
+                getCountData(obj,max_stim_amplitudes_by_width(iStim),...
+                ELECTRODE_LOCATION,cur_widths,FIBER_DIAMETER);
+end
+
+%Plotting Results
+%--------------------------------------------------------------------------
+
+keyboard
 
 %Result 1: normalized by amplitude
 %Result 2: normalized by charge
@@ -69,7 +86,7 @@ figure
 subplot(1,3,1)
 hold all
 for iWidth = 1:n_stim_widths
-   plot(x_stim_all{iWidth},counts_all{2,iWidth}./(2*counts_all{1,iWidth}),'linewidth',3) 
+    plot(x_stim_all{iWidth},counts_all{2,iWidth}./(2*counts_all{1,iWidth}),'linewidth',3)
 end
 legend(width_labels)
 xlabel('Stimulus Amplitude (uA)','FontSize',FONT_SIZE)
@@ -80,7 +97,7 @@ set(gca,'FontSize',FONT_SIZE)
 subplot(1,3,2)
 hold all
 for iWidth = 1:n_stim_widths
-   plot(x_stim_all{iWidth}*stim_widths_all(iWidth),counts_all{2,iWidth}./(2*counts_all{1,iWidth}),'linewidth',3) 
+    plot(x_stim_all{iWidth}*stim_widths_all(iWidth),counts_all{2,iWidth}./(2*counts_all{1,iWidth}),'linewidth',3)
 end
 legend(width_labels)
 xlabel('Stimulus Charge (nC)','FontSize',FONT_SIZE)
@@ -91,7 +108,7 @@ set(gca,'FontSize',FONT_SIZE)
 subplot(1,3,3)
 hold all
 for iWidth = 1:n_stim_widths
-   plot((2*counts_all{1,iWidth}).^(1/3),counts_all{2,iWidth}./(2*counts_all{1,iWidth}),'linewidth',3) 
+    plot((2*counts_all{1,iWidth}).^(1/3),counts_all{2,iWidth}./(2*counts_all{1,iWidth}),'linewidth',3)
 end
 legend(width_labels)
 xlabel('Cubed Root Original Recruitment Volume (um^3)^(1/3)','FontSize',FONT_SIZE)

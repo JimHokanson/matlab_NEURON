@@ -34,7 +34,7 @@ classdef stim < handle_light
            %
            %
            
-           %NEURON.extracellular_stim_electrode.getLogData
+           %NEURON.simulation.extracellular_stim.electrode.getLogData
            obj.current_data_instance = xstim_obj.elec_objs.getLogData();
            
            %Not sure if this comparision should be here ...

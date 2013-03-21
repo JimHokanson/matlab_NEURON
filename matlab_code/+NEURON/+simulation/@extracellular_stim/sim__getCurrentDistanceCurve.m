@@ -19,11 +19,13 @@ function result_obj = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,a
 %
 %   TODO: - finish documentation
 %
-%   IMPROVEMENTS
-%   =========================================================
-%   1) Integrate sim logger option
+%   OUTPUTS
+%   =======================================================================
+%   result_obj : NEURON.simulation.extracellular_stim.results.current_distance
 %
 %   See Also:
+%       NEURON.simulation.extracellular_stim.results.current_distance
+%
 %
 %   FULL PATH:
 %       NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
