@@ -2,11 +2,26 @@
 
 //Use procedure
 
-proc istim__create_iclamp(){
+proc istim__create_iclamp(){local n_phases localobj iclamp_instance
 /*
 
+CALLING FORM
+-----------------------------------------------------------------------
+istim__create_iclamp
+
+0) Load data
+1) Access location
+2) Clear list of objects
+3) For each stimulation, creat object and attach to list
 
 
+- how to handle amp scaling - just iterate through by 3
+	i.e. 1:3:end
 
 */
+
+n_phases
+
+
+
 }

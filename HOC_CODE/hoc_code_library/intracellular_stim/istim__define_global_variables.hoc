@@ -2,4 +2,23 @@
 
 
 
-objref
+objref istim__iclamp_list
+istim__iclamp_list = new List() 
+/*
+
+
+
+
+*/
+
+objref istim__iclamp_raw_data
+istim__iclamp_raw_data = new Vector()
+/*
+Holds the stimulation information from Matlab for the iclamp stimulus
+
+Format:
+amp, del, dur
+
+
+
+/*

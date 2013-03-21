@@ -1,0 +1,13 @@
+proc istim__load_iclamp_data(){
+/*
+istim__load_iclamp_data
+
+Globals
+==============================================
+istim__iclamp_raw_data
+
+*/
+
+
+
+}

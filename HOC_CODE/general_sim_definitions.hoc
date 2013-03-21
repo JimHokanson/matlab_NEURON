@@ -1,0 +1,5 @@
+//general_sim_definitions.hoc
+
+//NOTE: This needs to be before these other things ...
+strdef sim_hash //This is a string which can be used to differentiate between 
+//different concurrent simulations when using files to transfer data between Matlab and NEURON

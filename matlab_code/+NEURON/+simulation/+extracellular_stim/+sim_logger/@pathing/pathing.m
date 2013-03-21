@@ -8,7 +8,6 @@ classdef pathing
     %       single table file
     %       individual files for each simulation ...
     
-    
     properties
        %TODO: Define each of these
        root_data_path
@@ -18,7 +17,7 @@ classdef pathing
     methods
         function obj = pathing()
            
-           user_options = NEURON.user_options;
+           user_options = NEURON.user_options.getInstance;
                       
            obj.root_data_path = user_options.sim_logger_root_path;
            
@@ -40,9 +39,7 @@ classdef pathing
                  error('Unable to create root data path for logging simulations') 
               end
            end
-           
-           
-           
+
            obj.main_table_path = fullfile(obj.root_data_path,'sim_table.mat');
         end
         function data_path = getSavedSimulationDataPath(obj,simulation_number)

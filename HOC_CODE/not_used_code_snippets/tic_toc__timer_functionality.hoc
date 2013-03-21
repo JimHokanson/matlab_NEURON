@@ -1,0 +1,7 @@
+//Timer functionality
+
+//http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/ocfunc.html#startsw
+
+x = startsw()
+//Execute code
+print startsw() - x

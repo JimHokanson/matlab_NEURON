@@ -79,7 +79,7 @@ classdef NEURON < handle_light
             %Object Initialization
             %--------------------------------------------------------------
             obj.command_log_obj = NEURON.command_log;
-            obj.path_obj = NEURON.paths;
+            obj.path_obj = NEURON.paths.getInstance;
             obj.cmd_obj  = NEURON.cmd(obj.path_obj,obj.command_log_obj,neuron_options.cmd_options);
             
             %Change directory and load library files

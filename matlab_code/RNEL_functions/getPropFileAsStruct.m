@@ -42,7 +42,9 @@ temp = readDelimitedFile(filePath,delimiter,...
     'single_delimiter_match',true);
 
 values = temp(:,2);
+
 fields = temp(:,1);
+fields = regexprep(fields,'\s','_');
 
 s = cell2struct(values,fields);
 

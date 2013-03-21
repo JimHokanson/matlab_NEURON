@@ -1,1 +1,0 @@
-sim_logger_root_path: C:\D\SimulationData

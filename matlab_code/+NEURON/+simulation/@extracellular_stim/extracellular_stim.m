@@ -185,7 +185,11 @@ classdef extracellular_stim < NEURON.simulation
         function thresholds = sim__getThresholdsMulipleLocations(obj,cell_locations,varargin)
             %sim__getThresholdsMulipleLocations
             %
-            %   sim__getThresholdsMulipleLocations(obj,varargin)
+            %   sim__getThresholdsMulipleLocations(obj,cell_locations,varargin)
+            %
+            %   INPUTS
+            %   ===========================================================
+            %   cell_locations : (cell array => {x y z} or [points by x,y,z]
             %
             %   OPTIONAL INPUTS
             %   ===========================================================

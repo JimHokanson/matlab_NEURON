@@ -64,11 +64,15 @@ base_functions_directory = fullfile(matlab_root_path,RNEL_FUNCTIONS_FOLDER);
 nMethods = length(methods);
 for iMethod = 1:nMethods
    cur_method       = methods{iMethod};
-   method_full_path = which(cur_method);
+   method_full_path = which(cur_method);  %This assumes that functions
+   %in the repository are not on the path, which should be true if the
+   %initialize() function is used.
    
    method_parts      = regexp(cur_method,'\.','split');
    method_parts{end} = [method_parts{end} '.m'];
    
+   %For packages, such as a.b, replace path/a/b with path/+a/b
+   %-----------------------------------------------------------------------
    %NOTE: This essentially forces an assumption of packages, not classes
    %and would need to be modified if we started using both
    if length(method_parts) > 1
@@ -86,5 +90,9 @@ for iMethod = 1:nMethods
        end
    end
    
+   %TODO: 
+   %1) Check if files are different - if both exist
+   %2) if different, use git to check for local change
+   %    and add to list of things not overridden
    copyfile(method_full_path,new_method_path)
 end

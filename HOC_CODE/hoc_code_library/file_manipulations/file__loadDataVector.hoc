@@ -1,7 +1,13 @@
 proc file__loadDataVector(){localobj file_ref, temp_save_vec
-//
-//	file__loadDataVector(file_path,vector_obj)
-//
+/*
+
+file__loadDataVector(file_path,vector_obj)
+
+Loads a vector from file.
+
+
+*/
+
 
 //http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/classes/vector/vect.html#vread
 

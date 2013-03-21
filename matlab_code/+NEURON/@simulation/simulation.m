@@ -88,8 +88,18 @@ classdef simulation < handle_light
             
             c = obj.cmd_obj;
             
-            c.load_file('init_neuron.hoc');
-
+            c.load_file('general_sim_definitions.hoc');
+            
+            %Consider moving to constructor of classes
+            switch class(obj)
+                case 'NEURON.simulation.extracellular_stim'
+                    c.load_file('init_xstim.hoc');
+                case 'NEURON.simulation.intracellular_stim'
+                    c.load_file('init_istim.hoc');
+                otherwise
+                    error('Unhandled simulation class:%s',class(obj))
+            end
+            
             %This line must follow loading the initialization file
             c.writeStringProps({'sim_hash'},{obj.sim_hash});
         end

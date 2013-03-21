@@ -1,13 +1,4 @@
-//NOTE: This needs to be before these other things ...
-strdef sim_hash //This is a string which can be used to differentiate between 
-//different concurrent simulations when using files to transfer data between Matlab and NEURON
 
-//									Load user library
-//=======================================================================================
-
-//NOTE: Ideally we would just load by path ...
-//NOTE: We would to do order initialization thought, 
-//				i.e. for xstim, define variables first ...
 
 //FILE_IO -----------------------------------------------------------------------------
 chdir("hoc_code_library/file_manipulations")
