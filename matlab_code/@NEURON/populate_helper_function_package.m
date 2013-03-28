@@ -51,6 +51,7 @@ methods = {
     'round2'                    %activation_volume (in xstim)
     'load2'
     'unique2'                   %NEURON.extracellular_stim_electrode.getMergedStimTimes
+    'fp_isequal'                %NEURON.simulation.extracellular_stim.sim_logger.matcher.stim
     };
 
 my_path          = fileparts(mfilename('fullpath')); %This will return the
