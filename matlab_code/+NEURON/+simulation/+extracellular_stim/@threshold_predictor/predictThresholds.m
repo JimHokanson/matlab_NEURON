@@ -36,8 +36,8 @@ known_inputs = [obj.low_d_old_stimuli(old_indices_use,:); ...
 
 %TODO: Make this assumption obvious
 if size(known_inputs,1) < 3*size(known_inputs,2)
-   predicted_thresholds = ones(n_new_stimuli,1);
-   return
+    predicted_thresholds = ones(n_new_stimuli,1);
+    return
 end
 
 known_thresholds = [obj.old_thresholds(old_indices_use) ...
@@ -92,7 +92,14 @@ unknown_inputs = obj.low_d_new_stimuli(new_indices_predict,:);
 n_known = size(known_inputs,1);
 if n_known < 5000
     
-    predicted_thresholds = griddatan(known_inputs,known_thresholds(:),unknown_inputs);
+    %Data can be higly coplanar due to current-distance testing
+    %This will cause problems for the convex hull
+    try
+        predicted_thresholds = griddatan(known_inputs,known_thresholds(:),unknown_inputs);
+    catch
+        predicted_thresholds = NaN(size(unknown_inputs,1),1);
+    end
+    
     
     I_NaN = find(isnan(predicted_thresholds));
     

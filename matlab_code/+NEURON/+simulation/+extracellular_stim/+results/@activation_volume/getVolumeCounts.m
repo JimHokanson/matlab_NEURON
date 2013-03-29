@@ -270,39 +270,50 @@ function [replicated_thresholds,x,y,z] = helper__createReplicatedData(obj,abs_th
 %   wish to replicate the data to. This is specifically for the single
 %   electrode case.
 
-%1) Get New Bounds
-%--------------------------------------------------------------------------
-n_replication_points = size(in.replication_points,1);
+xyz_orig         = obj.getXYZlattice(true);
+[V_temp,xyz_new] = arrayfcns.replicate3dData(abs_thresholds,xyz_orig,...
+                        in.replication_points,obj.step_size,...
+                        'data_center',in.replication_center);
 
-min_replication_points = min(in.replication_points);
-max_replication_points = max(in.replication_points);
+x = xyz_new{1};
+y = xyz_new{2};
+z = xyz_new{3};
+                    
+replicated_thresholds = squeeze(min(V_temp,[],4));
 
-new_min_extents = obj.bounds(1,:) + min_replication_points;
-new_max_extents = obj.bounds(2,:) + max_replication_points;
-
-x = new_min_extents(1):obj.step_size:new_max_extents(1);
-y = new_min_extents(2):obj.step_size:new_max_extents(2);
-z = new_min_extents(3):obj.step_size:new_max_extents(3);
-
-%2) Interpolate all voltages to "new points" on lattice
-%--------------------------------------------------------------------------
-V_temp = NaN(length(y),length(x),length(z),n_replication_points);
-
-xyz_orig = obj.getXYZlattice(true);
-
-[Xo,Yo,Zo] = meshgrid(xyz_orig{:});
-
-[Xn,Yn,Zn] = meshgrid(x,y,z);
-
-for iPoint = 1:n_replication_points
-    shift_x = in.replication_points(iPoint,1) - in.replication_center(1);
-    shift_y = in.replication_points(iPoint,2) - in.replication_center(1);
-    shift_z = in.replication_points(iPoint,3) - in.replication_center(1);
-    V_temp(:,:,:,iPoint) = interp3(Xo+shift_x, Yo+shift_y, Zo+shift_z,abs_thresholds,Xn,Yn,Zn);
-end
-
-%Take min over all replicated points, then switch x&y to be correct
-replicated_thresholds = permute(min(V_temp,[],4),[2 1 3]);
+% %1) Get New Bounds
+% %--------------------------------------------------------------------------
+% n_replication_points = size(in.replication_points,1);
+% 
+% min_replication_points = min(in.replication_points);
+% max_replication_points = max(in.replication_points);
+% 
+% new_min_extents = obj.bounds(1,:) + min_replication_points;
+% new_max_extents = obj.bounds(2,:) + max_replication_points;
+% 
+% x = new_min_extents(1):obj.step_size:new_max_extents(1);
+% y = new_min_extents(2):obj.step_size:new_max_extents(2);
+% z = new_min_extents(3):obj.step_size:new_max_extents(3);
+% 
+% %2) Interpolate all voltages to "new points" on lattice
+% %--------------------------------------------------------------------------
+% V_temp = NaN(length(y),length(x),length(z),n_replication_points);
+% 
+% 
+% 
+% [Xo,Yo,Zo] = meshgrid(xyz_orig{:});
+% 
+% [Xn,Yn,Zn] = meshgrid(x,y,z);
+% 
+% for iPoint = 1:n_replication_points
+%     shift_x = in.replication_points(iPoint,1) - in.replication_center(1);
+%     shift_y = in.replication_points(iPoint,2) - in.replication_center(1);
+%     shift_z = in.replication_points(iPoint,3) - in.replication_center(1);
+%     V_temp(:,:,:,iPoint) = interp3(Xo+shift_x, Yo+shift_y, Zo+shift_z,abs_thresholds,Xn,Yn,Zn);
+% end
+% % % 
+% % % %Take min over all replicated points, then switch x&y to be correct
+% % % replicated_thresholds = permute(min(V_temp,[],4),[2 1 3]);
 
 %3) NaN check in Z
 %--------------------------------------------------------------------------

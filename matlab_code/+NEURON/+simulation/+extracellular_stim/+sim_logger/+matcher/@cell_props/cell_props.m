@@ -1,13 +1,14 @@
 classdef cell_props < handle_light
     %
-    %   Class: NEURON.simulation.extracellular_stim.sim_logger.matcher.cell_props
+    %   Class: 
+    %   NEURON.simulation.extracellular_stim.sim_logger.matcher.cell_props
     %
     %
     
     properties
         %These hold multiple instances of the class properties
         %of the same class as current_data_instance
-        cell_type = [] 
+        cell_type          = [] 
         data_linearization = {}
     end
     
@@ -61,6 +62,10 @@ classdef cell_props < handle_light
             
             obj.cell_type = [obj.cell_type temp_cell_type];
             obj.data_linearization = [obj.data_linearization temp_pv_array];
+        end
+        function deleteIndices(obj,indices)
+           obj.cell_type(indices) = [];
+           obj.data_linearization(indices) = [];
         end
         function data = getSavingStruct(obj)
             data = struct(...

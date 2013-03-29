@@ -3,10 +3,12 @@ classdef data < handle_light
     %   Class: 
     %       NEURON.simulation.extracellular_stim.sim_logger.data
     %
-    %   METHODS IN OTHER FILES
+    %   The main method in this class is:
     %   -------------------------------------------------------------------
-    %   NEURON.simulation.extracellular_stim.sim_logger.data.addResults
     %   NEURON.simulation.extracellular_stim.sim_logger.data.getThresholds
+    %
+    %   Other Public Methods Include
+    %   -------------------------------------------------------------------
     %   NEURON.simulation.extracellular_stim.sim_logger.data.fixRedundantOldData
     %
     %   DOCUMENTATION (see private folder)
@@ -18,8 +20,9 @@ classdef data < handle_light
     %       NEURON.simulation.extracellular_stim.sim_logger
     
     properties
-        xstim_obj
-        data_path   %path of where to save this class between calls
+        xstim_obj   %Class: NEURON.simulation.extracellular_stim
+        %NOTE: For certain operations this 
+        data_path   %Path of where to save this class between calls
     end
     
     properties
@@ -86,37 +89,55 @@ classdef data < handle_light
     
     %INITIALIZATION =======================================================
     methods
-        function obj = data(xstim_obj,data_path)
+        function obj = data(sim_index,paths_obj,xstim_obj)
             %
-            %   obj = data(xstim_obj,simulation_number,data_path)
+            %   obj = data(sim_index,paths_obj,*xstim_obj)
             %
-            %   IMPROVEMENTS
-            %   ===================================================
-            %   Break this down into sub methods
+            %   Normally this constructor should be called by 
+            %   the sim_logger class.
+            %
+            %   INPUTS
+            %   ===========================================================
+            %   sim_index : Simulation index to load
+            %
             
-            obj.xstim_obj = xstim_obj;
-            obj.data_path = data_path;
+            
+            obj.data_path = paths_obj.getSavedSimulationDataPath(sim_index);
 
-            if exist(data_path,'file')
-                h = load(data_path);
-                if h.VERSION ~= obj.VERSION
-                    error('Unhandled version mismatch')
-                end
-                obj.n_points_per_cell       = h.n_points_per_cell;
-                                
-                obj.applied_stimulus_matrix = h.applied_stimulus_matrix;
-                obj.threshold_values        = h.threshold_values;
-                obj.xyz_center              = h.xyz_center;
-                obj.creation_time           = h.creation_time;
-                obj.stimulus_setup_id       = h.stimulus_setup_id;
-                
-                obj.stimulus_setup_objs     = h.stimulus_setup_objs;
+            %Loading previous data
+            %--------------------------------------------------------------
+            loadDataFromFile(obj)
+            
+            %Determining Current Setup
+            %--------------------------------------------------------------
+            if exist('xstim_obj','var')
+               obj.xstim_obj = xstim_obj;
+               %TODO: Ensure that caller is sim_logger ...
+               instantiateCurrentXstimProps(obj)
             end
+            
+           
+        end
+    end
+    
+    %Should I provide these in the sim logger class?
+    %Perhaps with a GUI?
+    % => goal by index is to allow merging data ...
+%     methods (Static)
+%         function getObjectByIndex(index)
+%             
+%         end
+%     end
+    
+    methods (Hidden)
+        function instantiateCurrentXstimProps(obj)
+            %
+            %
+            %   TODO: Clean this up ...
             
             %This call gets an instance of the stimulus setup, which is
             %used for knowing what caused each of the applied stimuli
-            %Do I also want to save location as well?
-            stimulus_setup_obj = NEURON.simulation.extracellular_stim.sim_logger.stimulus_setup(xstim_obj);
+            stimulus_setup_obj = NEURON.simulation.extracellular_stim.sim_logger.stimulus_setup(obj.xstim_obj);
             
             index = find(stimulus_setup_obj == obj.stimulus_setup_objs);
             
@@ -134,12 +155,48 @@ classdef data < handle_light
             else
                 obj.current_stimulus_setup_id = index;
             end
+            
         end
+        function loadDataFromFile(obj)
+           %loadDataFromFile
+           %
+           %    loadDataFromFile(obj)
+           
+           if exist(obj.data_path ,'file')
+                h = load(obj.data_path);
+                if h.VERSION ~= obj.VERSION
+                    error('Unhandled version mismatch')
+                end
+                obj.n_points_per_cell       = h.n_points_per_cell;
+                                
+                obj.applied_stimulus_matrix = h.applied_stimulus_matrix;
+                obj.threshold_values        = h.threshold_values;
+                obj.xyz_center              = h.xyz_center;
+                obj.creation_time           = h.creation_time;
+                obj.stimulus_setup_id       = h.stimulus_setup_id;
+                
+                obj.stimulus_setup_objs     = h.stimulus_setup_objs;
+            end 
+        end
+    end
+    
+    %ANALYSIS   %==========================================================
+    methods
+        function compareThresholds(obj,other_data_obj)
+            
+        end 
     end
     
     %ADDING DATA ==========================================================
     methods
+
         function initPredictorObj(obj)
+           %
+           %    ??? Who calls this????
+           %
+           %
+           %    initPredictorObj(obj)
+           
            obj.predictor_obj = NEURON.simulation.extracellular_stim.threshold_predictor(...
                     obj.new_stimuli_matrix,...
                     obj.applied_stimulus_matrix,...
@@ -149,9 +206,11 @@ classdef data < handle_light
         end
         function setNewAppliedStimulus(obj)
             %
-            %   This function computes the applied stimulus 
+            %   
             %
             %   setNewAppliedStimulus(obj)
+            %
+            %   This function computes the applied stimulus 
             %
             %   See Also:
             %      NEURON.cell.extracellular_stim_capable.getCellXYZMultipleLocations  
@@ -197,9 +256,6 @@ classdef data < handle_light
             elseif obj.n_points_per_cell ~= samples_per_time
                 error('Code error, change to stimulus setup detected')
             end
-                
-            
-            
         end
     end
 end
