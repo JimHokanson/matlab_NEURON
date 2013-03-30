@@ -47,7 +47,8 @@ classdef user_options < handle_light
     end
     
     properties (Hidden,Constant)
-       DEFAULT_FILE_NAME = 'options.txt' 
+       DEFAULT_FILE_NAME = 'options.txt'
+       FILE_DELIMITER = '='
     end
     
     
@@ -82,7 +83,7 @@ classdef user_options < handle_light
             
             %Reading filepath
             %---------------------------------------------------------------
-            file_data = getPropFileAsStruct(options_file_filepath,':');
+            file_data = getPropFileAsStruct(options_file_filepath,obj.FILE_DELIMITER);
             
             %Assignment of properties
             %---------------------------------------------------------------
