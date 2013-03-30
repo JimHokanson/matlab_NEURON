@@ -2,10 +2,14 @@ classdef matcher < handle_light
     %
     %   Class: NEURON.simulation.extracellular_stim.sim_logger.matcher
     %
-    %
-    %
     %   IMPROVEMENTS
-    %   =============================================================
+    %   ===================================================================
+    %   1) Implement matching for simulation properties (temp, time,
+    %   solver)
+    %   2) Implement dynamics matching
+    %       - we currently check type, hh, fh, etc, but not the properties
+    %   associated with these models
+    %   
     %
     %   METHODS
     %   =======================================================
@@ -16,6 +20,13 @@ classdef matcher < handle_light
     %   we are just testing
     %   4) Eventually support pseudo-matching, where we can
     %   relate new results to old results that are similar ...
+    %
+    %
+    %   Relevant Related Classes
+    %   ===================================================================
+    %   NEURON.simulation.extracellular_stim.sim_logger.matcher.stim
+    %   NEURON.simulation.extracellular_stim.sim_logger.matcher.cell_props
+    
     
     %Stimulation Matching
     %-----------------------------------------
@@ -39,12 +50,6 @@ classdef matcher < handle_light
         %Increment the version # when this happens ...
         %dynamics_matcher
         
-        %Steps:
-        %--------------------------------------------------------
-        %1) New simulation passed in for comparison
-        %2)
-        
-        
     end
     
     properties (Constant)
@@ -52,21 +57,29 @@ classdef matcher < handle_light
     end
     
     methods
-        function obj = matcher(root_data_file)
+        function obj = matcher(paths_obj)
+            %
+            %
+            %   obj = matcher(paths_obj)
+            %
+            %   Normally the sim_logger constructor calls this class.
             
             import NEURON.simulation.extracellular_stim.sim_logger.matcher.*
-            
-            obj.root_data_file = root_data_file;
+
+            if ~exist('paths_obj','var')
+               paths_obj = NEURON.simulation.extracellular_stim.sim_logger.pathing; 
+            end
+                
+            obj.root_data_file = paths_obj.main_table_path;
             
             %NOTE: If nothing exists we'll need to create an initialization method ...
             
-            if ~exist(root_data_file,'file')
-                %Let initialization occur during adding on entry and saving
-                %...
+            if ~exist(obj.root_data_file,'file')
+                %Let initialization occur during adding on entry and saving ...
                 obj.stim_obj           = stim();
                 obj.cell_props_obj     = cell_props();
             else
-                h = load(root_data_file);
+                h = load(obj.root_data_file);
                 if h.version ~= obj.VERSION
                     error('Version mismatch, case not yet handled')
                 end
@@ -109,9 +122,11 @@ classdef matcher < handle_light
             %Handle output
             %--------------------------------------------------------------
             if length(index) > 1
-                %TODO: Write deletion methods
-                index = index(end);
-                %error('Index should be empty or have a singular match')
+                formattedWarning('\nMultiple matches observed for sim_logger, using first instance\n%s\n%s\n%s',...
+                    ['Matching Indices: ' mat2str(index)], ...
+                    'See static method:','NEURON.simulation.extracellular_stim.sim_logger.matcher.removeIndices')
+                
+                index = index(1); %Use oldest
             end
             
             if isempty(index) && add_if_not_found
@@ -137,16 +152,45 @@ classdef matcher < handle_light
             %Step 2: Add searched instance to classes
             obj.stim_obj.addCurrentInstance();
             obj.cell_props_obj.addCurrentInstance();
+                        
+            save(obj)
+        end
+        function save(obj)
+            %Retrieve data for saving
             
-            %Step 3: Retrieve data for saving
-            stim       = obj.stim_obj.getSavingStruct();
-            cell_props = obj.cell_props_obj.getSavingStruct();
-            version = obj.VERSION;
-            current_max_index = next_index;
+            %Submitted requests to not throw mlint warning for save
+            %function as well as the ability to ignore these messages
+            %within the scope of a function/method
+            stim       = obj.stim_obj.getSavingStruct(); %#ok<NASGU>
+            cell_props = obj.cell_props_obj.getSavingStruct(); %#ok<NASGU>
+            version    = obj.VERSION; %#ok<NASGU>
+            current_max_index = obj.current_max_index; %#ok<NASGU,PROP>
             
-            %Step 4: Save data
-            save(obj.root_data_file,'stim','cell_props','version','current_max_index');
-            
+            %Save data
+            save(obj.root_data_file,'stim','cell_props','version','current_max_index'); 
+        end
+    end
+    
+    methods (Static)
+        function removeIndices(indices_remove)
+           %
+           %    NEURON.simulation.extracellular_stim.sim_logger.matcher.removeIndices(indices_remove)
+           
+                obj = NEURON.simulation.extracellular_stim.sim_logger.matcher;
+                
+                indices_remove = unique(indices_remove);
+                
+                if any(indices_remove < 0) || any(indices_remove > obj.current_max_index)
+                   error('Indices specified for removal are outside the valid range of 1:%d',...
+                       obj.current_max_index)
+                end
+                
+                obj.stim_obj.deleteIndices(indices_remove);
+                obj.cell_props_obj.deleteIndices(indices_remove);
+                
+                obj.current_max_index = obj.current_max_index - length(indices_remove);
+                
+                save(obj)
         end
     end
     

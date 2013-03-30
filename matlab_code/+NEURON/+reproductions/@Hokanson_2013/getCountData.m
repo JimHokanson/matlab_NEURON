@@ -31,6 +31,7 @@ function [dual_counts,single_counts,stim_amplitudes] = getCountData(obj,...
 %
 %   OPTIONAL INPUTS
 %   =======================================================================
+%   stim_resolution : 
 %
 %   OUTPUTS
 %   =======================================================================
@@ -42,7 +43,10 @@ function [dual_counts,single_counts,stim_amplitudes] = getCountData(obj,...
 %   stim_amplitudes : Stimulus amplitudes used for outputs given
 %                       max_stim_level input.
 %
-%   2)
+%   See Also:
+%       NEURON.simulation.extracellular_stim.create_standard_sim.
+%       NEURON.simulation.extracellular_stim.create_standard_sim.sim__getActivationVolume
+%   
 
 in.stim_resolution = 0.5;
 in = processVarargin(in,varargin);

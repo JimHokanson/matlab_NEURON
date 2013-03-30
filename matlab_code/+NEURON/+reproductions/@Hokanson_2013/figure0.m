@@ -18,13 +18,17 @@ function figure0()
 %4) show area overlap - it would be nice to know the volume result
 %even though I am only showing the area ...
 
+FONT_SIZE       = 18;
 
-PAIRING_USE = 7; %400 um separation in X direction
-XYZ_MESH_DOUBLE = {-400:20:400 0 -600:20:600};
-XYZ_MESH_SINGLE = {-180:20:180 0 -600:20:600};
-X_SHIFT_SINGLE  = 200;
+PAIRING_USE     = 7; %400 um separation in X direction
+STEP_SIZE       = 20;
+
+%There is a bug in arrayfcns.replicate3dData
+%which doesn't support 2d data for interpolation ...
+XYZ_MESH_DOUBLE = {-400:STEP_SIZE:400 [0 STEP_SIZE] -600:STEP_SIZE:600};
+XYZ_MESH_SINGLE = {-200:STEP_SIZE:200 [0 STEP_SIZE] -600:STEP_SIZE:600};
 X_LIM           = [-400 400];
-Y_LIM           = [-800 800];
+Y_LIM           = [-600 600];
 C_LIM           = [0 25];
 THRESHOLD_TEST  = 10;
 
@@ -40,8 +44,6 @@ xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:})
 
 thresholds_single = xstim_obj.sim__getThresholdsMulipleLocations(XYZ_MESH_SINGLE);
 
-thresholds_single = squeeze(thresholds_single)';
-
 act_obj   = xstim_obj.sim__getActivationVolume();
 
 threshold_counts_single = act_obj.getVolumeCounts(THRESHOLD_TEST,...
@@ -56,18 +58,26 @@ xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:})
 
 thresholds_double = xstim_obj.sim__getThresholdsMulipleLocations(XYZ_MESH_DOUBLE);
 
-thresholds_double = squeeze(thresholds_double)';
+thresholds_double_2d = squeeze(thresholds_double(:,1,:));
 
 act_obj   = xstim_obj.sim__getActivationVolume();
 
 threshold_counts_double = act_obj.getVolumeCounts(THRESHOLD_TEST);
 
+
 %Plotting Results
 %--------------------------------------------------------------------------
+[temp,xyz_single_temp] = arrayfcns.replicate3dData(thresholds_single,...
+                            XYZ_MESH_SINGLE,current_pair,STEP_SIZE);
+                        
+single_thresholds_for_plotting = squeeze(min(temp(:,1,:,:),[],4)); 
+                        
+                        
 subplot(1,3,1)
-imagesc(XYZ_MESH_SINGLE{1}-X_SHIFT_SINGLE,XYZ_MESH_SINGLE{3},thresholds_single)
-hold all
-imagesc(XYZ_MESH_SINGLE{1}+X_SHIFT_SINGLE,XYZ_MESH_SINGLE{3},thresholds_single)
+set(gca,'FontSize',FONT_SIZE)
+imagesc(xyz_single_temp{1},xyz_single_temp{3},single_thresholds_for_plotting')
+axis equal
+hold on
 scatter(current_pair(:,1),current_pair(:,3),100,'w','filled','^')
 hold off
 set(gca,'XLim',X_LIM,'CLim',C_LIM,'YLim',Y_LIM);
@@ -76,7 +86,8 @@ colorbar
 title('Single Electrode Replicated')
 
 subplot(1,3,2)
-imagesc(XYZ_MESH_DOUBLE{1},XYZ_MESH_DOUBLE{3},thresholds_double)
+set(gca,'FontSize',FONT_SIZE)
+imagesc(XYZ_MESH_DOUBLE{1},XYZ_MESH_DOUBLE{3},thresholds_double_2d')
 hold all
 scatter(current_pair(:,1),current_pair(:,3),100,'w','filled','^')
 hold off
@@ -87,25 +98,25 @@ title('Sync Stim Results')
 
 
 subplot(1,3,3)
-[c1,h1] = contour(XYZ_MESH_SINGLE{1}-X_SHIFT_SINGLE,XYZ_MESH_SINGLE{3},...
-    thresholds_single,[THRESHOLD_TEST THRESHOLD_TEST]);
+set(gca,'FontSize',FONT_SIZE)
+[c1,h1] = contour(xyz_single_temp{1},xyz_single_temp{3},...
+    single_thresholds_for_plotting',[THRESHOLD_TEST THRESHOLD_TEST]);
 hold on
-[c2,h2] = contour(XYZ_MESH_SINGLE{1}+X_SHIFT_SINGLE,XYZ_MESH_SINGLE{3},...
-    thresholds_single,[THRESHOLD_TEST THRESHOLD_TEST]);
-[c3,h3] = contour(XYZ_MESH_DOUBLE{1},XYZ_MESH_DOUBLE{3},...
-    thresholds_double,[THRESHOLD_TEST THRESHOLD_TEST]);
+[c2,h2] = contour(XYZ_MESH_DOUBLE{1},XYZ_MESH_DOUBLE{3},...
+    thresholds_double_2d',[THRESHOLD_TEST THRESHOLD_TEST]);
 scatter(current_pair(:,1),current_pair(:,3),100,'k','filled','^')
 hold off
 set(h1,'Linewidth',2,'LineColor','r')
-set(h2,'Linewidth',2,'LineColor','r')
 %NOTE: Often the export of the contour produces a bunch of lines
 %that don't play well together in Illustrator, minimal style
 %editing in Illustrator is desired
-set(h3,'Linewidth',2,'LineColor','k','LineStyle',':')
+set(h2,'Linewidth',2,'LineColor','k','LineStyle',':')
 set(gca,'XLim',X_LIM,'CLim',C_LIM,'YLim',Y_LIM);
 axis equal
 colorbar
 title(sprintf('Volume Ratio %0.2f, %d uA threshold',...
-    threshold_counts_double/threshold_counts_single,THRESHOLD_TEST))
+    threshold_counts_double(end)/threshold_counts_single(end),THRESHOLD_TEST))
+
+keyboard
 
 end

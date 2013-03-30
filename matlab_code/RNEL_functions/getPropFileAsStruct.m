@@ -18,6 +18,7 @@ function s = getPropFileAsStruct(filePath,delimiter)
 %   IMPORTANT USAGE NOTES
 %   =========================================================
 %   1) All first column names must evaluate to valid fields
+%          - spaces are replaced with underscores
 %   2) Non-significant whitespace (on either end) is ignored
 %
 %   EXAMPLE
