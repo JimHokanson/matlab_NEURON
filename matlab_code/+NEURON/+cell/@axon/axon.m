@@ -42,7 +42,7 @@ classdef axon < NEURON.neural_cell
            [~,propagationIndex] = min(abs(Z-propagationZ));
            
            
-           obj.threshold_info_obj.v_ap_propogation_index = propagationIndex;
+           obj.threshold_info_obj.v_ap_propagation_index = propagationIndex;
         end
 
     end

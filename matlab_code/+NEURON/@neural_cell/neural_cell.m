@@ -41,9 +41,9 @@ classdef neural_cell < handle
                case 'mrg'
                   obj = NEURON.cell.axon.MRG(cell_location);
                case 'generic'
-                  obj = NEURON.cell.axon.generic(in.cell_center);
+                  obj = NEURON.cell.axon.generic(cell_location);
                case 'generic_unmyelinated'
-                  obj = NEURON.cell.axon.generic_unmyelinated(in.cell_center);
+                  obj = NEURON.cell.axon.generic_unmyelinated(cell_location);
                otherwise
                   error('Unrecognized cell type: %s',cell_type)
            end

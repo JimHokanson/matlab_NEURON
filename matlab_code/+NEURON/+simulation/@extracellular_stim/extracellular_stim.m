@@ -49,7 +49,7 @@ classdef extracellular_stim < NEURON.simulation
         tissue_obj   %(Subclass of NEURON.tissue)
         %                   NEURON.tissue.homogeneous_anisotropic
         %                   NEURON.tissue.homogeneous_isotropic
-        elec_objs    %(Class NEURON.extracellular_stim_electrode)
+        elec_objs    %(Class NEURON.simulation.extracellular_stim.electrode)
         cell_obj     %(Class neural_cell), singular
     end
     

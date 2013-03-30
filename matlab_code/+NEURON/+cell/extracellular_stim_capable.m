@@ -217,6 +217,9 @@ classdef extracellular_stim_capable < handle
             %       NEURON.cell.axon.MRG.getXYZnodes
             
             if iscell(cell_centers)
+                if length(cell_centers) ~= 3
+                    error('Cell centers must have 3 elements, 1 for x,y,& z if it is a cell')
+                end
                 [X,Y,Z] = meshgrid(cell_centers{:});
                 xyz_cell_centers = [X(:) Y(:) Z(:)];
             else

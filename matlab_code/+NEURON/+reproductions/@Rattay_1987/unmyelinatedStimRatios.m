@@ -8,7 +8,7 @@ in = processVarargin(in,varargin);
 TISSUE_RESISTIVITY = obj.tissue_resistivity; % isotropic 300 ohm cm
 STIM_START_TIME    = 0.1;
 STIM_DURATIONS      = 0.1;   % 100us duration, square pulse
-STIM_SCALES = 1;
+STIM_AMP = 1;
 props_paper = obj.props_paper;
 
 %Props that differ from defaults ...
@@ -21,15 +21,14 @@ distances = linspace(minDist,maxDist,N_distances);
 
 xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(...
     'tissue_resistivity',TISSUE_RESISTIVITY,...
-    'cell_type','generic_unmyelinated',...
-    'cell_options',{'paper',props_paper},...
-    'stim_scales',STIM_SCALES,...
-    'stim_durations',STIM_DURATIONS,...
-    'stim_start_times',STIM_START_TIME,...
-    'debug',in.debug,...
-    'celsius',TEMP_CELSIUS);
+    'cell_type','generic_unmyelinated');
 
-xstim_obj.opt__TIME_AFTER_LAST_EVENT = 2.5; % increase simulation length
+xstim_obj.cmd_obj.options.debug = in.debug;
+xstim_obj.props_obj.changeProps('celsius',TEMP_CELSIUS);
+xstim_obj.elec_objs.setStimPattern(STIM_START_TIME,STIM_DURATIONS,STIM_AMP);
+xstim_obj.cell_obj.props_obj.setPropsByPaper(props_paper);
+
+xstim_obj.options.time_after_last_event = 2.5; % increase simulation length
 c = xstim_obj.cell_obj;
 c.adjustPropagationIndex(-5000) % offset in um
 

@@ -20,6 +20,8 @@ classdef cell_log_data
                    obj.cell_type = 1;
                case 'NEURON.cell.axon.generic'
                    obj.cell_type = 2;
+               case 'NEURON.cell.axon.generic_unmyelinated'
+                   obj.cell_type = 3;
                otherwise
                    error('Case for cell type: %s, not yet handled',class(cell_obj))
            end

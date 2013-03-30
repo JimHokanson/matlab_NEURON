@@ -17,7 +17,9 @@ classdef props < handle_light
     properties
         props_up_to_date_in_NEURON = false
         %Set true by placeVariablesIntoNEURON
-        %Set false by?
+        %Set false by? populateDependentVariables. Should probably set
+        %properties to private access with a change function that will set
+        %this property to false
     end
     
     %Initial properties based loosely on McNeal 1976 ======================

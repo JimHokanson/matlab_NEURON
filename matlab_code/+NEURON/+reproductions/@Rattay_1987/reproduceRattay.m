@@ -15,7 +15,7 @@ stimAmps = [minStim:stimStep:maxStim]*1000;
 TISSUE_RESISTIVITY = obj.tissue_resistivity; % isotropic 300 ohm cm
 STIM_START_TIME    = 0.1; % 100us duration, square pulse
 STIM_DURATIONS     = 0.1;
-STIM_SCALES        = 1;
+STIM_AMP        = 1;
 props_paper         = obj.props_paper;
 TEMP_CELSIUS       = obj.temp_celsius; % 27 C
 
@@ -29,10 +29,13 @@ stimData = zeros(nStimAmps*N_FIBERS,3); % (current,distance,fired?)
 iSimTotal = 0;
 
 % create extracellular_stim object, as well as tissue, electrode, and cell.
-simObj = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resistivity',TISSUE_RESISTIVITY,...
-    'cell_type','generic','cell_options',{'paper',props_paper},'stim_scales',STIM_SCALES,'stim_durations',STIM_DURATIONS,...
-    'stim_start_times',STIM_START_TIME,'debug',in.debug,'celsius',TEMP_CELSIUS);
-
+xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(...
+    'tissue_resistivity',TISSUE_RESISTIVITY,...
+    'cell_type','generic');
+xstim_obj.cmd_obj.options.debug = in.debug;
+xstim_obj.props_obj.changeProps('celsius',TEMP_CELSIUS);
+xstim_obj.elec_objs.setStimPattern(STIM_START_TIME,STIM_DURATIONS,STIM_AMP);
+xstim_obj.cell_obj.props_obj.setPropsByPaper(props_paper);
 
 for iStim = 1:nStimAmps
     STIM_AMP = stimAmps(iStim);
@@ -41,13 +44,13 @@ for iStim = 1:nStimAmps
     parallel_distance = 0;
     for iSim = 1:N_FIBERS %should probably rename iSim to avoid confusion with iStim
         new_xyz = [0 axon_distance(iSim) parallel_distance];
-        moveElectrode(simObj.elec_objs,new_xyz)
-        result_obj = sim__single_stim(simObj,STIM_AMP);
+        moveElectrode(xstim_obj.elec_objs,new_xyz)
+        result_obj = sim__single_stim(xstim_obj,STIM_AMP);
         % includes properties such as ap_propogated (bool) and
         % membrane_potential (time x space), which can be plotted using mesh()
         
         iSimTotal = iSimTotal + 1;
-        apFired = result_obj.ap_propogated; % note mispelling, if that's fixed, need to change here
+        apFired = result_obj.ap_propagated;
         stimData(iSimTotal,:) = [STIM_AMP,axon_distance(iSim),apFired];
         
     end
