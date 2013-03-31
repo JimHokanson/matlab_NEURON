@@ -24,11 +24,12 @@ xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(...
     'cell_type','generic_unmyelinated');
 
 xstim_obj.cmd_obj.options.debug = in.debug;
-xstim_obj.props_obj.changeProps('celsius',TEMP_CELSIUS);
+xstim_obj.props.changeProps('celsius',TEMP_CELSIUS);
 xstim_obj.elec_objs.setStimPattern(STIM_START_TIME,STIM_DURATIONS,STIM_AMP);
 xstim_obj.cell_obj.props_obj.setPropsByPaper(props_paper);
 
 xstim_obj.options.time_after_last_event = 2.5; % increase simulation length
+xstim_obj.threshold_options_obj.max_threshold = 25000; % increase max threshold
 c = xstim_obj.cell_obj;
 c.adjustPropagationIndex(-5000) % offset in um
 

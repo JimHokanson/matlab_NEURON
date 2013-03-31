@@ -70,7 +70,7 @@ classdef simulation < handle_light
                 
                 %NOTE: This class currently populates simulation variables
                 %into Matlab
-                obj.props_obj = NEURON.simulation.props(obj);
+                obj.props = NEURON.simulation.props(obj);
             end
         end
     end

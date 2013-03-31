@@ -33,7 +33,7 @@ xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(...
     'cell_type','generic_unmyelinated');
 
 xstim_obj.cmd_obj.options.debug = in.debug;
-xstim_obj.props_obj.changeProps('celsius',TEMP_CELSIUS);
+xstim_obj.props.changeProps('celsius',TEMP_CELSIUS);
 xstim_obj.elec_objs.setStimPattern(STIM_START_TIME,STIM_DURATIONS,STIM_AMP);
 xstim_obj.cell_obj.props_obj.setPropsByPaper(props_paper);
 

@@ -125,7 +125,7 @@ classdef threshold_analysis < handle_light
                 %See: NEURON.simulation.extracellular_stim.init__simulation
             end
             
-            initial_tstop = obj.parent.props.tstop.getExpectedSimDuration;
+            initial_tstop = obj.parent.props.getExpectedSimDuration;
             
             result_obj = NEURON.simulation.extracellular_stim.results.single_sim(...
                             obj.parent,scale,t_info,initial_tstop);
