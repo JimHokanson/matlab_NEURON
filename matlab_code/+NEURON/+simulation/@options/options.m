@@ -14,7 +14,8 @@ classdef options
         %------------------------------------------------------------------
         autochange_run_time   = true %Set this to false to prevent
         %the class from automatically changing the duration of the run
-        %time.
+        %time. This is set to false if the user changes the duration of the
+        %simulation (tstop in NEURON.simulation.props)
         
         display_time_change_warnings = true %Set this to false to not display
         %the warnings that the time is changing to account for events

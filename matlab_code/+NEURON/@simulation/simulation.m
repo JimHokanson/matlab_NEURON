@@ -22,8 +22,13 @@ classdef simulation < handle_light
 
     
     properties
-        props_obj   %Class: NEURON.simulation.props
+        props       %Class: NEURON.simulation.props
         options     %Class: NEURON.simulation.options
+        
+        %NOTE: These classes may not exist if NEURON is not loaded on startup.
+        cmd_obj  %Class: NEURON.cmd 
+        n_obj    %Class: NEURON
+        path_obj %Class: NEURON.paths
     end
     
     properties (Hidden)
@@ -31,15 +36,8 @@ classdef simulation < handle_light
         sim_hash    %String for preventing file save collisions 
         %between concurrent versions of Matlab. This is based upon the 
         %process id of Matlab, not the communications process.
+        %
         %IMPORTANT: This variable is declared in NEURON in init_neuron.hoc
-    end
-    
-    properties
-        %NOTE: These classes may not exist if NEURON is not loaded on
-        %startup.
-        cmd_obj  %Class: NEURON.cmd 
-        n_obj    %Class: NEURON
-        path_obj %Class: NEURON.paths
     end
     
     %INITIALIZATION    %===================================================
@@ -105,6 +103,34 @@ classdef simulation < handle_light
         end
     end
     
+    %INFO RETRIEVAL
+    %======================================================================
+    %Design note: These methods are meant to hide the properties class.
+    methods
+        function sim_duration = getSimDuration(obj)
+           %getSimDuration
+           %
+           %    sim_duration = getSimDuration(obj)
+           %
+           %    Returns duration of the simulation
+           %
+           %    See Also:
+           %        NEURON.simulation.props
+           
+           sim_duration = obj.props_obj.getSimDuration;
+        end
+        function sim_time_vector = getSimTimeVector(obj)
+           %getSimTimeVector
+           %
+           %    sim_time_vector = getSimTimeVector(obj
+           %
+           %    See Also:
+           %        NEURON.simulation.props
+           
+           sim_time_vector = obj.props_obj.getTimeVector;
+        end
+    end
+    
     %OTHER METHODS
     %====================================================
     methods
@@ -119,7 +145,7 @@ classdef simulation < handle_light
             %    adjustSimTimeIfNeeded(obj,lastEventTime)
             %
             %	 RELEVANT OPTIONS - see options class
-            %    ================================================
+            %    ==========================================================
             %    autochange_run_time
             %    display_time_change_warnings
             %    time_after_last_event
@@ -132,13 +158,15 @@ classdef simulation < handle_light
             
             DONT_CARE_TIME_DIFF = 0.001; %ms
             
-            t_diff = obj.props_obj.tstop - (lastEventTime + opt.time_after_last_event);
+            expected_sim_time = obj.props.getExpectedSimDuration;
+            
+            t_diff = expected_sim_time - (lastEventTime + opt.time_after_last_event);
             
             if abs(t_diff) < DONT_CARE_TIME_DIFF
                 return
             end
             
-            old_tstop = obj.props_obj.tstop;
+            old_tstop = expected_sim_time;
             new_tstop = lastEventTime + opt.time_after_last_event;
             if opt.display_time_change_warnings
                 if t_diff < 0
@@ -152,7 +180,7 @@ classdef simulation < handle_light
                 end
             end
             
-            changeProps(obj.props_obj,'tstop',new_tstop)
+            changeProps(obj.props,'tstop',new_tstop)
         end
     end
     

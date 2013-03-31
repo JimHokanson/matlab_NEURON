@@ -49,7 +49,7 @@ in.cell_center           = [0 0 0];
 in.cell_type             = 'MRG';
 
 %Electrode properties:
-%--------------------------------------------------------
+%--------------------------------------------------------------------------
 in.electrode_locations   = [0 100 0];
 in = processVarargin(in,varargin);
 
@@ -58,7 +58,7 @@ obj = NEURON.simulation.extracellular_stim(in.xstim_options);
 
 set_Tissue(obj,NEURON.tissue.createHomogenousTissueObject(in.tissue_resistivity));
 
-set_Electrodes(obj,NEURON.simulation.extracellular_stim.electrode.create(in.electrode_locations));
+obj.set_Electrodes(NEURON.simulation.extracellular_stim.electrode.create(in.electrode_locations,obj));
 
 set_CellModel(obj,NEURON.neural_cell.create_cell(obj,in.cell_type,in.cell_center))
 

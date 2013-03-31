@@ -51,6 +51,13 @@ classdef single_sim < handle_light
     
     methods
         function obj = single_sim(xstim_obj,tested_scale,threshold_info_obj,initial_tstop)
+           %
+           %
+           %    obj = single_sim(xstim_obj,tested_scale,threshold_info_obj,initial_tstop)
+           %
+           %    FULL PATH:
+           %        NEURON.simulation.extracellular_stim.results.single_sim
+           
            obj.xstim_obj               = xstim_obj;
            obj.cell_obj                = obj.cell_obj;
            obj.tested_scale            = tested_scale;
@@ -69,7 +76,8 @@ classdef single_sim < handle_light
             vm_local       = obj.membrane_potential;
             
             %NOTE: Due to time extension dt may be wrong ...
-            time_vector    = (0:size(vm_local,1)-1)*obj.xstim_obj.props_obj.dt;
+            time_vector   = obj.xstim_obj.props.getTimeVector;
+            
             n_space_points = size(vm_local,2);
             mesh(1:n_space_points,time_vector,vm_local)
             
