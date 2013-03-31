@@ -105,7 +105,7 @@ if ispc
     filterspec = '*.exe';
     title = 'Find nrniv.exe';
 else
-    filterspec = [];
+    filterspec = '*.*';
     title = 'Find nrniv executable';
 end
 
