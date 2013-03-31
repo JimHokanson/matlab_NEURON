@@ -8,34 +8,72 @@ classdef props < handle_light
     %   1) Build in support for different time solver methods
     %       - see cvode, use_daspk is alright for extracellular stim BUT
     %           it seems slow
-    %       - 
+   
+    properties (Hidden)
+       cmd_obj  %Class: NEURON.cmd 
+       parent   %Class: NEURON.simulation
+    end
     
-    properties (SetAccess = private)
+    properties (Access = private)
         %.changeProps()
         %Use .changeProps to change these properties
         celsius = 37
         tstop   = 1.2       %(units - ms) Stopping time for the simulation
+    end
+    
+    %Fixed Time Step Properties  %=========================================
+    properties (Access = private)
         dt      = 0.005     %(units - ms) dt for fixed time solvers
+        
+        %NOT YET SUPPORTED
+        %secondorder = 0; 
+        %0 - fully implicit backward euler
+        %1 - CN
+        %2 - 
+        %http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/nrnoc.html#secondorder
+    end
+     
+    %Variable Time Step Properties  %======================================
+    properties 
+       %use_variable_time_step   %Not yet implemented
+        
+       %CVODE : http://www.neuron.yale.edu/neuron/static/docs/help/neuron/neuron/classes/cvode.html
     end
     
-    properties (Dependent)
-       time_vector 
-    end
-    
+    %TIME RELATED METHODS  %===============================================
     methods
-        function value = get.time_vector(obj)
-           %This could change based on the simulation type ...
-           value = 0:obj.dt:obj.tstop;
+        function final_time = getExpectedSimDuration(obj)
+           final_time = obj.tstop; 
         end
-    end
-    
-    properties (Hidden)
-       parent   %Class: NEURON.simulation
+        function final_time = getSimDuration(obj)
+           %
+           %
+           
+           final_time_used = obj.cmd_obj.getScalar('t');
+           if final_time_used == 0
+               %TODO: Throw warning here ...
+               final_time = obj.tstop;
+           else
+               final_time = final_time_used;
+           end
+        end
+        %TODO: Make these both call the same method ...
+        function value = getTimeVector(obj)
+            %
+            %   value = getTimeVector(obj)
+            
+           %Currently we assume fixed time
+           value = 0:obj.dt:obj.getSimDuration;
+        end
+        function value = getExpectedTimeVector(obj)
+           value = 0:obj.dt:obj.getExpectedSimDuration; 
+        end
     end
     
     methods
         function obj = props(parent_obj,varargin)
-            obj.parent = parent_obj;
+            obj.parent  = parent_obj;
+            obj.cmd_obj = parent_obj.cmd_obj;
             obj.changeProps(varargin);
         end
         function changeProps(obj,varargin)
@@ -73,7 +111,7 @@ classdef props < handle_light
             
             values = {obj.celsius   obj.tstop  obj.dt};
             props  = {'celsius'     'tstop'    'dt'};
-            obj.parent.cmd_obj.writeNumericProps(props,values);
+            obj.cmd_obj.writeNumericProps(props,values);
         end   
     end
   

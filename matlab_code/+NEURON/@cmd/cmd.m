@@ -336,7 +336,15 @@ classdef cmd < handle_light
     end
     
     %Extract Data From Neuron =============================================
+    methods
+        function numeric_value = getScalar(obj,scalar_name)
+            [~,results]   = obj.write(scalar_name);
+            numeric_value = str2double(results);
+        end
+    end
+    
     methods (Static)
+        
         data = loadMatrix(filePath)
     end
     

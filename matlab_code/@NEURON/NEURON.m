@@ -50,14 +50,6 @@ classdef NEURON < handle_light
         %This class requires initialization during startup. If it is not
         %enabled at startup, it is not available. 
     end
-     
-    %OPTIONS   %===========================================================
-    properties
-        opt__throw_error         = true;
-        opt__interactive_mode    = false; 
-        opt__log_commands        = false; %If true commands will be logged
-        %to the log_obj.
-    end
 
     %"PUBLIC METHODS"   %==================================================
     methods
@@ -70,7 +62,9 @@ classdef NEURON < handle_light
             %   This constructor changes the current directory to the HOC
             %   code root and loads the general NEURON libraries
             %   "noload.hoc"
-            %
+            
+            %Possible improvement - on command window call default
+            %to interactive mode
             
             if ~exist('neuron_options','var')
                 neuron_options = NEURON.options;
@@ -80,7 +74,8 @@ classdef NEURON < handle_light
             %--------------------------------------------------------------
             obj.command_log_obj = NEURON.command_log;
             obj.path_obj = NEURON.paths.getInstance;
-            obj.cmd_obj  = NEURON.cmd(obj.path_obj,obj.command_log_obj,neuron_options.cmd_options);
+            obj.cmd_obj  = NEURON.cmd(obj.path_obj,obj.command_log_obj,...
+                                        neuron_options.cmd_options);
             
             %Change directory and load library files
             %--------------------------------------------------------------
@@ -101,11 +96,10 @@ classdef NEURON < handle_light
         function init_system
             %init_system
             %
-            %   Should be called on startup to initialize system, at least for
-            %   Windows ...
+            %   Should be called on startup to initialize system.
             %
             %   FULL PATH:
-            %   NEURON.init_system
+            %       NEURON.init_system
             
             NEURON.comm_obj.java_comm_obj.init_system_setup;
             
@@ -124,12 +118,13 @@ classdef NEURON < handle_light
             %   passing into Neuron. This basically involves creating a
             %   cygwin path for windows.
             
+            
             if ispc
                 file_path = getCygwinPath(file_path);
             end
         end
     end
-    %STATOC METHODS - in other files   %===================================
+    %STATIC METHODS - in other files   %===================================
     methods (Static)
         compile(mod_path)  %Method will compile mod files into dll
         populate_helper_function_package
