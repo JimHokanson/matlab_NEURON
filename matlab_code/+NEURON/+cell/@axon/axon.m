@@ -28,8 +28,7 @@ classdef axon < NEURON.neural_cell
             %
             %   INPUTS
             %   ===========================================================
-            % axonObj.adjustPropagationIndex(centerOffset)
-            % center offset is +/- distance off of center to set the
+            % center_offset (um): +/- distance off of center to set the
             % propagation index. This method will calculate the appropriate
             % index from this distance and set the propagation index
             % accordingly.
