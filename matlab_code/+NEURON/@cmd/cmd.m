@@ -40,7 +40,7 @@ classdef cmd < handle_light
                     obj.comm_obj = NEURON.comm_obj.windows_comm_obj(paths_obj);
                 end
             else
-                obj.comm_obj = NEURON.comm_obj.java_comm_obj(obj.path_obj);
+                obj.comm_obj = NEURON.comm_obj.java_comm_obj(paths_obj);
             end
         end
     end
