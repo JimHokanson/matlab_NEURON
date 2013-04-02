@@ -30,5 +30,5 @@ end
 if ~isequal(size(A),size(B))
     flag = false;
 else
-    flag = all(abs(A(:) - B(:))) <= small;
+    flag = all(abs(A(:) - B(:)) <= small);
 end
