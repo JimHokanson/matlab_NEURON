@@ -21,7 +21,8 @@ classdef data < handle_light
     
     properties
         xstim_obj   %Class: NEURON.simulation.extracellular_stim
-        %NOTE: For certain operations this 
+        %NOTE: In certain cases this object will not be defined as we
+        %are only working with saved data ...
         data_path   %Path of where to save this class between calls
     end
     
@@ -96,10 +97,15 @@ classdef data < handle_light
             %   Normally this constructor should be called by 
             %   the sim_logger class.
             %
+            %   
+            %
             %   INPUTS
             %   ===========================================================
             %   sim_index : Simulation index to load
             %
+            %   See Also:
+            %       NEURON.simulation.extracellular_stim.sim_logger
+            %       NEURON.simulation.extracellular_stim.sim_logger.pathing
             
             
             obj.data_path = paths_obj.getSavedSimulationDataPath(sim_index);
@@ -123,11 +129,23 @@ classdef data < handle_light
     %Should I provide these in the sim logger class?
     %Perhaps with a GUI?
     % => goal by index is to allow merging data ...
-%     methods (Static)
-%         function getObjectByIndex(index)
-%             
-%         end
-%     end
+    methods (Static)
+        function obj = getObjectByIndex(index)
+           %
+           %
+           %    FULL PATH:
+           %    ===========================================================
+           %    NEURON.simulation.extracellular_stim.sim_logger.data.getObjectByIndex
+           
+           import NEURON.simulation.extracellular_stim.sim_logger.* 
+            
+           %sim_logger.data
+           %sim_logger.pathing
+           obj = data(index,pathing);
+           
+           %obj = NEURON.simulation.extracellular_stim.sim_logger.data(index, 
+        end
+    end
     
     methods (Hidden)
         function instantiateCurrentXstimProps(obj)

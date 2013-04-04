@@ -184,6 +184,8 @@ xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:})
 xstim_obj.cell_obj.props_obj.changeFiberDiameter(fiber_diameter);
 xstim_obj.elec_objs.setStimPattern(STIM_START_TIME,stim_widths,PHASE_AMPLITUDES);
 
+%NEURON.simulation.extracellular_stim.sim__getActivationVolume
+%NEURON.simulation.extracellular_stim.results.activation_volume
 act_obj   = xstim_obj.sim__getActivationVolume();
 
 end
