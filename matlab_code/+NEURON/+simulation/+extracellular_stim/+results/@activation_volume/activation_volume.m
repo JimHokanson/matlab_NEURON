@@ -5,7 +5,7 @@ classdef activation_volume < handle
     %   TODO: Summarize purpose of this class
     
     %REFERENCE OBJECTS ====================================================
-    properties
+    properties (Hidden)
        xstim_obj 
     end
     
