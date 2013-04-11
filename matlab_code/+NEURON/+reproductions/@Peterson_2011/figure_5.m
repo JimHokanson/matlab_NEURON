@@ -34,9 +34,9 @@ thresholds = thresholds./max(max(thresholds));
 
 % plot
 figure
-markerSpec = {'bs' 'gv' 'r^' 'co'};
+lineSpec = {'bs-' 'gv-' 'r^-' 'co-'};
 for i_stim_duration = 1:N_stim_durations
-    plot(EAS,thresholds(i_stim_duration,:),markerSpec{i_stim_duration})
+    plot(EAS,thresholds(i_stim_duration,:),lineSpec{i_stim_duration})
     hold on
 end
 legend('20 \mus','50 \mus','100 \mus','500 \mus','Location','NorthWest')
