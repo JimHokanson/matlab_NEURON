@@ -51,6 +51,13 @@ else
     csl = cumsum(latent) - latent(1);
     I = find(csl./csl(end) > obj.opt__PCA_THRESHOLD,1);
 
+    if isempty(I)
+           if isempty(latent)
+        error('PCA returned no dimensions to keep ~?~?~??~?)
+    end 
+       I = length(latent);
+    end
+
     obj.n_pcs_keep = I;
 end
 %Reducing the dimensions
