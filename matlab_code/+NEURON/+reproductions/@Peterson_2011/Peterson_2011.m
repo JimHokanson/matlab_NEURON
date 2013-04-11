@@ -14,7 +14,7 @@ classdef Peterson_2011
        all_pulse_durations = [0.01 0.02 0.05 0.1 0.5 1 2 5] %ms
        %Careful: the stimulus specification code expects microseconds
        
-       resistivity_transverse = 100/0.083
+       resistivity_transverse = 100/0.083 % S/m -> ohm cm
        resistivity_longitudinal = 100/0.33
        
        %NOTE: Nodes are 
