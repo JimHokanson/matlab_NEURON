@@ -3,6 +3,17 @@ function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
 %
 %   stim_level_counts = getVolumeCounts(obj,stim_levels,varargin)
 %
+%   
+%   USAGE NOTES
+%   ======================================================================
+%   1) Tested stimulus levels currently run from 1 to the max stimulus
+%   level
+%
+%   INPUTS
+%   =======================================================================
+%   max_stim_level : sign of this value is important. It indicates the
+%   maximum stimulus scaling value to use when getting count points.
+%
 %   OUTPUTS
 %   =======================================================================
 %   stim_level_counts : (vector, same sign) For each stimulus level input
@@ -21,8 +32,7 @@ function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
 %
 %   IMPROVEMENTS
 %   =======================================================================
-%   1) ind2sub could be removed, it is very slow
-%   2) Implement gradient testing to ensure that the mesh is significantly
+%   1) Implement gradient testing to ensure that the mesh is significantly
 %      refined enough to allow interpolation.
 %
 %   See Also:
@@ -43,45 +53,30 @@ function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
 %increase performance as well
 %3)
 
-
+%Input Handling
+%--------------------------------------------------------------------------
 in.replication_points = [];
+in.stim_resoultion    = 0.5;
 in.replication_center = [0 0 0];
 
 in = processVarargin(in,varargin);
 
-if sign(max_stim_level) == 1
-    stim_levels = 1:max_stim_level;
-else
-    stim_levels = -1:1:max_stim_level;
-end
+abs_max_scale = abs(max_stim_level);
 
-stim_level_counts = zeros(length(stim_levels),1);
+n_stim_levels = abs_max_scale; %We'll go from 1 to n
 
-%Step 1: Stim level input processing
-%--------------------------------------------------------------------------
-if isempty(stim_levels)
-    error('stim_levels can not be empty')
-end
 
-if ~all(sign(stim_levels) == sign(stim_levels(1)))
-    error('All stim levels to test must have the same sign')
-end
-
-abs_stim_levels = abs(stim_levels);
-%TODO: add issorted check - ascending
-
-abs_max_scale = max(abs_stim_levels);
-
-%Reapply sign
-signed_max_scale = abs_max_scale*sign(stim_levels(1));
 
 %Step 2: Stim Bounds determination
 %--------------------------------------------------------------------------
 xstim_obj  = obj.xstim_obj;
 sim_logger = xstim_obj.sim__getLogInfo;
 
+%This method expands the testing bounds so that the maximum stimulus level
+%is encompassed in the threshold solution space.
+
 %NEURON.simulation.extracellular_stim.results.activation_volume.adjustBoundsGivenMaxScale
-obj.adjustBoundsGivenMaxScale(signed_max_scale,'sim_logger',sim_logger)
+obj.adjustBoundsGivenMaxScale(max_stim_level,'sim_logger',sim_logger)
 
 %Step 3: Retrieval of thresholds
 %--------------------------------------------------------------------------
@@ -89,7 +84,7 @@ done = false;
 while ~done
     
     thresholds = xstim_obj.sim__getThresholdsMulipleLocations(obj.getXYZlattice(true),...
-        'threshold_sign',sign(stim_levels(1)),'initialized_logger',sim_logger);
+        'threshold_sign',sign(max_stim_level),'initialized_logger',sim_logger);
     
     %TODO: Implement gradient testing
     
@@ -101,10 +96,20 @@ while ~done
     done = true;
 end
 
+
+
+
+
+%==========================================================================
+%NOTE: All responses above should be cached in cases where we want to
+%rerun this code ...
+
 abs_thresholds = abs(thresholds);
 
 %Possible Improvement: Shrink bounds here to only interpolate over
 %region where thresholds are within range
+
+%all_z_less_than_max_scale = min(abs_thresholds,[],3) < abs_max_scale;
 
 %Step 4 - Get Counts
 %--------------------------------------------------------------------------
@@ -113,6 +118,8 @@ if ~isempty(in.replication_points)
 else
     [x,y,z] = obj.getXYZlattice(false); %false - return as vectors
 end
+
+
 
 internode_length = obj.getInternodeLength;
 max_z_index_keep = floor(internode_length);
@@ -190,31 +197,113 @@ fprintf('Integrating Volume')
 percentage_display_mask = false(1,nx);
 percentage_display_mask(ceil((0.1:0.1:0.9)*nx)) = true;
 
+%With linear interpolation, if none of the values on the cube (3d) are 
+%less than the value we are looking for, then we don't need to bother
+%with interpolating between those values.
+
+value_less_than_max = abs_thresholds <= abs_max_scale;
+
+cube_test_mask = ...
+    value_less_than_max(1:end-1,1:end-1,1:end-1) | ...
+    value_less_than_max(1:end-1,1:end-1,2:end)   | ...
+    value_less_than_max(1:end-1,2:end,1:end-1)   | ...
+    value_less_than_max(1:end-1,2:end,2:end)     | ...
+    value_less_than_max(2:end,1:end-1,1:end-1)   | ...
+    value_less_than_max(2:end,1:end-1,2:end)     | ...
+    value_less_than_max(2:end,2:end,1:end-1)     | ...
+    value_less_than_max(2:end,2:end,2:end);
+
+%NOTE: Max and min wouldn't catch NaN values ...
+
+%NOTE: These could potentially be used to speed up histc
+%If histc were moved 
+
+min_cube = min(          abs_thresholds(1:end-1,1:end-1,1:end-1) ,...
+                         abs_thresholds(1:end-1,1:end-1,2:end  ));
+min_cube = min(min_cube, abs_thresholds(1:end-1,2:end  ,1:end-1));
+min_cube = min(min_cube, abs_thresholds(1:end-1,2:end  ,2:end  ));
+min_cube = min(min_cube, abs_thresholds(2:end  ,1:end-1,1:end-1));
+min_cube = min(min_cube, abs_thresholds(2:end  ,1:end-1,2:end  ));
+min_cube = min(min_cube, abs_thresholds(2:end  ,2:end  ,1:end-1));
+min_cube = min(min_cube, abs_thresholds(2:end  ,2:end  ,2:end  ));
+
+
+max_cube = max(          abs_thresholds(1:end-1,1:end-1,1:end-1) ,...
+                         abs_thresholds(1:end-1,1:end-1,2:end  ));
+max_cube = max(max_cube, abs_thresholds(1:end-1,2:end  ,1:end-1));
+max_cube = max(max_cube, abs_thresholds(1:end-1,2:end  ,2:end  ));
+max_cube = max(max_cube, abs_thresholds(2:end  ,1:end-1,1:end-1));
+max_cube = max(max_cube, abs_thresholds(2:end  ,1:end-1,2:end  ));
+max_cube = max(max_cube, abs_thresholds(2:end  ,2:end  ,1:end-1));
+max_cube = max(max_cube, abs_thresholds(2:end  ,2:end  ,2:end  ));
+
+
+min_cube = floor(min_cube);
+max_cube = ceil(max_cube);
+
+
+
+tic
+ones_for_accum = ones(numel(thresh_values_interpolated),1);
+stim_levels_histc = 0:abs_max_scale;
+n_stim_bins = n_stim_levels+1;
+%stim_level_counts = zeros(n_stim_levels,1);
+N = zeros(n_stim_levels+1,1); %+1 is for the extra with histc
 for ix = 1:nx-1
-    last_y_index = 0;
+    %last_y_index = 0;
     
     %Print progress to command window, keep on same line
     if percentage_display_mask(ix)
         fprintf(', %0.0f%%',100*ix/nx);
     end
     
-    %iterating over abs_thresholds
-    %- abs_thresholds(ix,:,:)
-    if ~any(abs_thresholds(ix,:,:) <= abs_max_scale)
-        continue
-    end
+     if ~any(cube_test_mask(ix,:,:))
+         continue
+     end
+    
+    %Reset all values ...
+    %thresh_values_interpolated(:) = abs_max_scale + 1;
     
     for iy = 1:ny-1
         last_z_index = 0;
         for iz = 1:nz-1
-            thresh_values_interpolated(:,last_y_index+1:last_y_index+dy,last_z_index+1:last_z_index+dz) = ...
+            if cube_test_mask(ix,iy,iz)
+            %thresh_values_interpolated(:,last_y_index+1:last_y_index+dy,last_z_index+1:last_z_index+dz) 
+            temp = ...
                 f1*abs_thresholds(ix, iy,   iz)   + f2*abs_thresholds(ix+1, iy  , iz)   + ...
                 f3*abs_thresholds(ix, iy+1, iz)   + f4*abs_thresholds(ix+1, iy+1, iz)   + ...
                 f5*abs_thresholds(ix, iy  , iz+1) + f6*abs_thresholds(ix+1, iy  , iz+1) + ...
                 f7*abs_thresholds(ix, iy+1, iz+1) + f8*abs_thresholds(ix+1, iy+1, iz+1);
+            
+            
+            
+            if last_z_index + dz > max_z_index_keep
+               temp_indices = last_z_index+1:last_z_index+dz;
+               temp(:,:,temp_indices > max_z_index_keep) = abs_max_scale + 1;  
+            end
+            %+1 accounts for 0
+            min_stim_level_cur = min_cube(ix,iy,iz);
+            max_stim_level_cur = max_cube(ix,iy,iz);
+            
+            if max_stim_level_cur > abs_max_scale
+                max_stim_level_cur = abs_max_scale;
+            end
+            
+            temp2 = histc(temp(:),min_stim_level_cur:max_stim_level_cur);
+            
+            N(min_stim_level_cur+1:max_stim_level_cur) = temp2(1:end-1);
+                        
+%             min_stim_index = min_cube(ix,iy,iz)+1;
+%             
+%             max_stim_index = max_cube(ix,iy,iz)+1;
+%             if max_stim_index > n_stim_bins
+%                 max_stim_index = n_stim_bins;
+%             end
+%             N(min_stim_index:max_stim_index) = histc(
+end
             last_z_index = last_z_index + dz;
         end
-        last_y_index = last_y_index + dy;
+        %last_y_index = last_y_index + dy;
     end
     
     %Let's update counts here.
@@ -224,41 +313,16 @@ for ix = 1:nx-1
     %- We could do this inside the z loop, but the extra function calls
     %would probably slow things down
     
-    %This approach is quicker and more efficient than histc but relies
-    %heavily on the amplitudes of interest being 1:1:abs_max_scale
-    %
-    %We could do multiplication
-    
-    truncated_data = ceil(thresh_values_interpolated(:,:,1:max_z_index_keep));
-    ranged_data    = truncated_data(truncated_data <= abs_max_scale);
-    if ~isempty(ranged_data)
-        %accumarray counts how many of each integer it sees
-        %and places that count at the corresponding index, i.e. the
-        %value at index
-        %7 will tell us how many 7s are presented in 'ranged_data'
-        %or more specifically, how many points in space had a threshold
-        %between 6 and 7 (as ceil() rounds all these values up to 7
-        %
-        %Using cumsum we can get the total # of points with thresholds
-        %below each integer value.
-        N                 = accumarray(ranged_data(:),ones(numel(ranged_data),1),[abs_max_scale 1]);
-        N_cumulative      = cumsum(N);
-        stim_level_counts = stim_level_counts + N_cumulative;
-        
-        %This code is equivalent but I find it to be slower ...
-        %             N2 = histc(thresh_values_interpolated(:,:,1:max_z_index_keep),stim_levels_histc,3);
-        %             N2_xy = reshape(N2,[n_xy n_stim]);
-        %             N2_cumulative = cumsum(N2_xy(:,1:end-1),2);
-        %             N3_cumulative = sum(N2_cumulative,1);
-        %
-        %             if any(N_cumulative' ~= N3_cumulative(1:length(N)))
-        %                 keyboard
-        %             end
-    end
-    
+    %It is much faster to do an out of range assignment than to truncate
+    %the data ...
+    thresh_values_interpolated(:,:,max_z_index_keep+1:end) = abs_max_scale + 1;
+    N = N + histc(thresh_values_interpolated(:),stim_levels_histc);
+       
 end
-
 fprintf('\n'); %Terminates line for progress display.
+toc
+
+stim_level_counts = cumsum(N(1:end-1))';
 
 stim_level_counts = stim_level_counts'; %Transpose back to row vector
 
