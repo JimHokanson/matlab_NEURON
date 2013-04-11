@@ -14,7 +14,7 @@ classdef Peterson_2011
        all_pulse_durations = [0.01 0.02 0.05 0.1 0.5 1 2 5] %ms
        %Careful: the stimulus specification code expects microseconds
        
-       resistivity_transverse = 100/0.083 % S/m -> ohm cm
+       resistivity_transverse   = 100/0.083 % S/m -> ohm cm
        resistivity_longitudinal = 100/0.33
        
        %NOTE: Nodes are 
@@ -42,6 +42,9 @@ classdef Peterson_2011
            options = {...
                'tissue_resistivity', [obj.resistivity_transverse obj.resistivity_transverse obj.resistivity_longitudinal]};
         end
+        
+        %This is old code that needs to be updated ...
+        %-------------------------------------------------------------------
         function options = getElevenElectrodeStimOptions(obj,adjacent_spacing,stim_duration,eas)
            %See page 4
            %Adjacent electrode spacing - 400:100:1500 um
@@ -64,6 +67,7 @@ classdef Peterson_2011
                'stim_start_times',      STIM_START_TIME*ones(1,11)};
            
         end
+        %OUT OF DATE ...
         function figure7(obj)
            %7a not yet implemented ...
            

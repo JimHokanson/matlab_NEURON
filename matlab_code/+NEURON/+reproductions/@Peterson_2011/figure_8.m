@@ -1,5 +1,9 @@
 function figure_8(obj)
 % recreate figure 8
+%
+%   p = NEURON.reproductions.Peterson_2011
+%   p.figure_8
+%
 
 % define props
 EAS_all = [50,300]; % um, place cell at these locations, center electrodes at origin
@@ -10,23 +14,32 @@ tissue_resistivity = [obj. resistivity_transverse obj. resistivity_transverse ob
 
 % define stimulus: 11 electrodes: 6 anodes, 5 cathodes
 stim_start_time = 0.1;
-stim_duration = 20/1000; % 20 us
-stim_amps = {0.4 -1 0.7 -1 0.7 -1 0.7 -1 0.7 -0.1 0.4}; % defined in fig 1d
+stim_duration   = 20/1000; % 20 us
+
+%TODO: Move this to being a method or property of the class ...
+stim_amps = {0.4 -1 0.7 -1 0.7 -1 0.7 -1 0.7 -1 0.4}; % defined in fig 1d
 
 % define electrode locations: adjacent electrode spacing = 650 um
+%Make this a method as well ...
 elec_spacing = 650;
-spaceFactor = -7;
+% spaceFactor = -7;
+% electrode_locations = zeros(11,3);
+% for iElec = 1:11
+%     spaceFactor = spaceFactor + 1;
+%     electrode_locations(iElec,:) = [0 0 elec_spacing*spaceFactor]; % vary z
+% end
+
 electrode_locations = zeros(11,3);
-for iElec = 1:11
-    spaceFactor = spaceFactor + 1;
-    electrode_locations(iElec,:) = [0 0 elec_spacing*spaceFactor]; % vary z
-end
+electrode_locations(:,3) = (-5:5)*elec_spacing;
+%------------------------------------------------------------------------
+
 
 % define cell locations
 cell_locations = {0 EAS_all 0};
 
 % create sim
-xstim = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resistivity',tissue_resistivity,'electrode_locations',electrode_locations);
+xstim = NEURON.simulation.extracellular_stim.create_standard_sim(...
+    'tissue_resistivity',tissue_resistivity,'electrode_locations',electrode_locations);
 cell = xstim.cell_obj;
 cell.props_obj.changeFiberDependencyMethod(2); % regression dependency
 xstim.elec_objs.setStimPattern(stim_start_time,stim_duration,stim_amps);
@@ -44,10 +57,14 @@ for iDiam = 1:N_diams
 end
 
 % normalize thresholds
-maxThresholds = max(thresholds);
-for iEAS = 1:N_EAS
-    thresholds(:,iEAS) = thresholds(:,iEAS)./maxThresholds(iEAS);
-end
+
+
+
+maxThresholds   = max(thresholds);
+norm_thresholds = bsxfun(@rdivide,thresholds,maxThresholds);
+% for iEAS = 1:N_EAS
+%     thresholds(:,iEAS) = thresholds(:,iEAS)./maxThresholds(iEAS);
+% end
 
 % plot
 for iEAS = 1:N_EAS
