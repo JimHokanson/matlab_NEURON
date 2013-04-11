@@ -69,7 +69,7 @@ norm_thresholds = bsxfun(@rdivide,thresholds,maxThresholds);
 % plot
 for iEAS = 1:N_EAS
     figure
-    plot(fiber_diams,thresholds(:,iEAS),'o','markersize',6)
+    plot(fiber_diams,norm_thresholds(:,iEAS),'o','markersize',6)
     xlabel('Axon Diameter [\mum]')
     ylabel('Normalized Activation Threshold')
     title(sprintf('Electrode-to-Axon Spacing = %i \\mum',EAS_all(iEAS)))
