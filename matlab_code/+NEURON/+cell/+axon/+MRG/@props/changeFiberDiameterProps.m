@@ -3,6 +3,8 @@ function changeFiberDiameterProps(obj)
 %
 %
 %
+%   FULL PATH:
+%       NEURON.cell.axon.MRG.props.changeFiberDiameterProps
 
 switch obj.fiber_dependency_method
     case 1
