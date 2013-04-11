@@ -42,11 +42,17 @@ end
 
 %How much should we keep
 %--------------------------------------------------------------
-csl = cumsum(latent) - latent(1);
-I = find(csl./csl(end) > obj.opt__PCA_THRESHOLD,1);
+if length(latent) < 3
+    %TODO: Document this
+    obj.n_pcs_keep = length(latent);
+else
+    %NOTE: With this code if length(latent) == 1
+    %then I will be empty ...
+    csl = cumsum(latent) - latent(1);
+    I = find(csl./csl(end) > obj.opt__PCA_THRESHOLD,1);
 
-obj.n_pcs_keep = I;
-
+    obj.n_pcs_keep = I;
+end
 %Reducing the dimensions
 %--------------------------------------------------------------
 if ~isempty(obj.new_stimuli)
