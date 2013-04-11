@@ -3,7 +3,7 @@ function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
 %
 %   stim_level_counts = getVolumeCounts(obj,stim_levels,varargin)
 %
-%   
+%
 %   USAGE NOTES
 %   ======================================================================
 %   1) Tested stimulus levels currently run from 1 to the max stimulus
@@ -197,7 +197,7 @@ fprintf('Integrating Volume')
 percentage_display_mask = false(1,nx);
 percentage_display_mask(ceil((0.1:0.1:0.9)*nx)) = true;
 
-%With linear interpolation, if none of the values on the cube (3d) are 
+%With linear interpolation, if none of the values on the cube (3d) are
 %less than the value we are looking for, then we don't need to bother
 %with interpolating between those values.
 
@@ -213,97 +213,38 @@ cube_test_mask = ...
     value_less_than_max(2:end,2:end,1:end-1)     | ...
     value_less_than_max(2:end,2:end,2:end);
 
-%NOTE: Max and min wouldn't catch NaN values ...
-
-%NOTE: These could potentially be used to speed up histc
-%If histc were moved 
-
-min_cube = min(          abs_thresholds(1:end-1,1:end-1,1:end-1) ,...
-                         abs_thresholds(1:end-1,1:end-1,2:end  ));
-min_cube = min(min_cube, abs_thresholds(1:end-1,2:end  ,1:end-1));
-min_cube = min(min_cube, abs_thresholds(1:end-1,2:end  ,2:end  ));
-min_cube = min(min_cube, abs_thresholds(2:end  ,1:end-1,1:end-1));
-min_cube = min(min_cube, abs_thresholds(2:end  ,1:end-1,2:end  ));
-min_cube = min(min_cube, abs_thresholds(2:end  ,2:end  ,1:end-1));
-min_cube = min(min_cube, abs_thresholds(2:end  ,2:end  ,2:end  ));
-
-
-max_cube = max(          abs_thresholds(1:end-1,1:end-1,1:end-1) ,...
-                         abs_thresholds(1:end-1,1:end-1,2:end  ));
-max_cube = max(max_cube, abs_thresholds(1:end-1,2:end  ,1:end-1));
-max_cube = max(max_cube, abs_thresholds(1:end-1,2:end  ,2:end  ));
-max_cube = max(max_cube, abs_thresholds(2:end  ,1:end-1,1:end-1));
-max_cube = max(max_cube, abs_thresholds(2:end  ,1:end-1,2:end  ));
-max_cube = max(max_cube, abs_thresholds(2:end  ,2:end  ,1:end-1));
-max_cube = max(max_cube, abs_thresholds(2:end  ,2:end  ,2:end  ));
-
-
-min_cube = floor(min_cube);
-max_cube = ceil(max_cube);
-
-
-
 tic
-ones_for_accum = ones(numel(thresh_values_interpolated),1);
 stim_levels_histc = 0:abs_max_scale;
-n_stim_bins = n_stim_levels+1;
 %stim_level_counts = zeros(n_stim_levels,1);
 N = zeros(n_stim_levels+1,1); %+1 is for the extra with histc
 for ix = 1:nx-1
-    %last_y_index = 0;
+    last_y_index = 0;
     
     %Print progress to command window, keep on same line
     if percentage_display_mask(ix)
         fprintf(', %0.0f%%',100*ix/nx);
     end
     
-     if ~any(cube_test_mask(ix,:,:))
-         continue
-     end
+    if ~any(cube_test_mask(ix,:,:))
+        continue
+    end
     
     %Reset all values ...
-    %thresh_values_interpolated(:) = abs_max_scale + 1;
+    thresh_values_interpolated(:) = abs_max_scale + 1;
     
     for iy = 1:ny-1
         last_z_index = 0;
         for iz = 1:nz-1
             if cube_test_mask(ix,iy,iz)
-            %thresh_values_interpolated(:,last_y_index+1:last_y_index+dy,last_z_index+1:last_z_index+dz) 
-            temp = ...
-                f1*abs_thresholds(ix, iy,   iz)   + f2*abs_thresholds(ix+1, iy  , iz)   + ...
-                f3*abs_thresholds(ix, iy+1, iz)   + f4*abs_thresholds(ix+1, iy+1, iz)   + ...
-                f5*abs_thresholds(ix, iy  , iz+1) + f6*abs_thresholds(ix+1, iy  , iz+1) + ...
-                f7*abs_thresholds(ix, iy+1, iz+1) + f8*abs_thresholds(ix+1, iy+1, iz+1);
-            
-            
-            
-            if last_z_index + dz > max_z_index_keep
-               temp_indices = last_z_index+1:last_z_index+dz;
-               temp(:,:,temp_indices > max_z_index_keep) = abs_max_scale + 1;  
+                thresh_values_interpolated(:,last_y_index+1:last_y_index+dy,last_z_index+1:last_z_index+dz) = ...
+                    f1*abs_thresholds(ix, iy,   iz)   + f2*abs_thresholds(ix+1, iy  , iz)   + ...
+                    f3*abs_thresholds(ix, iy+1, iz)   + f4*abs_thresholds(ix+1, iy+1, iz)   + ...
+                    f5*abs_thresholds(ix, iy  , iz+1) + f6*abs_thresholds(ix+1, iy  , iz+1) + ...
+                    f7*abs_thresholds(ix, iy+1, iz+1) + f8*abs_thresholds(ix+1, iy+1, iz+1);
             end
-            %+1 accounts for 0
-            min_stim_level_cur = min_cube(ix,iy,iz);
-            max_stim_level_cur = max_cube(ix,iy,iz);
-            
-            if max_stim_level_cur > abs_max_scale
-                max_stim_level_cur = abs_max_scale;
-            end
-            
-            temp2 = histc(temp(:),min_stim_level_cur:max_stim_level_cur);
-            
-            N(min_stim_level_cur+1:max_stim_level_cur) = temp2(1:end-1);
-                        
-%             min_stim_index = min_cube(ix,iy,iz)+1;
-%             
-%             max_stim_index = max_cube(ix,iy,iz)+1;
-%             if max_stim_index > n_stim_bins
-%                 max_stim_index = n_stim_bins;
-%             end
-%             N(min_stim_index:max_stim_index) = histc(
-end
             last_z_index = last_z_index + dz;
         end
-        %last_y_index = last_y_index + dy;
+        last_y_index = last_y_index + dy;
     end
     
     %Let's update counts here.
@@ -315,16 +256,15 @@ end
     
     %It is much faster to do an out of range assignment than to truncate
     %the data ...
+        
     thresh_values_interpolated(:,:,max_z_index_keep+1:end) = abs_max_scale + 1;
     N = N + histc(thresh_values_interpolated(:),stim_levels_histc);
-       
+    
 end
 fprintf('\n'); %Terminates line for progress display.
 toc
 
 stim_level_counts = cumsum(N(1:end-1))';
-
-stim_level_counts = stim_level_counts'; %Transpose back to row vector
 
 end
 
@@ -336,46 +276,46 @@ function [replicated_thresholds,x,y,z] = helper__createReplicatedData(obj,abs_th
 
 xyz_orig         = obj.getXYZlattice(true);
 [V_temp,xyz_new] = arrayfcns.replicate3dData(abs_thresholds,xyz_orig,...
-                        in.replication_points,obj.step_size,...
-                        'data_center',in.replication_center);
+    in.replication_points,obj.step_size,...
+    'data_center',in.replication_center);
 
 x = xyz_new{1};
 y = xyz_new{2};
 z = xyz_new{3};
-                    
+
 replicated_thresholds = squeeze(min(V_temp,[],4));
 
 % %1) Get New Bounds
 % %--------------------------------------------------------------------------
 % n_replication_points = size(in.replication_points,1);
-% 
+%
 % min_replication_points = min(in.replication_points);
 % max_replication_points = max(in.replication_points);
-% 
+%
 % new_min_extents = obj.bounds(1,:) + min_replication_points;
 % new_max_extents = obj.bounds(2,:) + max_replication_points;
-% 
+%
 % x = new_min_extents(1):obj.step_size:new_max_extents(1);
 % y = new_min_extents(2):obj.step_size:new_max_extents(2);
 % z = new_min_extents(3):obj.step_size:new_max_extents(3);
-% 
+%
 % %2) Interpolate all voltages to "new points" on lattice
 % %--------------------------------------------------------------------------
 % V_temp = NaN(length(y),length(x),length(z),n_replication_points);
-% 
-% 
-% 
+%
+%
+%
 % [Xo,Yo,Zo] = meshgrid(xyz_orig{:});
-% 
+%
 % [Xn,Yn,Zn] = meshgrid(x,y,z);
-% 
+%
 % for iPoint = 1:n_replication_points
 %     shift_x = in.replication_points(iPoint,1) - in.replication_center(1);
 %     shift_y = in.replication_points(iPoint,2) - in.replication_center(1);
 %     shift_z = in.replication_points(iPoint,3) - in.replication_center(1);
 %     V_temp(:,:,:,iPoint) = interp3(Xo+shift_x, Yo+shift_y, Zo+shift_z,abs_thresholds,Xn,Yn,Zn);
 % end
-% % % 
+% % %
 % % % %Take min over all replicated points, then switch x&y to be correct
 % % % replicated_thresholds = permute(min(V_temp,[],4),[2 1 3]);
 
