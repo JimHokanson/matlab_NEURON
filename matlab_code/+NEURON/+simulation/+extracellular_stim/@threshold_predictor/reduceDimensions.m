@@ -52,9 +52,9 @@ else
     I = find(csl./csl(end) > obj.opt__PCA_THRESHOLD,1);
 
     if isempty(I)
-           if isempty(latent)
-        error('PCA returned no dimensions to keep ~?~?~??~?)
-    end 
+        if isempty(latent)
+            error('PCA returned no dimensions to keep ~?~?~??~?')
+        end 
        I = length(latent);
     end
 
