@@ -1,4 +1,4 @@
-classdef Peterson_2011 < handle
+classdef Peterson_2011
     %
     %   Class: NEURON.reproductions.Peterson_2011
     %   
@@ -17,10 +17,19 @@ classdef Peterson_2011 < handle
        resistivity_transverse   = 100/0.083 % S/m -> ohm cm
        resistivity_longitudinal = 100/0.33
        
-       %NOTE: Nodes are 
-       %mdf2 %pulse duration, diameter, node
-       %Model expects 21 nodes ...
-       
+<<<<<<< HEAD
+       %Precomputed for us
+       %.diameter
+       %.pulse duration
+       %.ve
+       %.mdf_output
+       mdf1_thresholds
+       mdf2_thresholds
+=======
+%        %NOTE: Nodes are 
+%        mdf2 %pulse duration, diameter, node
+%        %Model expects 21 nodes ...
+%        
 %        %Precomputed for us
 %        %.diameter
 %        %.pulse duration
@@ -28,6 +37,7 @@ classdef Peterson_2011 < handle
 %        %.mdf_output
 %        mdf1_thresholds
 %        mdf2_thresholds
+>>>>>>> 95a9c173a8f3536f328f6bbff83e78977e9733e3
     end
     
     properties (Hidden)
@@ -35,10 +45,6 @@ classdef Peterson_2011 < handle
     end
     
     properties
-        %.ve (cell array of arrays, [diameters pulsewidths])
-        %.mdf
-        %.diameters - unique diameters for indexing
-        %.pulse_widths - unique pulse widths for indexing
        mdf1
        
        
@@ -52,7 +58,7 @@ classdef Peterson_2011 < handle
         function obj = Peterson_2011
            %TODO: Populate mdf2 
            %
-           %    p = NEURON.reproductions.Peterson_2011;
+           %    obj = NEURON.reproductions.Peterson_2011;
            
            obj.loadCSVdata;
            

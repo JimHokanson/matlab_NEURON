@@ -10,7 +10,7 @@ EAS_all = [50,300]; % um, place cell at these locations, center electrodes at or
 N_EAS = length(EAS_all);
 fiber_diams = 4:20; % um
 N_diams = length(fiber_diams);
-tissue_resistivity = [obj. resistivity_transverse obj. resistivity_transverse obj.resistivity_longitudinal];
+tissue_resistivity = [obj.resistivity_transverse obj.resistivity_transverse obj.resistivity_longitudinal];
 
 % define stimulus: 11 electrodes: 6 anodes, 5 cathodes
 stim_start_time = 0.1;
@@ -22,12 +22,6 @@ stim_amps = {0.4 -1 0.7 -1 0.7 -1 0.7 -1 0.7 -1 0.4}; % defined in fig 1d
 % define electrode locations: adjacent electrode spacing = 650 um
 %Make this a method as well ...
 elec_spacing = 650;
-% spaceFactor = -7;
-% electrode_locations = zeros(11,3);
-% for iElec = 1:11
-%     spaceFactor = spaceFactor + 1;
-%     electrode_locations(iElec,:) = [0 0 elec_spacing*spaceFactor]; % vary z
-% end
 
 electrode_locations = zeros(11,3);
 electrode_locations(:,3) = (-5:5)*elec_spacing;
@@ -57,19 +51,14 @@ for iDiam = 1:N_diams
 end
 
 % normalize thresholds
-
-
-
 maxThresholds   = max(thresholds);
 norm_thresholds = bsxfun(@rdivide,thresholds,maxThresholds);
-% for iEAS = 1:N_EAS
-%     thresholds(:,iEAS) = thresholds(:,iEAS)./maxThresholds(iEAS);
-% end
+
 
 % plot
 for iEAS = 1:N_EAS
     figure
-    plot(fiber_diams,thresholds(:,iEAS),'o','markersize',6)
+    plot(fiber_diams,norm_thresholds(:,iEAS),'o','markersize',6)
     xlabel('Axon Diameter [\mum]')
     ylabel('Normalized Activation Threshold')
     title(sprintf('Electrode-to-Axon Spacing = %i \\mum',EAS_all(iEAS)))
