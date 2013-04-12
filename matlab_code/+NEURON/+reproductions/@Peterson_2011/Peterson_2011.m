@@ -17,10 +17,6 @@ classdef Peterson_2011
        resistivity_transverse   = 100/0.083 % S/m -> ohm cm
        resistivity_longitudinal = 100/0.33
        
-       %NOTE: Nodes are 
-       mdf2 %pulse duration, diameter, node
-       %Model expects 21 nodes ...
-       
        %Precomputed for us
        %.diameter
        %.pulse duration
@@ -30,12 +26,27 @@ classdef Peterson_2011
        mdf2_thresholds
     end
     
+    properties (Hidden)
+        
+    end
+    
+    properties
+       mdf1
+       
+       
+       %NOTE: Nodes are 
+       mdf2 %pulse duration, diameter, node
+       %Model expects 21 nodes ... 
+    end
+    
     methods
         %NEURON.reproductions.Peterson_2011
         function obj = Peterson_2011
            %TODO: Populate mdf2 
            %
            %    obj = NEURON.reproductions.Peterson_2011;
+           
+           obj.loadCSVdata;
            
         end
         function options = getDefaultOptions(obj)
