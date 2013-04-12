@@ -64,7 +64,7 @@ y_all = [-1*m_all(:) 100000*m_all(:)];
 
 v_test_line = 0.01:0.01:100;
 
-thresh_v = zeros(1,length(v_test_line);
+thresh_v = zeros(1,length(v_test_line));
 
 for iV = 1:length(v_test_line)
     %
@@ -77,7 +77,7 @@ end
 
 %This tells us what v we would need to use to get these thresholds
 %if m = 0.01, they provide a good basis for our box ...
-v_test_final = interp1(thresh_v,v_test_line,500:-1:1);
+%v_test_final = interp1(thresh_v,v_test_line,500:-1:1);
 %m_test_final = 
 
 %Below use v_test_final and m_test_final instead of v_all and m_all

@@ -45,6 +45,11 @@ classdef Peterson_2011 < handle
        %NOTE: Nodes are 
        mdf2 %pulse duration, diameter, node
        %Model expects 21 nodes ... 
+       
+       weights % for use with mdf2. 
+       % NOTE: While mdf1 and mdf2 are populated in constructor from CSV 
+       % files, weights is populated from mat file the first time 
+       % get_weights is called
     end
     
     methods
@@ -63,26 +68,26 @@ classdef Peterson_2011 < handle
         end
     end
     methods (Static)
-        function MDF = MDF1(V,n)
+        function MDF = computeMDF1(V,varargin)
             % Calculate MDF1
+            % MDF = MDF1(V) calculates the MDF at all nodes from voltage
+            % vector V and returns a vector of MDF values
             % MDF = MDF1(V,n) calculates MDF at node n from voltage vector
             % (V)
-            % MDF = MDF1(V) calculates the MDF at all nodes from voltage
-            % vector V and returns the maximum value
-            
+
             % specific node
-            if ~isempty(n)
-                MDF = V(n-1) - 2*V(n) + V*(n+1);
+            if ~isempty(varargin)
+                n = varargin(1);
+                MDF = V(n-1) - 2*V(n) + V(n+1);
                 return
             end
             
             % all nodes
             N = length(V);
-            MDF_all = zeros(1,N-2);
+            MDF = zeros(1,N-2);
             for n = 2:N-1
-               MDF_all(n-1) = V(n-1) - 2*V(n) + V*(n+1);  
+               MDF(n-1) = V(n-1) - 2*V(n) + V(n+1);  
             end
-            MDF = max(MDF_all);
         end
     end
     

@@ -1,8 +1,6 @@
 function V = compute_voltages(obj,xstim)
 % compute voltage at nodes using equation 3 (for a particular current)
 
-% TODO: CHECK UNITS are r, z supposed to be in meters? They would need to
-% be divided by a 1e6.
 
 % find node positions, initialize V vector
 XYZnodes = xstim.cell_obj.spatial_info_obj.get__XYZnodes;
@@ -24,11 +22,13 @@ for i_electrode = 1:N_electrodes % loop over electrodes and add (superposition)
     Iext = Iext(find(Iext,1)); % assumes single monophasic square pulse
     
     deltaXYZ2 = (XYZelec - XYZnodes).^2;
-    r2 = deltaXYZ2(:,1) + deltaXYZ2(:,2);
+    r2 = (deltaXYZ2(:,1) + deltaXYZ2(:,2));
     z2 = deltaXYZ2(:,3);
     
-    V = V + Iext./(4*pi*sqrt(cl*ct*r2+ct^2*z2));
+    V = V + (Iext./(4*pi*sqrt(cl*ct*r2+ct^2*z2)))*10; % still not really sure why *10... but ok
     
 end
+
+
 
 end
