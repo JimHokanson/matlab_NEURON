@@ -17,13 +17,17 @@ classdef Peterson_2011
        resistivity_transverse   = 100/0.083 % S/m -> ohm cm
        resistivity_longitudinal = 100/0.33
        
-       %Precomputed for us
-       %.diameter
-       %.pulse duration
-       %.ve
-       %.mdf_output
-       mdf1_thresholds
-       mdf2_thresholds
+       %NOTE: Nodes are 
+       mdf2 %pulse duration, diameter, node
+       %Model expects 21 nodes ...
+       
+%        %Precomputed for us
+%        %.diameter
+%        %.pulse duration
+%        %.ve
+%        %.mdf_output
+%        mdf1_thresholds
+%        mdf2_thresholds
     end
     
     properties (Hidden)
@@ -53,7 +57,32 @@ classdef Peterson_2011
            options = {...
                'tissue_resistivity', [obj.resistivity_transverse obj.resistivity_transverse obj.resistivity_longitudinal]};
         end
-        
+    end
+    methods (Static)
+        function MDF = MDF1(V,n)
+            % Calculate MDF1
+            % MDF = MDF1(V,n) calculates MDF at node n from voltage vector
+            % (V)
+            % MDF = MDF1(V) calculates the MDF at all nodes from voltage
+            % vector V and returns the maximum value
+            
+            % specific node
+            if ~isempty(n)
+                MDF = V(n-1) - 2*V(n) + V*(n+1);
+                return
+            end
+            
+            % all nodes
+            N = length(V);
+            MDF_all = zeros(1,N-2);
+            for n = 2:N-1
+               MDF_all(n-1) = V(n-1) - 2*V(n) + V*(n+1);  
+            end
+            MDF = max(MDF_all);
+        end
+    end
+    
+    methods
         %This is old code that needs to be updated ...
         %-------------------------------------------------------------------
         function options = getElevenElectrodeStimOptions(obj,adjacent_spacing,stim_duration,eas)
