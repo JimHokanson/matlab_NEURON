@@ -25,7 +25,7 @@ for i_electrode = 1:N_electrodes % loop over electrodes and add (superposition)
     r2 = (deltaXYZ2(:,1) + deltaXYZ2(:,2));
     z2 = deltaXYZ2(:,3);
     
-    V = V + (Iext./(4*pi*sqrt(cl*ct*r2+ct^2*z2)))*10; % still not really sure why *10... but ok
+    V = V + (Iext./(4*pi*sqrt(cl*ct*r2+ct^2*z2)))*10;
     
 end
 

@@ -1,4 +1,4 @@
-function thresholds = computeThreshold(obj,xstim,method)
+function [min_threshold,all_thresholds] = computeThreshold(obj,xstim,method)
 
 % get fiber diameter, pulse width from xstim
 fiber_diameter = xstim.cell_obj.props_obj.fiber_diameter;
@@ -46,7 +46,7 @@ x_all = [-scale_factor*10*test_V(:) scale_factor*test_V(:)];
 y_all = [-scale_factor*10*test_MDF(:) scale_factor*test_MDF(:)];
 
 % use intersections to compute thresholds
-thresholds = zeros(size(test_V));
+all_thresholds = zeros(size(test_V));
 tic
 for iV = 1:length(test_V)
     [x0,y0] = sigp.intersections(x_all(iV,:),y_all(iV,:),v,m,false);
@@ -58,7 +58,8 @@ for iV = 1:length(test_V)
             continue
         end
     end
-    thresholds(iV) = -(x0(1)/test_V(iV)); % ratio of V, equivalent to ratio of I (JW: I believe a negative is needed here to get positive thresholds for negative current and vice versa)
+    all_thresholds(iV) = -(x0(1)/test_V(iV)); % ratio of V, equivalent to ratio of I (JW: I believe a negative is needed here to get positive thresholds for negative current and vice versa)
 end
 toc
+min_threshold = min(all_thresholds);
 end

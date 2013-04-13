@@ -25,7 +25,7 @@ end
 
 % load data
 if isempty(obj.weights)
-    load_weights(obj)
+    loadWeights(obj)
 end
 i_d = find(fiber_diameters == d,1);
 i_PW = find(pulse_widths == d,1);
@@ -40,7 +40,7 @@ end
 
 end
 
-function load_weights(obj)
+function loadWeights(obj)
 class_path = fileparts(mfilename('fullpath')); % I'm sure there's a more graceful way to do this, but this is easy..
 data_path = fullfile(class_path,'MDF_threshold_data','weights.mat');
 load(data_path) % creates variable weights_table

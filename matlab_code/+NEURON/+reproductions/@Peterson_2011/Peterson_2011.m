@@ -49,7 +49,7 @@ classdef Peterson_2011 < handle
        weights % for use with mdf2. 
        % NOTE: While mdf1 and mdf2 are populated in constructor from CSV 
        % files, weights is populated from mat file the first time 
-       % get_weights is called
+       % getWeights is called
     end
     
     methods
