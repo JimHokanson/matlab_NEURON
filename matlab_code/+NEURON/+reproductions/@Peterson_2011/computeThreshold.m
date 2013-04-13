@@ -56,7 +56,7 @@ for iV = 1:length(test_V)
             continue
         end
     end
-    all_thresholds(iV) = -(x0(1)/test_V(iV)); % ratio of V, equivalent to ratio of I (JW: I believe a negative is needed here to get positive thresholds for negative current and vice versa)
+    all_thresholds(iV) = x0(1)/test_V(iV); % ratio of V, equivalent to ratio of I
 end
 toc
 min_threshold = min(all_thresholds);
