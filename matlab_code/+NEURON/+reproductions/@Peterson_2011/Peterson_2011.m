@@ -160,6 +160,13 @@ classdef Peterson_2011 < handle
         
     end
     
+    methods (Static)
+        function thresh_error = thresholdError(I_predicted,I_simulated)
+            % Percent error (eqn 4)
+           thresh_error = ((I_predicted - I_simulated)./I_simulated)*100;
+        end
+    end
+    
     methods
         %This is old code that needs to be updated ...
         %-------------------------------------------------------------------

@@ -51,9 +51,9 @@ for iV = 1:length(test_V)
     if isempty(x0) %slower but more robust approach
         [x0,y0] = sigp.intersections(x_all(iV,:),y_all(iV,:),v,m,true);
         if isempty(x0)
-            warning('You broke it.')
-            keyboard
-            continue
+            warning('Intersection not found!')
+            %keyboard
+            x0 = NaN;
         end
     end
     all_thresholds(iV) = x0(1)/test_V(iV); % ratio of V, equivalent to ratio of I
