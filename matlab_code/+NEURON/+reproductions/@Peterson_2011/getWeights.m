@@ -1,4 +1,4 @@
-function W = get_weights(obj,PW,d)
+function W = getWeights(obj,PW,d)
 % Look up weights from supplementary table S1
 % W = get_weights(Peterson_2011_obj,PW,d)
 %
@@ -28,7 +28,7 @@ if isempty(obj.weights)
     loadWeights(obj)
 end
 i_d = find(fiber_diameters == d,1);
-i_PW = find(pulse_widths == d,1);
+i_PW = find(pulse_widths == PW,1);
 weights = obj.weights(i_d);
 
 % here's where it gets a little ugly... I could have organized the data better...

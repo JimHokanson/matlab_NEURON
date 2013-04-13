@@ -1,4 +1,4 @@
-function V = compute_voltages(obj,xstim)
+function V = computeVoltages(obj,xstim)
 % compute voltage at nodes using equation 3 (for a particular current)
 
 

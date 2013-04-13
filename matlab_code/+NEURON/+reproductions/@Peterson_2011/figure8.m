@@ -1,4 +1,4 @@
-function figure_8(obj)
+function figure8(obj)
 % recreate figure 8
 %
 %   p = NEURON.reproductions.Peterson_2011

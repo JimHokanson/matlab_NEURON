@@ -1,4 +1,4 @@
-function figure_4(obj)
+function figure4(obj)
 % recreate figure 4
 
 %% a

@@ -6,7 +6,7 @@ stim_timing = xstim.elec_objs(1).stimulus_transition_times;
 pulse_width = stim_timing(3) - stim_timing(2);
 
 % get membrane voltage
-test_V = obj.compute_voltages(xstim);
+test_V = obj.computeVoltages(xstim);
 
 % get mdf
 if method == 1 % mdf1
@@ -14,7 +14,7 @@ if method == 1 % mdf1
     test_MDF = obj.computeMDF1(test_V);
 elseif method == 2 % mdf2
     temp = obj.mdf2;
-    test_MDF = obj.computeMDF2(test_V);
+    test_MDF = obj.computeMDF2(test_V,pulse_width,fiber_diameter);
 else
     error('Invalid option, only 1 & 2 supported')
 end
