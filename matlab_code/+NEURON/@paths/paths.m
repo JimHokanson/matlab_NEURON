@@ -34,7 +34,7 @@ classdef paths < handle_light
         % Must change the appropriate property if nrniv installed somewhere
         % else
         NRNIV_WIN_PATH    = 'C:\nrn72\bin\nrniv.exe'
-        NRNIV_MAC_PATH    = '/Applications/NEURON-7.3/nrn/i386/bin/nrniv'
+        NRNIV_MAC_PATH    = '/Applications/NEURON-7.2/nrn/i386/bin/nrniv'
         NNRNIV_LINUX_PATH = '/usr/local/nrn/i686/bin/nrniv'
     end
     
