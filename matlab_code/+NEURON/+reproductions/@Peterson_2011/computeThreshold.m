@@ -8,30 +8,28 @@ pulse_width = stim_timing(3) - stim_timing(2);
 % get membrane voltage
 test_V = obj.computeVoltages(xstim);
 
+if any(test_V > 0)
+    error('Unhandled code case of stimuli being positive, we need to filter these out')
+    %Anodal stimuli are not supported and the nodes that look like
+    %they are primarily getting anodal activaton don't fit in this model
+    %
+    %#model_limitation
+end
+
+%Make V positive to conform with mdf data
+test_V = abs(test_V);
+
 % get mdf
 if method == 1 % mdf1
-    temp = obj.mdf1;
     test_MDF = obj.computeMDF1(test_V);
 elseif method == 2 % mdf2
-    temp = obj.mdf2;
     test_MDF = obj.computeMDF2(test_V,pulse_width,fiber_diameter);
 else
     error('Invalid option, only 1 & 2 supported')
 end
 
-% lookup mdf threshold data
-I = find(temp.diameters == fiber_diameter,1);
-J = find(temp.pulse_widths == pulse_width,1);
-% Ve, MDF
-v = temp.ve{I,J};
-m = temp.mdf{I,J};
 
-% simplify and sort
-simp = sigp.dpsimplify([v(:) m(:)],eps);
-v = simp(:,1);
-m = simp(:,2);
-[v,I] = sort(v);
-m = m(I);
+[v,m] = getVM(obj,method,fiber_diameter,pulse_width);
 
 % extend
 v_last_val = 1e6;

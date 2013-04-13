@@ -67,7 +67,7 @@ classdef Peterson_2011 < handle
                 'tissue_resistivity', [obj.resistivity_transverse obj.resistivity_transverse obj.resistivity_longitudinal]};
         end
         
-        function MDF = computeMDF1(V,varargin)
+        function MDF = computeMDF1(obj,V,n_use)
             % Calculate MDF1
             % MDF = MDF1(V) calculates the MDF at all nodes from voltage
             % vector V and returns a vector of MDF values
@@ -77,20 +77,57 @@ classdef Peterson_2011 < handle
             % NOTE: This was previously a static method, but has been
             % changed for consistency with computeMDF2
             
-            
-            % specific node
-            if ~isempty(varargin)
-                n = varargin{1};
-                MDF = V(n-1) - 2*V(n) + V(n+1);
-                return
+            if ~exist('n_use','var')
+                N = length(V);
+                n_use = 2:N-1;
             end
             
-            % all nodes
-            N = length(V);
-            MDF = zeros(1,N-2);
-            for n = 2:N-1
+            MDF = zeros(1,length(n_use));
+            for n = n_use
                 MDF(n-1) = V(n-1) - 2*V(n) + V(n+1);
             end
+            
+            % % %             % specific node
+            % % %             if ~isempty(varargin)
+            % % %                 n = varargin{1};
+            % % %                 MDF = V(n-1) - 2*V(n) + V(n+1);
+            % % %                 return
+            % % %             end
+            % % %
+            % % %             % all nodes
+            % % %             N = length(V);
+            % % %             MDF = zeros(1,N-2);
+            % % %             for n = 2:N-1
+            % % %                 MDF(n-1) = V(n-1) - 2*V(n) + V(n+1);
+            % % %             end
+        end
+        
+        function [v,m] = getVM(obj,method,fiber_diameter,pulse_width)
+            
+            if method == 1 % mdf1
+                temp = obj.mdf1;
+            elseif method == 2 % mdf2
+                temp = obj.mdf2;
+            else
+                error('Invalid option, only 1 & 2 supported')
+            end
+            
+            % lookup mdf threshold data
+            I_fiber = find(temp.diameters == fiber_diameter,1);
+            J_pw = find(temp.pulse_widths == pulse_width,1);
+            % Ve, MDF
+            v = temp.ve{I_fiber,J_pw};
+            m = temp.mdf{I_fiber,J_pw};
+            
+            [v,I] = sort(v);
+            m = m(I);
+            
+            % simplify and sort
+            simp = sigp.dpsimplify([v(:) m(:)],eps);
+            v = simp(:,1);
+            m = simp(:,2);
+            %End of move to function ...
+            %--------------------------------------
         end
         
         function MDF = computeMDF2(obj,V,PW,d,varargin)
@@ -132,7 +169,7 @@ classdef Peterson_2011 < handle
             end
             
         end
-
+        
     end
     
     methods
