@@ -1,4 +1,4 @@
-function figure_5(obj)
+function figure5(obj)
 % recreate figure 5
 
 % props
