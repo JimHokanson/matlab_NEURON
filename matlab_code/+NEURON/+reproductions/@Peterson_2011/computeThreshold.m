@@ -16,9 +16,6 @@ if any(test_V > 0)
     %#model_limitation
 end
 
-%Make V positive to conform with mdf data
-test_V = abs(test_V);
-
 % get mdf
 if method == 1 % mdf1
     test_MDF = obj.computeMDF1(test_V);
@@ -40,8 +37,8 @@ m = [m; m_last_val];
 % make lines from test data
 test_V = test_V(2:end-1); % cut off ends
 scale_factor = 1e6;
-x_all = [-scale_factor*10*test_V(:) scale_factor*test_V(:)];
-y_all = [-scale_factor*10*test_MDF(:) scale_factor*test_MDF(:)];
+x_all = [-scale_factor*test_V(:) scale_factor*test_V(:)];
+y_all = [-scale_factor*test_MDF(:) scale_factor*test_MDF(:)];
 
 % use intersections to compute thresholds
 all_thresholds = zeros(size(test_V));
@@ -52,12 +49,25 @@ for iV = 1:length(test_V)
         [x0,y0] = sigp.intersections(x_all(iV,:),y_all(iV,:),v,m,true);
         if isempty(x0)
             warning('Intersection not found!')
-            %keyboard
             x0 = NaN;
         end
     end
     all_thresholds(iV) = x0(1)/test_V(iV); % ratio of V, equivalent to ratio of I
 end
 toc
-min_threshold = min(all_thresholds);
+pos_thresholds = all_thresholds(all_thresholds > 0);
+if ~isempty(pos_thresholds)
+    min_threshold = min(pos_thresholds);
+elseif all(isnan(all_thresholds))
+    min_threshold = NaN;
+    if method == 1
+        keyboard
+    end
+else
+    warning('negative threshold')
+    min_threshold = min(abs(all_thresholds));
+    if method == 1
+        keyboard
+    end
+end
 end

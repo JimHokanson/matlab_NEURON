@@ -19,7 +19,7 @@ if iscell(cell_locs)
 end
 N_locs = size(cell_locs,1);
 
-thresholds = zeros(1,N_locs);
+thresholds = zeros(N_locs,1);
 for i_loc = 1:N_locs
     xstim.cell_obj.moveCenter(cell_locs(i_loc,:));
     thresholds(i_loc) = obj.computeThreshold(xstim,method);  

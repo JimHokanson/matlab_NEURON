@@ -30,5 +30,7 @@ for i_electrode = 1:N_electrodes % loop over electrodes and add (superposition)
     V = V + (Iext./(4*pi*sqrt(cl*ct*r2+ct^2*z2)))*10;
     
 end
-
+    if any(abs(V) == inf)
+        error('Cannot handle electrode and node in same location')
+    end
 end

@@ -114,6 +114,8 @@ classdef Peterson_2011 < handle
             [v,I] = sort(v);
             m = m(I);
             
+            v = -v; % negate, v's should be negative
+            
             % simplify and sort
             simp = sigp.dpsimplify([v(:) m(:)],eps);
             v = simp(:,1);
@@ -142,7 +144,7 @@ classdef Peterson_2011 < handle
             end
             
             if any(n_use == 1) || any(n_use == N)
-                error('MDF cannot be computed at the ends of an axos (nodes 1 and N).')
+                error('MDF cannot be computed at the ends of an axon (nodes 1 and N).')
             end
             
             MDF = zeros(1,length(n_use));
@@ -162,7 +164,12 @@ classdef Peterson_2011 < handle
     
     methods (Static)
         function thresh_error = thresholdError(I_predicted,I_simulated)
-            % Percent error (eqn 4)
+           % Percent error (eqn 4)
+           
+           if isrow(I_simulated) % fix dimension mismatch
+               I_simulated = I_simulated';
+           end
+           
            thresh_error = ((I_predicted - I_simulated)./I_simulated)*100;
         end
     end
