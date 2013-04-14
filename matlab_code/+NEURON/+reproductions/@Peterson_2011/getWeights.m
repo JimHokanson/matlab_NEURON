@@ -15,7 +15,7 @@ fiber_diameters = obj.all_fiber_diameters;
 pulse_widths = obj.all_pulse_durations;
 interpFlag = false; % if this is true, value must be interpolated, rather than taken directly from table
 
-if ~any(fiber_diameters == d) || ~any(pulse_widths == PW)
+if ~any(fiber_diameters == d) || ~any(abs(pulse_widths - PW) < 2*eps) % was getting a floating point error for some reason...
     interpFlag = true;
 end
 
@@ -28,7 +28,7 @@ if isempty(obj.weights)
     loadWeights(obj)
 end
 i_d = find(fiber_diameters == d,1);
-i_PW = find(pulse_widths == PW,1);
+i_PW = find(abs(pulse_widths - PW) < 2*eps,1); % again, floating point error...
 weights = obj.weights(i_d);
 
 % here's where it gets a little ugly... I could have organized the data better...

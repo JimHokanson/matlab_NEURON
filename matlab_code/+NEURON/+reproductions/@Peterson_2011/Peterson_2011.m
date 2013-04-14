@@ -105,8 +105,11 @@ classdef Peterson_2011 < handle
             end
             
             % lookup mdf threshold data
-            I_fiber = find(temp.diameters == fiber_diameter,1);
-            J_pw = find(temp.pulse_widths == pulse_width,1);
+            I_fiber = find(abs(temp.diameters - fiber_diameter) < 2*eps,1);
+            J_pw = find(abs(temp.pulse_widths - pulse_width) < 2*eps,1); % was getting a weird floating point error, this fixes it
+            
+            %I_fiber = find(temp.diameters == fiber_diameter,1);
+            %J_pw = find(temp.pulse_widths == pulse_width,1);
             % Ve, MDF
             v = temp.ve{I_fiber,J_pw};
             m = temp.mdf{I_fiber,J_pw};
