@@ -14,8 +14,7 @@ stim_start_time = 0.1;
 stim_duration = 0.1; % 100 us
 stim_amps = {-1 -1};
 
-% initial electrode locations (actual depend on internodal, length, so this
-% is arbitrarily based on fig 8)
+% initial electrode locations (initially overlapping)
 electrode_locations = zeros(2,3);
 electrode_locations(:,2) = EAS; % NOTE: cell will not need to be moved from origin
 % will vary electrode_locations(2,3) to move second electrode along axon
