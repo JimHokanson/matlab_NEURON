@@ -71,35 +71,27 @@ classdef Peterson_2011 < handle
             % Calculate MDF1
             % MDF = MDF1(V) calculates the MDF at all nodes from voltage
             % vector V and returns a vector of MDF values
-            % MDF = MDF1(V,n) calculates MDF at node n from voltage vector
+            % MDF = MDF1(V,n_use) calculates MDF at node(s) n from voltage vector
             % (V)
             %
             % NOTE: This was previously a static method, but has been
             % changed for consistency with computeMDF2
             
-            if ~exist('n_use','var')
-                N = length(V);
-                n_use = 2:N-1;
+            N = length(V);
+            
+            if ~exist('n_use','var')    
+                n_use = 2:N-1; % all nodes except ends
             end
             
+            if any(n_use == 1) || any(n_use == N)
+                error('MDF cannot be computed at the ends of an axos (nodes 1 and N).')
+            end
+                         
             MDF = zeros(1,length(n_use));
             for n = n_use
                 MDF(n-1) = V(n-1) - 2*V(n) + V(n+1);
             end
             
-            % % %             % specific node
-            % % %             if ~isempty(varargin)
-            % % %                 n = varargin{1};
-            % % %                 MDF = V(n-1) - 2*V(n) + V(n+1);
-            % % %                 return
-            % % %             end
-            % % %
-            % % %             % all nodes
-            % % %             N = length(V);
-            % % %             MDF = zeros(1,N-2);
-            % % %             for n = 2:N-1
-            % % %                 MDF(n-1) = V(n-1) - 2*V(n) + V(n+1);
-            % % %             end
         end
         
         function [v,m] = getVM(obj,method,fiber_diameter,pulse_width)
@@ -130,7 +122,7 @@ classdef Peterson_2011 < handle
             %--------------------------------------
         end
         
-        function MDF = computeMDF2(obj,V,PW,d,varargin)
+        function MDF = computeMDF2(obj,V,PW,d,n_use)
             % Calculate MDF2
             % MDF = MDF2(V,PW,d) calculates the MDF at all nodes from voltage
             % vector V and returns a vector of MDF values
@@ -145,20 +137,16 @@ classdef Peterson_2011 < handle
             W = obj.getWeights(PW,d);
             N = length(V);
             
-            if ~isempty(varargin)
-                n = varargin{1};
-                MDF = 0;
-                for j = 2:N-1
-                    k = abs(n-j);
-                    if k > 10 % weights only exist for k = 0:10
-                        continue
-                    end
-                    MDF = MDF + W(k+1)*(V(n-1) - 2*V(n) + V(n+1));
-                end
+            if ~exist('n_use','var')
+                n_use = 2:N-1; % all nodes except ends
             end
             
-            MDF = zeros(1,N-2);
-            for n = 2:N-1 % loop over all nodes except edns
+            if any(n_use == 1) || any(n_use == N)
+                error('MDF cannot be computed at the ends of an axos (nodes 1 and N).')
+            end
+            
+            MDF = zeros(1,length(n_use));
+            for n = n_use
                 for j = 2:N-1
                     k = abs(n-j);
                     if k > 10 % weights only exist for k = 0:10
@@ -170,6 +158,13 @@ classdef Peterson_2011 < handle
             
         end
         
+    end
+    
+    methods (Static)
+        function thresh_error = thresholdError(I_predicted,I_simulated)
+            % Percent error (eqn 4)
+           thresh_error = ((I_predicted - I_simulated)./I_simulated)*100;
+        end
     end
     
     methods

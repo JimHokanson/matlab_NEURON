@@ -17,6 +17,18 @@ classdef threshold_options < handle_light
     %       NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
     %       NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
     
+    properties (Constant)
+        THERSHOLD_ERROR_OPTIONS = {'absolute' 'relative'} 
+        MIN_THRESHOLD = 0.001 %Units uA
+    end
+    
+    properties
+        max_threshold = 10000 %(Units uA), This is the maximum stimulus
+        %amplitude to test when trying to find threshold bounds before
+        %throwing an error. It is used after all guess amounts have been 
+        %tried to try and get the upper bound for stimulus threshold.
+    end
+    
     properties
         use_halfway_value_as_threshold = true  %(default: true) If true, the
         %threshold reported is not actually tested for threshold but is
@@ -29,12 +41,7 @@ classdef threshold_options < handle_light
         
         threshold_error_option = 'absolute' %Not yet implemented
     end
-    
-    properties (Constant)
-        THERSHOLD_ERROR_OPTIONS = {'NOT YET IMPLEMENTED'} %Goal is to
-        %provide accuracy and 
-    end
-        
+ 
     properties
         max_threshold_error_absolute = 0.1  %How fine to get when determining 
         %threshold. As implemented, when the halfway value is used 
@@ -54,7 +61,7 @@ classdef threshold_options < handle_light
         %steps.
         
         %NOT YET IMPLEMENTED
-        %throw_error_on_no_solution = true %otherwise NaN returned
+        throw_error_on_no_solution = true %otherwise NaN returned
     end
     
     methods 
@@ -71,16 +78,7 @@ classdef threshold_options < handle_light
         end
     end
     
-    properties
-        max_threshold = 10000 %(Units uA), This is the maximum stimulus
-        %amplitude to test when trying to find threshold bounds before
-        %throwing an error. After all guess amounts have been tried to try
-        %and bound a stimulus threshold
-    end
-    
-    properties (Constant)
-        MIN_THRESHOLD = 0.001 %Units uA
-    end
+
     
     methods 
         function changeGuessAmount(obj,guess_unit,varargin)
