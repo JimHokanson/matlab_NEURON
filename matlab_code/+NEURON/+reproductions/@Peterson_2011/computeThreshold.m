@@ -1,4 +1,8 @@
-function [min_threshold,all_thresholds] = computeThreshold(obj,xstim,method)
+function [min_threshold,all_thresholds] = computeThreshold(obj,xstim,method,all_nodes)
+
+if ~exist('all_nodes','var')
+   all_nodes = false; % if false, only midpoint used 
+end
 
 % get fiber diameter, pulse width from xstim
 fiber_diameter = xstim.cell_obj.props_obj.fiber_diameter;
@@ -6,7 +10,14 @@ stim_timing = xstim.elec_objs(1).stimulus_transition_times;
 pulse_width = stim_timing(3) - stim_timing(2);
 
 % get membrane voltage
-test_V = obj.computeVoltages(xstim);
+Ve = obj.computeVoltages(xstim);
+if all_nodes
+    N_nodes = length(Ve);
+    n_use = 2:N_nodes-1;
+else    
+    n_use = ceil(length(Ve)/2);
+end
+test_V = Ve(n_use);
 
 if any(test_V > 0)
     error('Unhandled code case of stimuli being positive, we need to filter these out')
@@ -18,9 +29,9 @@ end
 
 % get mdf
 if method == 1 % mdf1
-    test_MDF = obj.computeMDF1(test_V);
+    test_MDF = obj.computeMDF1(Ve,n_use);
 elseif method == 2 % mdf2
-    test_MDF = obj.computeMDF2(test_V,pulse_width,fiber_diameter);
+    test_MDF = obj.computeMDF2(Ve,pulse_width,fiber_diameter,n_use);
 else
     error('Invalid option, only 1 & 2 supported')
 end
@@ -35,7 +46,6 @@ v = [v; v_last_val];
 m = [m; m_last_val];
 
 % make lines from test data
-test_V = test_V(2:end-1); % cut off ends
 scale_factor = 1e6;
 x_all = [-scale_factor*test_V(:) scale_factor*test_V(:)];
 y_all = [-scale_factor*test_MDF(:) scale_factor*test_MDF(:)];

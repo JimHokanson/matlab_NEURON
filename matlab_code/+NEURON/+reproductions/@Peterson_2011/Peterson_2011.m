@@ -11,8 +11,10 @@ classdef Peterson_2011 < handle
     properties (Hidden)
         
         %Why were these hardcoded here ????
-        all_fiber_diameters = 4:20 %microns
+        all_fiber_diameters = 4:2:20 %microns
         all_pulse_durations = [0.01 0.02 0.05 0.1 0.2 0.5 1 2 5] %ms
+        
+        eleven_electrode_amps = {0.4 -1 0.7 -1 0.7 -1 0.7 -1 0.7 -1 0.4} % defined in fig 1d
         
         resistivity_transverse   = 100/0.083 % S/m -> ohm cm
         resistivity_longitudinal = 100/0.33
@@ -86,10 +88,13 @@ classdef Peterson_2011 < handle
             if any(n_use == 1) || any(n_use == N)
                 error('MDF cannot be computed at the ends of an axos (nodes 1 and N).')
             end
-                         
+            
             MDF = zeros(1,length(n_use));
+            
+            i_n_use = 0;
             for n = n_use
-                MDF(n-1) = V(n-1) - 2*V(n) + V(n+1);
+                i_n_use = i_n_use + 1;
+                MDF(i_n_use) = V(n-1) - 2*V(n) + V(n+1);
             end
             
         end
@@ -151,13 +156,16 @@ classdef Peterson_2011 < handle
             end
             
             MDF = zeros(1,length(n_use));
+            
+            i_n_use = 0;
             for n = n_use
+                i_n_use = i_n_use + 1;
                 for j = 2:N-1
                     k = abs(n-j);
                     if k > 10 % weights only exist for k = 0:10
                         continue
                     end
-                    MDF(n-1) = MDF(n-1) + W(k+1)*(V(n-1) - 2*V(n) + V(n+1));
+                    MDF(i_n_use) = MDF(i_n_use) + W(k+1)*(V(n-1) - 2*V(n) + V(n+1));
                 end
             end
             
