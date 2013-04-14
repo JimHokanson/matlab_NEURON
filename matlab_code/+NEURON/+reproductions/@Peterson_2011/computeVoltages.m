@@ -1,6 +1,8 @@
 function V = computeVoltages(obj,xstim)
 % compute voltage at nodes using equation 3 (for a particular current)
 
+%????? - this line is equivalent ...
+%[~,V] = xstim.computeStimulus('remove_zero_stim_option', true,'nodes_only',true);
 
 % find node positions, initialize V vector
 XYZnodes = xstim.cell_obj.spatial_info_obj.get__XYZnodes;
@@ -28,7 +30,5 @@ for i_electrode = 1:N_electrodes % loop over electrodes and add (superposition)
     V = V + (Iext./(4*pi*sqrt(cl*ct*r2+ct^2*z2)))*10;
     
 end
-
-
 
 end

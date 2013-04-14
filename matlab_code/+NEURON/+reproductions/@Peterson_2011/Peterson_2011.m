@@ -10,9 +10,9 @@ classdef Peterson_2011 < handle
     
     properties (Hidden)
         
+        %Why were these hardcoded here ????
         all_fiber_diameters = 4:20 %microns
-        all_pulse_durations = [0.01 0.02 0.05 0.1 0.5 1 2 5] %ms
-        %Careful: the stimulus specification code expects microseconds
+        all_pulse_durations = [0.01 0.02 0.05 0.1 0.2 0.5 1 2 5] %ms
         
         resistivity_transverse   = 100/0.083 % S/m -> ohm cm
         resistivity_longitudinal = 100/0.33
