@@ -29,7 +29,7 @@ end
 [v,m] = getVM(obj,method,fiber_diameter,pulse_width);
 
 % extend
-v_last_val = 1e6;
+v_last_val = -1e6;
 m_last_val = interp1(v,m,v_last_val,'linear','extrap');
 v = [v; v_last_val];
 m = [m; m_last_val];
