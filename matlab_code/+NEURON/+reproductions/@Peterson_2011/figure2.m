@@ -5,7 +5,7 @@ pw = [0.02,0.2];
 for iPW = 1:2
    subplot(1,2,iPW)
    [v,m] = getVM(obj,1,fd,pw(iPW));
-   plot(v,m)
+   plot(abs(v),m)
    title(['Pulse Duration = ',num2str(pw(iPW)*1000),' \mus'])
    xlabel('Peak Extracellular Voltage (V_e) [mV]')
    ylabel('Second Nodal Difference (\Delta^2V_e) [mV]')

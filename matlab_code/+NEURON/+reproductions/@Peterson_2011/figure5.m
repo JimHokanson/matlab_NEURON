@@ -57,7 +57,7 @@ for i_stim_duration = 1:size(thresholds,1)
 end
 fontsize = 15;
 legend('20 \mus','50 \mus','100 \mus','500 \mus','Location','NorthWest')
-xlabel('Electrode-to-Axon Spacing \mus','fontsize',fontsize)
+xlabel('Electrode-to-Axon Spacing [\mum]','fontsize',fontsize)
 ylabel('Normalized Threshold','fontsize',fontsize)
 title(title_string,'fontsize',fontsize + 2)
 set(gca,'fontsize',fontsize - 2)

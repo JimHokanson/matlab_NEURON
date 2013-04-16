@@ -3,20 +3,26 @@ function figure3(obj)
 %   This data doesn't match their results at all. What's going on?
 %
 
-
-
 fds = [6 10 16 20]; %um
 pw  = [0.02 0.2]; %ms
-
+fontsize = 15;
 for iPW = 1:2
-    subplot(2,1,iPW)
+    subplot(1,2,iPW)
     cla
     hold all
     for iFD =1:4
        [v,m] = getVM(obj,2,fds(iFD),pw(iPW));
-       plot(v,m)
+       plot(abs(v),m)
     end
     hold off
+    xlabel('Extracellular Voltage (V_e) at Node n [mV]','fontsize',fontsize)
+    ylabel('Weighted Sum Function Output','fontsize',fontsize)
+    title(['Pulse Duration = ',num2str(pw(iPW)*1000),' \mus'],'fontsize',fontsize+2)
+    legend(['Diameter = ',num2str(fds(1)),' \mum'],...
+        ['Diameter = ',num2str(fds(2)),' \mum'],...
+        ['Diameter = ',num2str(fds(3)),' \mum'],...
+        ['Diameter = ',num2str(fds(4)),' \mum'])
+    set(gca,'fontsize',fontsize-2)
 end
 
 return

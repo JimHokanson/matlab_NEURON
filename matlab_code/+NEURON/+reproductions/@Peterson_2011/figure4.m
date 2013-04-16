@@ -37,7 +37,7 @@ mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
 figure
 plot(EAS,mdf1_error,'s--',EAS,mdf2_error,'-')
 fontsize = 15;
-xlabel('Electrode-Axon-Spacing [  \mum]','fontsize',fontsize)
+xlabel('Electrode-Axon-Spacing [\mum]','fontsize',fontsize)
 ylabel('Threshold Error [%]','fontsize',fontsize)
 %ylim([-40 40])
 legend('Single Node Method','Weighted Sum Method')
@@ -112,7 +112,7 @@ thresh_mdf2 = thresh_mdf2./max(thresh_mdf2);
 % plot
 figure
 plot(fiber_diams,thresh_active,'o',fiber_diams,thresh_mdf1,'s--',fiber_diams,thresh_mdf2,'-','markersize',6)
-xlabel('Axon Diameter [  \mum]','fontsize',fontsize)
+xlabel('Axon Diameter [\mum]','fontsize',fontsize)
 ylabel('Normalized Activation Threshold','fontsize',fontsize)
 legend('Active Axon Model','Single Node Method','Weighted Sum Method')
 ylim([0 1])

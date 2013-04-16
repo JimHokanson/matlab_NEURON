@@ -58,7 +58,7 @@ mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
 figure
 plot(elec_spacings_all,mdf1_error,'s--',elec_spacings_all,mdf2_error,'-')
 fontsize = 15;
-xlabel('Adjacent Electrode Spacing [  \mum]','fontsize',fontsize)
+xlabel('Adjacent Electrode Spacing [\mum]','fontsize',fontsize)
 ylabel('Threshold Error [%]','fontsize',fontsize)
 %ylim([-30 50])
 legend('Single Node Method','Weighted Sum Method')
@@ -77,6 +77,7 @@ EAS = 200;
 %===============================================================
 adjacent_electrode_spacing = [ADJACENT_ELECTRODE_SPACING_7b ADJACENT_ELECTRODE_SPACING_7c];
 figure
+fontsize = 12;
 for iPlot = 1:2
     % move electrodes
     electrode_locations(:,3) = unit_spacing*adjacent_electrode_spacing(iPlot);
@@ -87,7 +88,7 @@ for iPlot = 1:2
     xstim.plot__AppliedStimulus(1);
     xlabel('Distance Along Axon [mm]','fontsize',fontsize)
     ylabel('Extracellular Potential [mV]','fontsize',fontsize)
-    title(['Adjacent Electrode Spacing = ',num2str(adjacent_electrode_spacing(iPlot)),'   \mum'],'fontsize',fontsize+2)
+    title(['Adjacent Electrode Spacing = ',num2str(adjacent_electrode_spacing(iPlot)),' \mum'],'fontsize',fontsize)
     set(gca,'fontsize',fontsize-2,'XLim',[0 20])
 
 end
