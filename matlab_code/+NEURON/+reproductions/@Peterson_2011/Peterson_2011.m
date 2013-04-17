@@ -210,32 +210,6 @@ classdef Peterson_2011 < handle
                 'stim_start_times',      STIM_START_TIME*ones(1,11)};
             
         end
-        %OUT OF DATE ...
-%         function figure7(obj)
-%             %7a not yet implemented ...
-%             
-%             %10 um diameter fiber
-%             %NOTE: I Think at least 7b and 7c, maybe
-%             %7a were done with a 8.7 um diameter fiber or
-%             %a 10 um diameter fiber with less than 20 internodes
-%             
-%             
-%             ADJACENT_ELECTRODE_SPACING_7b = 500;
-%             ADJACENT_ELECTRODE_SPACING_7c = 1000;
-%             EAS = 200;
-%             
-%             %FIGURE 7B
-%             %===============================================================
-%             adjacent_electrode_spacing = [ADJACENT_ELECTRODE_SPACING_7b ADJACENT_ELECTRODE_SPACING_7c];
-%             for iPlot = 1:2
-%                 subplot(2,1,iPlot)
-%                 stim_options = getElevenElectrodeStimOptions(obj,adjacent_electrode_spacing(iPlot),1,EAS);
-%                 all_options = [stim_options obj.getDefaultOptions];
-%                 xstim = NEURON.simulation.extracellular_stim.create_standard_sim(all_options{:});
-%                 xstim.plot__AppliedStimulus(1);
-%             end
-%             
-%         end
     end
     
 end
