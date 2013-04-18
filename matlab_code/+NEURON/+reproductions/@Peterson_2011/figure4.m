@@ -101,7 +101,7 @@ for iDiam = 1:N_diams
     % mdf1
     thresh_mdf1(iDiam) = obj.computeThreshold(xstim,1);
     % mdf2
-    thresh_mdf1(iDiam) = obj.computeThreshold(xstim,2);
+    thresh_mdf2(iDiam) = obj.computeThreshold(xstim,2);
 end
 
 % normalize
