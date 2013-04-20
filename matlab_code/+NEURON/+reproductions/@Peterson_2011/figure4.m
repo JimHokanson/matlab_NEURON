@@ -35,12 +35,14 @@ mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
 
 % plot
 figure
-plot(EAS,mdf1_error,'s--',EAS,mdf2_error,'-')
-fontsize = 15;
+%plot(EAS,mdf1_error,'s--',EAS,mdf2_error,'-')
+plot(EAS,mdf1_error,'s--','linewidth',3,'markersize',10)
+fontsize = 18;
 xlabel('Electrode-Axon-Spacing [\mum]','fontsize',fontsize)
 ylabel('Threshold Error [%]','fontsize',fontsize)
-%ylim([-40 40])
-legend('Single Node Method','Weighted Sum Method')
+ylim([-40 40])
+%legend('Single Node Method','Weighted Sum Method')
+legend('Single Node Method')
 set(gca,'fontsize',fontsize - 2)
 
 

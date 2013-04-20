@@ -165,7 +165,7 @@ classdef Peterson_2011 < handle
                     if k > 10 % weights only exist for k = 0:10
                         continue
                     end
-                    MDF(i_n_use) = MDF(i_n_use) + W(k+1)*(V(n-1) - 2*V(n) + V(n+1));
+                    MDF(i_n_use) = MDF(i_n_use) + W(k+1)*(V(j-1) - 2*V(j) + V(j+1));
                 end
             end
             
