@@ -119,13 +119,11 @@ classdef windows_comm_obj < NEURON.comm_obj
             %   only needs to be called once per Matlab session. I
             %   generally call this in my startup function.
             %
-            %   Calling Form:
-            %   NEURON.init - calls this method ...
+            %   FULL PATH:
+            %   NEURON.comm_obj.windows_comm_obj.windows_comm_obj
             
-            %NOTE: These are also needed for the Java version
-            %Moved to NEURON init code ...
-%             user32.init();
-%             NET.addAssembly('System');
+            user32.init();
+            NET.addAssembly('System');
         end
     end
     
