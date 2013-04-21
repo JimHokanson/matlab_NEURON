@@ -17,42 +17,50 @@ classdef paths < handle_light
     
     properties
         hoc_code_root         %Directory containing all hoc code
-        hoc_code_model_root   %Directory specifially containing code for models
-        %(i.e. subfolders of this directory contain
-        %the model code)
+        hoc_code_model_root   %Directory specifially containing code 
+        %for models
+        %(i.e. subfolders of this directory contain the model code)
         
         %Executable Related
         %------------------------------------------------------------------
-        exe_path   	%From C.NEURON_EXE_PATH (userConstants)
-        %This is needed in order to launch NEURON
+        exe_path   %Path to executable. 
+        %See NEURON.user_options, property: neuron_exe_path
+        %
+        %examples:
+        %C:\nrn72\bin\nrniv.exe
+        %/Applications/NEURON-7.3/nrn/i386/bin/nrniv
+        %/usr/local/nrn/i686/bin/nrniv
         
-        base_save_root
-    end
-    
-    properties (Constant)
-        % Default nrniv install directories, by OS
-        % Must change the appropriate property if nrniv installed somewhere
-        % else
-        NRNIV_WIN_PATH    = 'C:\nrn72\bin\nrniv.exe'
-        NRNIV_MAC_PATH    = '/Applications/NEURON-7.3/nrn/i386/bin/nrniv'
-        NNRNIV_LINUX_PATH = '/usr/local/nrn/i686/bin/nrniv'
+        win_bash_exe_path %Path to bash executable for Windows. This is only
+        %populated for Windows.
+        
+        %Not yet implemented, move from simulation into here ...
+        %base_save_root
     end
     
     %INITIALIZATION METHODS   %============================================
     methods (Access = private)
         function obj = paths()
+            %paths
+            %
+            %   obj = paths()
+            %
+            %   SINGLETON
+            %   See: NEURON.paths.getInstance
+            %
+            
             %matlab_code\NEURON\paths -> three directories that we need to go up
-            root_toolbox_directory = fileparts(fileparts(fileparts(getMyPath)));
+            root_toolbox_directory  = filepartsx(getMyPath,3);
             
             obj.hoc_code_root       = fullfile(root_toolbox_directory,'HOC_CODE');
             obj.hoc_code_model_root = fullfile(obj.hoc_code_root,'models');
             
-            if ispc % Windows
-                obj.exe_path  = obj.NRNIV_WIN_PATH;
-            elseif ismac % Mac
-                obj.exe_path  = obj.NRNIV_MAC_PATH;
-            else % Linux, etc.
-                obj.exe_path   = obj.NRNIV_LINUX_PATH;
+            user_options = NEURON.user_options.getInstance;
+            
+            obj.exe_path = user_options.neuron_exe_path;
+            
+            if ispc
+                obj.win_bash_exe_path = fullfile(fileparts(obj.exe_path),'bash.exe');
             end
         end
     end

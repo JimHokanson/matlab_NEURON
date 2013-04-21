@@ -20,15 +20,25 @@ classdef simulation < handle_light
     %   2) Provide functionality for using conduction result to set time to
     %   wait apropriately.
 
-    
     properties
         props       %Class: NEURON.simulation.props
         options     %Class: NEURON.simulation.options
-        
+    end
+    
+    properties
         %NOTE: These classes may not exist if NEURON is not loaded on startup.
         cmd_obj  %Class: NEURON.cmd 
-        n_obj    %Class: NEURON
         path_obj %Class: NEURON.paths
+        
+    end
+    
+    %TODO: It would be nice to expose these objects through a GUI
+    %as they are primarily debug objects ...
+    properties (Hidden)
+        command_log_obj     %Class: NEURON.command_log
+        inspector_obj       %Class: NEURON.inspector
+        %This class requires initialization during startup. If it is not
+        %enabled at startup, it is not available. 
     end
     
     properties (Hidden)
@@ -38,6 +48,7 @@ classdef simulation < handle_light
         %process id of Matlab, not the communications process.
         %
         %IMPORTANT: This variable is declared in NEURON in init_neuron.hoc
+        binary_data_transfer_path
     end
     
     %INITIALIZATION    %===================================================
@@ -45,7 +56,7 @@ classdef simulation < handle_light
         function obj = simulation(sim_options)
             %NEURON.simulation Initializes the NEURON simulation
             %
-            %   obj = NEURON.simulation(*run_NEURON)
+            %   obj = NEURON.simulation(*sim_options)
             %
             %   See Also:
             %       NEURON.simulation.extracellular_stim
@@ -59,13 +70,34 @@ classdef simulation < handle_light
             
             obj.options  = sim_options;
             
+            
+            %Binary Data Transfer Path Handling
+            %--------------------------------------------------------------
+            user_options = NEURON.user_options.getInstance;
+            base_path    = user_options.temp_data_base_path;
+            
+            %NOTE: This is the fully resolved name of simulation,
+            %NEURON.simulation, or a subclass
+            class_name = class(obj);
+            
+            I = strfind(class_name,'.');
+            
+            save_dir_name = class_name(I(end)+1:end);
+            
+            obj.binary_data_transfer_path = fullfile(base_path,save_dir_name);
+            
+            if ~exist(obj.binary_data_transfer_path,'dir')
+               mkdir(obj.binary_data_transfer_path) 
+            end
+            
             %Launching NEURON process if desired
             %--------------------------------------------------------------
             if sim_options.launch_NEURON_process_during_initialization
-                obj.n_obj       = NEURON(sim_options.nrn_options);
-                obj.cmd_obj     = obj.n_obj.cmd_obj;
-                obj.path_obj    = obj.n_obj.path_obj;
                 
+                %MOVE NEURON CODE TO HERE ...
+                obj.path_obj = NEURON.paths.getInstance;
+                obj.cmd_obj  = NEURON.cmd(sim_options.cmd_options);
+                                                    
                 initNEURON(obj);
                 
                 %NOTE: This class currently populates simulation variables
@@ -86,9 +118,14 @@ classdef simulation < handle_light
             
             c = obj.cmd_obj;
             
+            c.cd_set(obj.path_obj.hoc_code_root);            
+            c.run_command('{xopen("$(NEURONHOME)/lib/hoc/noload.hoc")}');
+            
+            
             c.load_file('general_sim_definitions.hoc');
             
             %Consider moving to constructor of classes
+            %--------------------------------------------------------------
             switch class(obj)
                 case 'NEURON.simulation.extracellular_stim'
                     c.load_file('init_xstim.hoc');
@@ -99,7 +136,12 @@ classdef simulation < handle_light
             end
             
             %This line must follow loading the initialization file
-            c.writeStringProps({'sim_hash'},{obj.sim_hash});
+            c.writeStringProps({'sim_hash' 'binary_data_root_path'},...
+                {obj.sim_hash NEURON.s.createNeuronPath(obj.binary_data_transfer_path)});
+            
+            if obj.options.run_inspector
+                obj.inspector_obj = NEURON.inspector(c);
+            end
         end
     end
     
@@ -117,7 +159,7 @@ classdef simulation < handle_light
            %    See Also:
            %        NEURON.simulation.props
            
-           sim_duration = obj.props_obj.getSimDuration;
+           sim_duration = obj.props.getSimDuration;
         end
         function sim_time_vector = getSimTimeVector(obj)
            %getSimTimeVector
@@ -127,7 +169,7 @@ classdef simulation < handle_light
            %    See Also:
            %        NEURON.simulation.props
            
-           sim_time_vector = obj.props_obj.getTimeVector;
+           sim_time_vector = obj.props.getTimeVector;
         end
     end
     
