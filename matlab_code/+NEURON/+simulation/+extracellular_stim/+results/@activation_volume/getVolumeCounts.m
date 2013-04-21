@@ -1,4 +1,4 @@
-function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
+function [stim_level_counts,stim_amplitudes] = getVolumeCounts(obj,max_stim_level,varargin)
 %getVolumeCounts
 %
 %   stim_level_counts = getVolumeCounts(obj,stim_levels,varargin)
@@ -16,8 +16,8 @@ function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
 %
 %   OUTPUTS
 %   =======================================================================
-%   stim_level_counts : (vector, same sign) For each stimulus level input
-%       this specifies the # of cubic microns.
+%   stim_level_counts : (vector, same sign as max_stim_level) For each 
+%       stimulus level input this specifies the # of cubic microns.
 %
 %   OPTIONAL INPUTS
 %   =======================================================================
@@ -29,6 +29,9 @@ function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
 %   replication_center : (default [0 0 0]), This defines the center of
 %           the original data. The data is moved such that the center is
 %           located at each replication point.
+%   stim_resolution : (default 0.5), This indicates the resolution of 
+%   the stimulus amplitudes that are tested, and for which, count data is
+%   returned.
 %
 %   IMPROVEMENTS
 %   =======================================================================
@@ -42,74 +45,31 @@ function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
 %   FULL PATH:
 %       NEURON.simulation.extracellular_stim.results.activation_volume.populateVolumeCounts
 
-%Performance:
-%---------------------------------------------------------------------
-%This function used to be really slow. It's performance still isn't great.
-%Here are some notes:
-%
-%1) Rewrote linear interpolation to take advantage of constant weights but
-%limited memory
-%2) Used accumarray instead of histc which in limited testing seemed to
-%increase performance as well
-%3)
-
 %Input Handling
 %--------------------------------------------------------------------------
 in.replication_points = [];
-in.stim_resoultion    = 0.5;
 in.replication_center = [0 0 0];
-
+in.stim_resolution    = 0.5;
 in = processVarargin(in,varargin);
+
+%Input Handling
+%--------------------------------------------------------------------------
+in.stim_resolution = abs(in.stim_resolution);
+
+if max_stim_level < 0
+    max_stim_level = floor(max_stim_level);
+else
+    max_stim_level = ceil(max_stim_level);
+end
+
 
 abs_max_scale = abs(max_stim_level);
 
 n_stim_levels = abs_max_scale; %We'll go from 1 to n
 
-
-
-%Step 2: Stim Bounds determination
+%Threshold retrieval
 %--------------------------------------------------------------------------
-xstim_obj  = obj.xstim_obj;
-sim_logger = xstim_obj.sim__getLogInfo;
-
-%This method expands the testing bounds so that the maximum stimulus level
-%is encompassed in the threshold solution space.
-
-%NEURON.simulation.extracellular_stim.results.activation_volume.adjustBoundsGivenMaxScale
-obj.adjustBoundsGivenMaxScale(max_stim_level,'sim_logger',sim_logger)
-
-%Step 3: Retrieval of thresholds
-%--------------------------------------------------------------------------
-done = false;
-while ~done
-    
-    thresholds = xstim_obj.sim__getThresholdsMulipleLocations(obj.getXYZlattice(true),...
-        'threshold_sign',sign(max_stim_level),'initialized_logger',sim_logger);
-    
-    %TODO: Implement gradient testing
-    
-    %   Determine area of large gradient, test maybe 10 - 20 places
-    %   see how they compare to interpolation values at those locations
-    %   if they are too different, then change scale and rerun
-    %
-    %   If they are close, then do interpolation and return result
-    done = true;
-end
-
-
-
-
-
-%==========================================================================
-%NOTE: All responses above should be cached in cases where we want to
-%rerun this code ...
-
-abs_thresholds = abs(thresholds);
-
-%Possible Improvement: Shrink bounds here to only interpolate over
-%region where thresholds are within range
-
-%all_z_less_than_max_scale = min(abs_thresholds,[],3) < abs_max_scale;
+abs_thresholds = abs(obj.getThresholdsEncompassingMaxScale(max_stim_level));
 
 %Step 4 - Get Counts
 %--------------------------------------------------------------------------
@@ -118,8 +78,6 @@ if ~isempty(in.replication_points)
 else
     [x,y,z] = obj.getXYZlattice(false); %false - return as vectors
 end
-
-
 
 internode_length = obj.getInternodeLength;
 max_z_index_keep = floor(internode_length);
@@ -138,6 +96,108 @@ end
 nx = length(x);
 ny = length(y);
 nz = length(z);
+
+[f1,f2,f3,f4,f5,f6,f7,f8] = helper__getWeights(x,y,z);
+
+%TODO: Remove need for this
+dz = z(2)-z(1);
+
+fprintf('Integrating Volume')
+
+percentage_display_mask = false(1,nx);
+percentage_display_mask(ceil((0.1:0.1:0.9)*nx)) = true;
+
+%With linear interpolation, if none of the values on the cube (3d) are
+%less than the value we are looking for or if any of the values are NaN, 
+%then we don't need to bother with interpolating between those values.
+all_values_greater = helper__cubeFunction(@and,abs_thresholds > abs_max_scale);
+isnan_any_neighbor = helper__cubeFunction(@or,isnan(abs_thresholds));
+
+cube_test_mask = ~(all_values_greater | isnan_any_neighbor);
+
+%We'll use these values to limit the histc function to only
+%be over the range of possible outcomes from linear interpolation, i.e. all
+%values must be between the minimum and the maximum, which can
+%significantly reduce the time for the binary search to find a result as
+%the range is often much less than the range of the entire data set
+min_cube = floor(helper__cubeFunction(@min,abs_thresholds));
+max_cube = ceil(helper__cubeFunction(@max,abs_thresholds));
+
+
+N = zeros(n_stim_levels,1);
+for ix = 1:nx-1    
+    %Print progress to command window, keep on same line
+    if percentage_display_mask(ix)
+        fprintf(', %0.0f%%',100*ix/nx);
+    end
+    
+    if ~any(cube_test_mask(ix,:,:))
+        continue
+    end
+    
+    for iy = 1:ny-1
+        last_z_index = 0;
+        for iz = 1:nz-1
+            if cube_test_mask(ix,iy,iz)
+                temp = ...
+                    f1*abs_thresholds(ix, iy,   iz)   + f2*abs_thresholds(ix+1, iy  , iz)   + ...
+                    f3*abs_thresholds(ix, iy+1, iz)   + f4*abs_thresholds(ix+1, iy+1, iz)   + ...
+                    f5*abs_thresholds(ix, iy  , iz+1) + f6*abs_thresholds(ix+1, iy  , iz+1) + ...
+                    f7*abs_thresholds(ix, iy+1, iz+1) + f8*abs_thresholds(ix+1, iy+1, iz+1);
+                
+                %TODO: This test should really be a test on iz ...
+                if last_z_index + dz > max_z_index_keep
+                    %JAH TODO: Fix this, my head hurts and I can't
+                    %do this math right now ...
+                    temp_indices = last_z_index+1:last_z_index+dz;
+                    temp(:,:,temp_indices > max_z_index_keep) = abs_max_scale + 1;
+                end
+                
+                %NOTE: The following few lines of code force the resulting
+                %counts to be on a scale from 1 to the maximum stimulus
+                %amplitude 
+                %i.e. absolute_stim_amplitudes = 1:abs_max_scale
+                min_stim_level_cur = min_cube(ix,iy,iz);
+                
+                %limit the max to abs_max_scale
+                max_stim_level_cur = min(max_cube(ix,iy,iz),abs_max_scale);
+                
+                temp2 = histc(temp(:),min_stim_level_cur:max_stim_level_cur);
+
+                %NOTE: temp2 has one extra bin for exactly equal to the end
+                %value which we don't care about ...
+                N(min_stim_level_cur+1:max_stim_level_cur) = ...
+                            N(min_stim_level_cur+1:max_stim_level_cur) + temp2(1:end-1);
+            end
+            last_z_index = last_z_index + dz;
+        end
+    end
+end
+fprintf('\n'); %Terminates line for progress display.
+
+stim_level_counts = cumsum(N)';
+abs_stim_amplitudes   = 1:abs_max_scale;
+
+final_abs_stim_amplitudes = 1:in.stim_resolution:abs_max_scale;
+
+stim_level_counts = interp1(abs_stim_amplitudes,stim_level_counts,final_abs_stim_amplitudes,'pchip');
+
+if sign(max_stim_level) == -1
+   stim_amplitudes = -1*final_abs_stim_amplitudes(end:-1:1);
+else
+   stim_amplitudes = final_abs_stim_amplitudes; 
+end
+
+%Optional interpolaton
+
+
+end
+
+function [f1,f2,f3,f4,f5,f6,f7,f8] = helper__getWeights(x,y,z)
+%
+%   TODO: Finish checks ...
+%
+%
 
 %TODO: These should be integers, check
 dx = x(2)-x(1);
@@ -188,83 +248,29 @@ f6 = x2_3d.*y1_3d.*z2_3d;  %2 1 2
 f7 = x1_3d.*y2_3d.*z2_3d;  %1 2 2
 f8 = x2_3d.*y2_3d.*z2_3d;  %2 2 2
 
-%This is a temporary variable used to all interpolated values over
-%all y and z but only one set of x points
-thresh_values_interpolated = zeros(dx,dy*(ny-1),n_z_final);
-
-fprintf('Integrating Volume')
-
-percentage_display_mask = false(1,nx);
-percentage_display_mask(ceil((0.1:0.1:0.9)*nx)) = true;
-
-%With linear interpolation, if none of the values on the cube (3d) are
-%less than the value we are looking for, then we don't need to bother
-%with interpolating between those values.
-
-value_less_than_max = abs_thresholds <= abs_max_scale;
-
-cube_test_mask = ...
-    value_less_than_max(1:end-1,1:end-1,1:end-1) | ...
-    value_less_than_max(1:end-1,1:end-1,2:end)   | ...
-    value_less_than_max(1:end-1,2:end,1:end-1)   | ...
-    value_less_than_max(1:end-1,2:end,2:end)     | ...
-    value_less_than_max(2:end,1:end-1,1:end-1)   | ...
-    value_less_than_max(2:end,1:end-1,2:end)     | ...
-    value_less_than_max(2:end,2:end,1:end-1)     | ...
-    value_less_than_max(2:end,2:end,2:end);
-
-tic
-stim_levels_histc = 0:abs_max_scale;
-%stim_level_counts = zeros(n_stim_levels,1);
-N = zeros(n_stim_levels+1,1); %+1 is for the extra with histc
-for ix = 1:nx-1
-    last_y_index = 0;
-    
-    %Print progress to command window, keep on same line
-    if percentage_display_mask(ix)
-        fprintf(', %0.0f%%',100*ix/nx);
-    end
-    
-    if ~any(cube_test_mask(ix,:,:))
-        continue
-    end
-    
-    %Reset all values ...
-    thresh_values_interpolated(:) = abs_max_scale + 1;
-    
-    for iy = 1:ny-1
-        last_z_index = 0;
-        for iz = 1:nz-1
-            if cube_test_mask(ix,iy,iz)
-                thresh_values_interpolated(:,last_y_index+1:last_y_index+dy,last_z_index+1:last_z_index+dz) = ...
-                    f1*abs_thresholds(ix, iy,   iz)   + f2*abs_thresholds(ix+1, iy  , iz)   + ...
-                    f3*abs_thresholds(ix, iy+1, iz)   + f4*abs_thresholds(ix+1, iy+1, iz)   + ...
-                    f5*abs_thresholds(ix, iy  , iz+1) + f6*abs_thresholds(ix+1, iy  , iz+1) + ...
-                    f7*abs_thresholds(ix, iy+1, iz+1) + f8*abs_thresholds(ix+1, iy+1, iz+1);
-            end
-            last_z_index = last_z_index + dz;
-        end
-        last_y_index = last_y_index + dy;
-    end
-    
-    %Let's update counts here.
-    %----------------------------------------------------------------
-    %- We could wait for all loops over x but this would stress the
-    %memory of the computer
-    %- We could do this inside the z loop, but the extra function calls
-    %would probably slow things down
-    
-    %It is much faster to do an out of range assignment than to truncate
-    %the data ...
-        
-    thresh_values_interpolated(:,:,max_z_index_keep+1:end) = abs_max_scale + 1;
-    N = N + histc(thresh_values_interpolated(:),stim_levels_histc);
-    
 end
-fprintf('\n'); %Terminates line for progress display.
-toc
 
-stim_level_counts = cumsum(N(1:end-1))';
+function result = helper__cubeFunction(f,value)
+%
+%   This function evaluates a function at all corners of a cube and links
+%   the results of each evaluation, which is useful for functions which
+%   link over all points like, max(), min(), and(), and or(), where we want
+%   to know, for example, the max of all points that make up the corner of
+%   a cube
+%
+%   i.e. max(all_corner_points) => r =  max(corner1,corner2)
+%            r = max(r,corner3), r = max(r,corner4), etc
+%
+
+result = f(        value(1:end-1,1:end-1,1:end-1) ,...
+                   value(1:end-1,1:end-1,2:end  ));
+result = f(result, value(1:end-1,2:end  ,1:end-1));
+result = f(result, value(1:end-1,2:end  ,2:end  ));
+result = f(result, value(2:end  ,1:end-1,1:end-1));
+result = f(result, value(2:end  ,1:end-1,2:end  ));
+result = f(result, value(2:end  ,2:end  ,1:end-1));
+result = f(result, value(2:end  ,2:end  ,2:end  ));
+
 
 end
 
@@ -285,39 +291,6 @@ z = xyz_new{3};
 
 replicated_thresholds = squeeze(min(V_temp,[],4));
 
-% %1) Get New Bounds
-% %--------------------------------------------------------------------------
-% n_replication_points = size(in.replication_points,1);
-%
-% min_replication_points = min(in.replication_points);
-% max_replication_points = max(in.replication_points);
-%
-% new_min_extents = obj.bounds(1,:) + min_replication_points;
-% new_max_extents = obj.bounds(2,:) + max_replication_points;
-%
-% x = new_min_extents(1):obj.step_size:new_max_extents(1);
-% y = new_min_extents(2):obj.step_size:new_max_extents(2);
-% z = new_min_extents(3):obj.step_size:new_max_extents(3);
-%
-% %2) Interpolate all voltages to "new points" on lattice
-% %--------------------------------------------------------------------------
-% V_temp = NaN(length(y),length(x),length(z),n_replication_points);
-%
-%
-%
-% [Xo,Yo,Zo] = meshgrid(xyz_orig{:});
-%
-% [Xn,Yn,Zn] = meshgrid(x,y,z);
-%
-% for iPoint = 1:n_replication_points
-%     shift_x = in.replication_points(iPoint,1) - in.replication_center(1);
-%     shift_y = in.replication_points(iPoint,2) - in.replication_center(1);
-%     shift_z = in.replication_points(iPoint,3) - in.replication_center(1);
-%     V_temp(:,:,:,iPoint) = interp3(Xo+shift_x, Yo+shift_y, Zo+shift_z,abs_thresholds,Xn,Yn,Zn);
-% end
-% % %
-% % % %Take min over all replicated points, then switch x&y to be correct
-% % % replicated_thresholds = permute(min(V_temp,[],4),[2 1 3]);
 
 %3) NaN check in Z
 %--------------------------------------------------------------------------

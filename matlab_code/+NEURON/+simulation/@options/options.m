@@ -5,7 +5,7 @@ classdef options
     
     %Class Options    %====================================================
     properties
-        nrn_options = NEURON.options
+        cmd_options   = NEURON.cmd.options  %
     end
     
     %Permanent Properties   %==============================================
@@ -33,7 +33,12 @@ classdef options
     
     %Startup Properties   %================================================
     properties
-        launch_NEURON_process_during_initialization = true;
+        launch_NEURON_process_during_initialization = true;  %If false the
+        %simulation will not launch a NEURON window
+        
+        run_inspector = true; %If true a class will be launched that helps
+        %to summarize current NEURON variables. It adds a small bit of 
+        %overhead on startup and is only really necessary for debugging ...
     end
 end
 

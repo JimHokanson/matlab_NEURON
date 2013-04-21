@@ -94,7 +94,8 @@ classdef extracellular_stim < NEURON.simulation
             
             obj.threshold_options_obj  = threshold_options;
             obj.sim_ext_options_obj    = sim_extension_options;
-            obj.data_transfer_obj      = data_transfer(obj,obj.sim_hash);
+            obj.data_transfer_obj      = data_transfer(obj.sim_hash,...
+                        obj.binary_data_transfer_path,obj.cmd_obj);
             obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd_obj);
             
         end
@@ -152,10 +153,6 @@ classdef extracellular_stim < NEURON.simulation
         end
         function set_CellModel(obj,cell_obj)
             obj.cell_obj = cell_obj;
-            
-            %NOTE: This must follow population of this object
-            %in the cell class
-            obj.data_transfer_obj.initializeDataSavingPaths();
         end
     end
     

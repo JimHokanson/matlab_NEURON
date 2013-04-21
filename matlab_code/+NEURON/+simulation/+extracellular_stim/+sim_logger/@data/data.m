@@ -251,6 +251,7 @@ classdef data < handle_light
             
             sz = size(xyz_out);
             
+            %NEURON.simulation.extracellular_stim.computeStimulus
             [t_vec,v_all] = obj.xstim_obj.computeStimulus(...
                 'remove_zero_stim_option',1,...
                 'xyz_use',reshape(xyz_out,[sz(1)*sz(2) sz(3)]));

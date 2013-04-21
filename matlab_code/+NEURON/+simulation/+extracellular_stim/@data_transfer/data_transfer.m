@@ -18,11 +18,14 @@ classdef data_transfer < handle_light
     %   3) Finish delete function
     
     properties
-        parent    %
-        sim_hash  %String,
-        cmd_obj   %Reference to command object ...
+       cmd_obj   %Class: NEURON.cmd
     end
     
+    properties
+        sim_hash  %String,
+        binary_data_transfer_path
+    end
+
     %These are dependent in case the cell changes ...
     properties (Dependent)
        cell_obj
@@ -44,30 +47,10 @@ classdef data_transfer < handle_light
     
     %CONSTRUCTOR  =========================================================
     methods
-        function obj = data_transfer(parent_obj,sim_hash)
-            obj.parent   = parent_obj;
+        function obj = data_transfer(sim_hash,data_path,cmd_obj)
             obj.sim_hash = sim_hash; 
-            obj.cmd_obj  = obj.parent.cmd_obj;
-        end
-    end
-    
-    %INITIALIZATION METHODS ===============================================
-    methods
-        function initializeDataSavingPaths(obj)
-           %initializeDataSavingPaths
-           %
-           %    Called by extracellular stim object if the cell type is
-           %    changed ...
-           
-           temp = obj.root_read_directory;
-           if ~exist(temp,'dir')
-               mkdir(temp);
-           end
-           
-           temp = obj.root_write_directory;
-           if ~exist(temp,'dir')
-               mkdir(temp);
-           end
+            obj.binary_data_transfer_path = data_path;
+            obj.cmd_obj  = cmd_obj;
         end
     end
     
@@ -104,13 +87,14 @@ classdef data_transfer < handle_light
         %
         %   TODO: Finish Documentation
         
+        c = obj.cmd_obj;
         
         %Write to disk
         %------------------------------------------------------------------
-        obj.cmd_obj.writeVector(obj.getWriteFilePath('v_ext.bin'),applied_voltage(:));
+        c.writeVector(obj.getWriteFilePath('v_ext.bin'),applied_voltage(:));
         
         %NOTE: Often this doesn't change. Could only write this on change.
-        obj.cmd_obj.writeVector(obj.getWriteFilePath('t_vec.bin'),stimulus_times);
+        c.writeVector(obj.getWriteFilePath('t_vec.bin'),stimulus_times);
         
         %Load into NEURON
         %------------------------------------------------------------------
@@ -119,8 +103,8 @@ classdef data_transfer < handle_light
         
         %NOTE: By executing these separately I can debug which, if either, is
         %causing a problem ...
-        obj.cmd_obj.run_command('{xstim__load_data()}');
-        obj.cmd_obj.run_command('{xstim__setup_stim_playback()}');
+        c.run_command('{xstim__load_data()}');
+        c.run_command('{xstim__setup_stim_playback()}');
         end
     end
     
@@ -128,10 +112,10 @@ classdef data_transfer < handle_light
     %SIMPLE HELPERS =======================================================
     methods (Hidden)
         function file_path = getReadFilePath(obj,file_name)
-           file_path = fullfile(obj.root_read_directory,[obj.sim_hash file_name]); 
+           file_path = fullfile(obj.binary_data_transfer_path,[obj.sim_hash file_name]); 
         end
         function file_path = getWriteFilePath(obj,file_name)
-           file_path = fullfile(obj.root_write_directory,[obj.sim_hash file_name]); 
+           file_path = fullfile(obj.binary_data_transfer_path,[obj.sim_hash file_name]); 
         end
     end
     
