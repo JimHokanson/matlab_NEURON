@@ -85,7 +85,6 @@ classdef extracellular_stim_capable < handle
         moveCenter(obj, newCenter) %This is needed by a few simulation methods.
         %Changing the center should change the definition of xyz_all
         
-        
         threshold_info_obj = getThresholdInfo(obj)  %See Class:
         %NEURON.cell.threshold_info
         %
@@ -100,6 +99,8 @@ classdef extracellular_stim_capable < handle
         %internodes adds considerable size and is hopefully not
         %necessary ...
         %
+        %   xyz_nodes : [nodes x 3]
+        %
         %   NOTE: In the event of multiple segments per node section, or
         %   even multiple sections per nodes, this should only return a
         %   single representative sample.
@@ -109,6 +110,7 @@ classdef extracellular_stim_capable < handle
     %Standard Shared Methods ==============================================
     methods
         function [hasChanged,new_config] = hasSpatialInformationChanged(obj,previous_config)
+            %hasSpatialInformationChanged
             %
             %   [hasChanged,new_config] = hasSpatialInformationChanged(obj,previous_config)
             %
@@ -183,12 +185,15 @@ classdef extracellular_stim_capable < handle
         function xyz_out = getCellXYZMultipleLocations(obj,cell_centers)
             %getCellXYZMultipleLocations
             %
-            %   xyz_out = getCellXYZMultipleLocations(obj,cell_centers)
+            %   xyz_out = getCellXYZMultipleLocations(obj,cell_centers,*nodes_only)
             %
             %   Created for use with the sim_logger. Specifically this file
             %   is the first in a set of steps towards computing the
             %   applied stimulus to multiple cells all at once, instead of
             %   one at a time.
+            %
+            %   Currently this method returns locations ONLY FOR NODE
+            %   LOCATIONS.
             %
             %   INPUTS
             %   ===========================================================
@@ -196,6 +201,11 @@ classdef extracellular_stim_capable < handle
             %       the cell should be of length 3, with the entries
             %       containing the x,y, & z spatial variations to use, such
             %       as {-10:10 -10:10 -50:50}
+            %
+            %   OPTIONAL INPUTS
+            %   ===========================================================
+            %   nodes_only : (defaul true), False case not yet implemented
+            %
             %
             %   OUTPUTS
             %   ===========================================================
@@ -226,6 +236,8 @@ classdef extracellular_stim_capable < handle
                 xyz_cell_centers = cell_centers;
             end
             
+            %Move the cell to its "center" so that we can compute
+            %nodal locations 
             obj.moveCenter([0 0 0]);
             
             xyz_cell = obj.getXYZnodes();
@@ -276,6 +288,7 @@ classdef extracellular_stim_capable < handle
             
             cell_defined = obj.createCellInNEURON();
             
+            %TODO: Consider creating an enumerated class type ...
             if display_NEURON_steps
                 switch cell_defined
                     case 0
