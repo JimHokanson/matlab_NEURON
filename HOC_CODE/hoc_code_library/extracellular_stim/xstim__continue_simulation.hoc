@@ -9,6 +9,7 @@ proc xstim__continue_simulation(){ local new_tstop, pre_run_length localobj temp
 GLOBALS
 -------------------------------------------------------
 xstim__node_vm_hist : output of sim_logging__record_node_voltages()
+binary_data_root_path
 
 IMPROVEMENTS
 ---------------------------------------------------------
@@ -32,7 +33,7 @@ xstim__run_stimulation2
 	
 	continuerun(new_tstop)
 	
-	sprint(vm_save_path,"%s%s%s","data/",sim_hash,"xstim__vm.bin")
+	sprint(vm_save_path,"%s/%s%s",binary_data_root_path,sim_hash,"xstim__vm.bin")
 	file__saveDataMatrix(vm_save_path,xstim__node_vm_hist)
 	
 	//Let's get the # of 

@@ -37,7 +37,7 @@ Eventually I would like to place the derivative detection in here
 	//xstim__run_simulation_timer1 = startsw()
 	run()
 	//NOTE: Need to modify to take advantage of hash
-	sprint(vm_save_path,"%s%s%s","data/",sim_hash,"xstim__vm.bin")
+	sprint(vm_save_path,"%s/%s%s",binary_data_root_path,sim_hash,"xstim__vm.bin")
 	file__saveDataMatrix(vm_save_path,xstim__node_vm_hist)
 	
 	
