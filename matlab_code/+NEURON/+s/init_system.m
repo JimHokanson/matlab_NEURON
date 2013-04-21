@@ -8,9 +8,4 @@ function init_system
 
     NEURON.comm_obj.java_comm_obj.init_system_setup;
 
-    if ispc
-        user32.init();
-        NET.addAssembly('System');
-        NEURON.comm_obj.windows_comm_obj.init_system_setup;
-    end
 end
