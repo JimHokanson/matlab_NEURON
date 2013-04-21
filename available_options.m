@@ -1,5 +1,8 @@
 %{
 
+TODO: This should be replaced with a simple text file
+which links to the class definition
+
 See Class: NEURON.user_options
 
 REQUIRED - required properties will throw an error when not present
