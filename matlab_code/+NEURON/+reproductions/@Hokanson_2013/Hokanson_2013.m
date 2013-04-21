@@ -47,7 +47,9 @@ classdef Hokanson_2013
             '200 apart Z, 50 Y'
             '400 apart X, 400 apart Z, 100 apart Y'
             }
-        TISSUE_RESISTIVITY = [1211 1211 175]
+        %TISSUE_RESISTIVITY = [1211 1211 175]
+        %TISSUE_RESISTIVITY = 500;
+        TISSUE_RESISTIVITY = [1211 1211 350];
     end
     
     methods (Static)
