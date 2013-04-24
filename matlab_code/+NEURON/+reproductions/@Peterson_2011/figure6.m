@@ -38,7 +38,7 @@ N_elec_spacing = length(elec_spacing_all);
 % initialize thresholds
 thresh_active = zeros(N_elec_spacing,1);
 thresh_mdf1 = thresh_active;
-thresh_mdf2 = thresh_active;
+%thresh_mdf2 = thresh_active;
 
 for i_elec_spacing = 1:N_elec_spacing
     % move second electrode
@@ -50,22 +50,24 @@ for i_elec_spacing = 1:N_elec_spacing
    thresh_active(i_elec_spacing) = result.stimulus_threshold;
    %mdf1
    thresh_mdf1(i_elec_spacing) = obj.computeThreshold(xstim,1);
-   thresh_mdf2(i_elec_spacing) = obj.computeThreshold(xstim,2);
+   %thresh_mdf2(i_elec_spacing) = obj.computeThreshold(xstim,2);
    
 end
 
 % threshold error
 mdf1_error = obj.thresholdError(thresh_mdf1,thresh_active);
-mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
+%mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
 
 % plot
 figure
-plot(internodal_ratio_spacings,mdf1_error,'s--',internodal_ratio_spacings,mdf2_error,'-')
-fontsize = 15;
+%plot(internodal_ratio_spacings,mdf1_error,'s--',internodal_ratio_spacings,mdf2_error,'-','linewidth',3,'markersize',10)
+plot(internodal_ratio_spacings,mdf1_error,'s--','linewidth',3,'markersize',10)
+fontsize = 18;
 xlabel('Inter-Electrode-Spacing [Internodal Lengths]','fontsize',fontsize)
 ylabel('Threshold Error [%]','fontsize',fontsize)
-%ylim([-20 80])
-legend('Single Node Method','Weighted Sum Method')
+ylim([-20 80])
+%legend('Single Node Method','Weighted Sum Method')
+legend('Single Node Method')
 set(gca,'fontsize',fontsize - 2)
 
 end

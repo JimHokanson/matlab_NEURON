@@ -76,12 +76,13 @@ for iPW = 1:length(stim_duration_all)
         v1 = VeD2Ve_use(:,1).*thresholds';
         ve_threshold = -v1;
         md1_threshold = VeD2Ve_use(:,2).*thresholds';
-        plot(ve_threshold,md1_threshold,'o')
-        fontsize = 15;
+        plot(ve_threshold,md1_threshold,'o','markersize',10)
+        fontsize = 18;
         xlabel('Peak Extracellular Voltage (V_e) [-mV]','fontsize',fontsize)
-        ylabel('Second Nodal Difference (\Delta^2V_e) [mV]','fontsize',fontsize)
-        title(['Pulse Duration = ',num2str(stim_duration),' ms diameter = ',num2str(fiber_diameter),' \mum'],'fontsize',fontsize + 2)
-        set(gca,'fontsize',fontsize+2)
+        %ylabel('Second Nodal Difference (\Delta^2V_e) [mV]','fontsize',fontsize)
+        ylabel('MDF_1 [mV]','fontsize',fontsize)
+        title(['Pulse Duration = ',num2str(stim_duration*1e3),' \mus diameter = ',num2str(fiber_diameter),' \mum'],'fontsize',fontsize + 2)
+        set(gca,'fontsize',fontsize+2,'YLim',[0 180],'XLim',[0 500])
         
         % mdf2
         applied_stim_use = applied_stimulus(idx,:);
@@ -94,12 +95,13 @@ for iPW = 1:length(stim_duration_all)
         
         % plot
         figure
-        plot(ve_threshold,mdf2_threshold,'o')
-        fontsize = 15;
+        plot(ve_threshold,mdf2_threshold,'o','markersize',10)
+        fontsize = 18;
         xlabel('Peak Extracellular Voltage (V_e) [-mV]','fontsize',fontsize)
-        ylabel('Weighted Sum Function Output','fontsize',fontsize)
-        title(['Pulse Duration = ',num2str(stim_duration),' ms diameter = ',num2str(fiber_diameter),' \mum'],'fontsize',fontsize + 2)
-        set(gca,'fontsize',fontsize+2)
+        %ylabel('Weighted Sum Function Output','fontsize',fontsize)
+        ylabel('MDF_2','fontsize',fontsize)
+        title(['Pulse Duration = ',num2str(stim_duration*1e3),' \mus diameter = ',num2str(fiber_diameter),' \mum'],'fontsize',fontsize + 2)
+        set(gca,'fontsize',fontsize+2,'XLim',[0 500])
         
     end
 end
