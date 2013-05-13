@@ -26,7 +26,6 @@ function result_obj = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,a
 %   See Also:
 %       NEURON.simulation.extracellular_stim.results.current_distance
 %
-%
 %   FULL PATH:
 %       NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
 
@@ -42,10 +41,9 @@ assert(isequal(size(base_xyz),[1 3]),'Base xyz must be size [1 x 3]')
 
 moveCenter(obj.cell_obj,[0 0 0])
 
-result_obj = NEURON.simulation.extracellular_stim.results.current_distance;
+result_obj = NEURON.simulation.extracellular_stim.results.current_distance(...
+    base_xyz,dim_move,all_distances);
 
-
-%TODO: Implement sim logger option
 
 if in.use_sim_logger
     
@@ -121,7 +119,7 @@ else
     end
 end
 
-result_obj.base_xyz         = base_xyz;
+
 result_obj.tested_distances = all_distances;
 result_obj.thresholds       = all_thresholds;
 
