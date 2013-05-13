@@ -49,7 +49,8 @@ classdef Hokanson_2013
             }
         %TISSUE_RESISTIVITY = [1211 1211 175]
         %TISSUE_RESISTIVITY = 500;
-        TISSUE_RESISTIVITY = [1211 1211 350];
+        %TISSUE_RESISTIVITY = [1211 1211 350];
+        TISSUE_RESISTIVITY = [1211 1211 87.5];
     end
     
     methods (Static)

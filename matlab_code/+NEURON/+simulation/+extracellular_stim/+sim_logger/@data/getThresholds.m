@@ -124,7 +124,7 @@ for iGroup = 1:n_groups
     current_indices = groups_of_indices_to_run{iGroup};
     n_indices       = length(current_indices);
     
-    fprintf('%s %d:%d =>',datestr(now,'HH:MM:SS'),current_indices(1),current_indices(end)) 
+    fprintf('%s %d:%d =>',datestr(now,'HH:MM:SS'),cur_sim_index+1,cur_sim_index+n_indices) 
     
     %Threshold prediction
     %-----------------------------------------------------------------------
