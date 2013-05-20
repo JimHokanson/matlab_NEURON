@@ -30,48 +30,56 @@ n_diameters      = length(fiber_diameters);
 diameter_legends = cell(1,n_diameters);
 
 %extras
+%----------------------------------------------
 %       dual_slice_thresholds: {1x5 cell}
 %              dual_slice_xyz: {1x5 cell}
 %     single_slice_thresholds: {1x5 cell}
-%            single_slice_xyz: {1x5 cell}
+%            single_slice_xyz: {1x5 cell}]
+%           internode_lengths:
 
 keyboard
 
 %subplot(1,2,1)
 
-plot(x_stim,vol_ratio,'Linewidth',3)
-hold on
-for iDiameter = 1:n_diameters
-    diameter_legends{iDiameter} = sprintf('%g um',obj.ALL_DIAMETERS(iDiameter));
+for iFig = 1:2
+    figure
+    x_points_plot = zeros(1,4);
+    y_points_plot = zeros(1,4);
+    plot(x_stim,vol_ratio,'Linewidth',3)
     
+    
+        hold on
+        for iDiameter = 1:n_diameters
+            diameter_legends{iDiameter} = sprintf('%g um',obj.ALL_DIAMETERS(iDiameter));
+            
+            if iFig == 2
 
-    %Get min points
-    %I would like to have this be a method ...
-    dual_t   = extras.dual_slice_thresholds{iDiameter};
-    single_t = extras.single_slice_thresholds{iDiameter}; 
+                [x_points_plot(1),x_points_plot(2),y_points_plot(1),y_points_plot(2)] = ...
+                    getLimitInfo(obj,x_stim(:),vol_ratio(:,iDiameter),...
+                    extras.single_slice_thresholds{iDiameter},...
+                    extras.single_slice_xyz{iDiameter},...
+                    extras.internode_lengths(iDiameter));
 
-    t_min_z_dual   = min(dual_t(:,:,1));
-    t_min_x_dual   = min(dual_t(ceil(size(dual_t,1)/2),:,:));
-    t_min_z_single = min(single_t(:,:,1));
+                [x_points_plot(3),x_points_plot(4),y_points_plot(3),y_points_plot(4)] = ...
+                    getLimitInfo(obj,x_stim(:),vol_ratio(:,iDiameter),...
+                    extras.dual_slice_thresholds{iDiameter},...
+                    extras.dual_slice_xyz{iDiameter},...
+                    extras.internode_lengths(iDiameter));
+
+                plotLimits(obj,x_points_plot,y_points_plot)
+            
+            end
+
+        end
+        hold off
     
-    x_single       = extras.single_slice_xyz{iDiameter}{1};
-    t_min_x_single = min(single_t(x_single == STIM_SPACING,:,:));
     
-    all_values = [t_min_x_single t_min_z_single t_min_x_dual t_min_z_dual];
-    chars      = 'xzXZ';
-    for iVal = 1:4
-       y_val = interp1(x_stim(:),vol_ratio(:,iDiameter),all_values(iVal));
-       s = text(all_values(iVal),y_val,chars(iVal));
-       set(s,'FontSize',18)
-    end
+    set(gca,'FontSize',18)
+    legend(diameter_legends)
+    title('Electrodes spaced 400 um apart in transverse direction')
+    xlabel('Stimulus Amplitude (uA)')
+    
 end
-hold off
-
-set(gca,'FontSize',18)
-legend(diameter_legends)
-title('Electrodes spaced 400 um apart in transverse direction')
-xlabel('Stimulus Amplitude (uA)')
-
 
 % % % [~,I] = max(vol_ratio);
 % % % max_vol_ratio_stim_amps = x_stim(I);
@@ -80,14 +88,14 @@ xlabel('Stimulus Amplitude (uA)')
 % % % hold all
 % % % for iDiameter = 1:n_diameters
 % % %    cur_xyz  = extras.dual_slice_xyz{iDiameter};
-% % %    cur_data = squeeze(extras.dual_slice_thresholds{iDiameter}); 
-% % %    
+% % %    cur_data = squeeze(extras.dual_slice_thresholds{iDiameter});
+% % %
 % % %    %contour_value = [max_vol_ratio_stim_amps(iDiameter) max_vol_ratio_stim_amps(iDiameter)];
-% % %    
+% % %
 % % %    %contour_value = contour_value - 0.3;
-% % %    
+% % %
 % % %    contour_value = [11 11];
-% % %    
+% % %
 % % %    contour(cur_xyz{1},cur_xyz{3},cur_data',contour_value)
 % % % end
 % % % hold off
@@ -95,23 +103,33 @@ xlabel('Stimulus Amplitude (uA)')
 
 keyboard
 
-% % % I = 3;
-% % % 
-% % % subplot(1,2,1)
-% % % 
-% % % % [temp,xyz_single_temp] = arrayfcns.replicate3dData(thresholds_single,...
-% % % %                             XYZ_MESH_SINGLE,current_pair,STEP_SIZE);
-% % % 
-% % % cur_xyz = extras.single_slice_xyz{I};
-% % % imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.single_slice_thresholds{I})')
-% % % axis equal
-% % % colorbar
-% % % 
-% % % subplot(1,2,2)
-% % % cur_xyz = extras.dual_slice_xyz{I};
-% % % imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.dual_slice_thresholds{I})')
-% % % axis equal
-% % % colorbar
+
+%==========================================================================
+%==========================================================================
+
+%==========================================================================
+%==========================================================================
+%TODO: Add labels
+I = 1;
+figure
+subplot(2,1,1)
+
+% [temp,xyz_single_temp] = arrayfcns.replicate3dData(thresholds_single,...
+%                             XYZ_MESH_SINGLE,current_pair,STEP_SIZE);
+
+cur_xyz = extras.single_slice_xyz{I};
+imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.single_slice_thresholds{I})')
+set(gca,'CLim',[0 40])
+axis equal
+colorbar
+
+
+subplot(2,1,2)
+cur_xyz = extras.dual_slice_xyz{I};
+imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.dual_slice_thresholds{I})')
+set(gca,'CLim',[0 40])
+axis equal
+colorbar
 
 
 

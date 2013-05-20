@@ -47,10 +47,10 @@ classdef Hokanson_2013
             '200 apart Z, 50 Y'
             '400 apart X, 400 apart Z, 100 apart Y'
             }
-        %TISSUE_RESISTIVITY = [1211 1211 175]
+        TISSUE_RESISTIVITY = [1211 1211 175]
         %TISSUE_RESISTIVITY = 500;
         %TISSUE_RESISTIVITY = [1211 1211 350];
-        TISSUE_RESISTIVITY = [1211 1211 87.5];
+        %TISSUE_RESISTIVITY = [1211 1211 87.5];
     end
     
     methods (Static)
@@ -61,62 +61,49 @@ classdef Hokanson_2013
     end
     
     methods (Access = private,Hidden)
-        function max_stim_level = getMaxStimLevelToTest(obj,current_electrode_pair,varargin)
-            %getMaxStimLevelToTest
-            %
-            %   This is an old method which was used to determine the
-            %   stimulus amplitude at which a neuron located halfway
-            %   between two electrodes would be recruited if one of the
-            %   electrodes were active. A new replication technique for
-            %   single electrodes was added to the getVolumeCounts method
-            %   of the activation_volume class, making this code obsolete.
+        function plotLimits(obj,x_points,y_points)
+            chars    = 'xzXZ';
+            %X_OFFSET = 
+            %TODO: Add dots at points instead of letters for better
+            %resolution
+            for iVal = 1:4
+               s = text(x_points(iVal),y_points(iVal),chars(iVal));
+               set(s,'FontSize',18)
+            end  
+        end
+        function [x_lim__amp,z_lim__amp,x_lim__y_val,z_lim__y_val] = ...
+                getLimitInfo(obj,stim_amps,y_values,threshold_matrix,xyz,internode_length)
+           %
+           %    [x_lim__amp,z_lim__amp,x_lim__y_val,z_lim__y_val] = ...
+           %            getLimitInfo(obj,stim_amps,y_values,threshold_matrix,xyz,internode_length)
+           %
             
-            in.current_diameter = [];
-            in.stim_width       = [];
-            in = processVarargin(in,varargin);
-            
-            %The goal here is to get the point at which a single
-            %electrode would start to recruit a neighboring electrodes
-            %neurons, complicating the interpretation of the analysis
-            %
-            %Instead we stop the analysis at the point in which
-            %independent populations would begin to overlap. This might
-            %not be optimal in terms of recruitment but it simplifies
-            %the analysis
-            
-            if size(current_electrode_pair,1) ~= 2
-                error('Code expects two electrodes for pairing')
-            end
-            
-            max_threshold_distance_vector = mean(current_electrode_pair) - current_electrode_pair(1,:);
-            
-            single_electrode_location = obj.ALL_ELECTRODE_PAIRINGS{1};
-            
-            %We expect that the single_electrode_location is centered.
-            %We then move the cell to the desired location.
-            options = {...
-                'electrode_locations',single_electrode_location,...
-                'tissue_resistivity',obj.TISSUE_RESISTIVITY};
-            
-            if ~isempty(in.stim_width)
-               options = [options 'stim_durations' [in.stim_width 2*in.stim_width]];
-            end
-            
-            xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
-            
-            xstim_obj.cell_obj.moveCenter(max_threshold_distance_vector)
-            
-            
-            if ~isempty(in.current_diameter)
-                cell_obj  = xstim_obj.cell_obj;
-                cell_obj.props_obj.changeFiberDiameter(in.current_diameter);    
-            end
-            
-            %The 1 indicates the stimulus sign, which given the scale
-            %factors means cathode stimulation
-            temp_result = xstim_obj.sim__determine_threshold(1);
-            
-            max_stim_level = floor(temp_result.stimulus_threshold);
+           %NOTE: We need to get the threshold values at the internode
+           %spacing, not at the bounds of the inputs ...
+           
+           %TODO: Clean this up
+           %The inputs should really be 3d unless y = 0 is the value
+           %passed in
+           %In the current code it is, but this is very sloppy
+           
+           %Assume y = 0 ...
+           %Squeeze results ...
+           
+           %TODO: Run 
+           z_max   = floor(internode_length/2); 
+           z_range = -z_max:z_max;
+           
+           %Get minimum at x = 0
+           %i.e. what is the lowest threshold where the x-limit comes into
+           %play
+           x_lim__amp = min(interpn(xyz{1},xyz{3},squeeze(threshold_matrix),0,z_range));
+           
+           %Get minimum at z = z_max
+           z_lim__amp = min(interpn(xyz{1},xyz{3},squeeze(threshold_matrix),xyz{1},z_max));
+           
+           x_lim__y_val = interp1(stim_amps,y_values,x_lim__amp);
+           z_lim__y_val = interp1(stim_amps,y_values,z_lim__amp);
+           
         end
     end
     

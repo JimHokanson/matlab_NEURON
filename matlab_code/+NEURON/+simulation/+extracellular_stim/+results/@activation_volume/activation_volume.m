@@ -23,10 +23,14 @@ classdef activation_volume < handle
         sim_logger
     end
     
-%     properties (Hidden)
-%         thresholds
-%         threshold_bounds
-%     end
+    properties (Hidden)
+        %.getThresholdsEncompassingMaxScale()
+        %------------------------------------------------------------------
+        cached_threshold_data_present = false
+        cached_threshold_data       
+        cached_max_stim_level = 0
+        cached_threshold_bounds
+    end
     
     %OPTIONS  =============================================================
     properties
@@ -78,13 +82,49 @@ classdef activation_volume < handle
             end
             
         end
-        function [slice_thresholds,xyz_new] = getSliceThresholds(obj,max_stim_level,dim_use,dim_value)
+        function [slice_thresholds,xyz_new] = getSliceThresholds(obj,max_stim_level,dim_use,dim_value,varargin)
+           %getSliceThresholds  Retrieves thresholds for a 2d plane
+           %
+           %    Specify the singular dimension and the value of that
+           %    dimension to examine for the other 2 dimensions.
+           %
+           %    [slice_thresholds,xyz_new] = getSliceThresholds(obj,max_stim_level,dim_use,dim_value,varargin)
+           %
+           %    OUTPUTS
+           %    ===========================================================
+           %    slice_thresholds :
+           %    xyz_new :
+           %
+           %    INPUTS
+           %    ===========================================================
+           %    max_stim_level :
+           %    dim_use   :
+           %    dim_value : Singular value of specified dimension in which
+           %                to retrieve thresholds.
+           %    
+           %    OPTIONAL INPUTS
+           %    ===========================================================
+           %    For the following see:
+           %    .getThresholdsAndBounds()
+           %    replication_points : default []
+           %    replication_center : default [0 0 0]
            %
            %
-           %    NOTE: This could be sped up ...
+           %    EXAMPLE
+           %    ===========================================================
+           %    [slice_thresholds,xyz_new] = getSliceThresholds(obj,max_stim_level,dim_use,dim_value,varargin)
            
-           thresholds = getThresholdsEncompassingMaxScale(obj,max_stim_level);
-           xyz        = obj.getXYZlattice(true);
+           in.replication_points = [];
+           in.replication_center = [0 0 0];
+           in = processVarargin(in,varargin);
+           
+           %thresholds = getThresholdsEncompassingMaxScale(obj,max_stim_level);
+           
+           [thresholds,x,y,z] = getThresholdsAndBounds(obj,max_stim_level,in.replication_points,in.replication_center);
+           
+           xyz = {x,y,z};
+           
+           %xyz        = obj.getXYZlattice(true);
            
            dim_use = arrayfcns.xyz.getNumericDim(dim_use);
            
@@ -122,38 +162,7 @@ classdef activation_volume < handle
     
     %THRESHOLD DATA METHODS  %=============================================
     methods
-        function thresholds = getThresholdsEncompassingMaxScale(obj,max_stim_level)
-            %Stim Bounds determination
-            %--------------------------------------------------------------------------
-            %This method expands the testing bounds so that the maximum stimulus level
-            %is encompassed in the threshold solution space.
-            
-            %NEURON.simulation.extracellular_stim.results.activation_volume.adjustBoundsGivenMaxScale
-            obj.adjustBoundsGivenMaxScale(max_stim_level)
-            
-            %Retrieval of thresholds
-            %--------------------------------------------------------------------------
-            
-            done = false;
-            while ~done
-                
-                thresholds = obj.xstim_obj.sim__getThresholdsMulipleLocations(obj.getXYZlattice(true),...
-                    'threshold_sign',sign(max_stim_level),'initialized_logger',obj.sim_logger);
-                
-                %TODO: Implement gradient testing
-                
-                %   Determine area of large gradient, test maybe 10 - 20 places
-                %   see how they compare to interpolation values at those locations
-                %   if they are too different, then change scale and rerun
-                %
-                %   If they are close, then do interpolation and return result
-                done = true;
-            end
-            
-            %TODO: Could add truncation option here ...
-            %NM, build as separate method ...
-            
-        end
+
     end
     
     
