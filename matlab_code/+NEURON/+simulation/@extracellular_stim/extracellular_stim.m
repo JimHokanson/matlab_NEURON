@@ -1,4 +1,4 @@
-classdef extracellular_stim < NEURON.simulation
+classdef extracellular_stim < NEURON.simulation & NEURON.loggable
     %
     %   Class: 
     %       NEURON.simulation.extracellular_stim
@@ -75,6 +75,9 @@ classdef extracellular_stim < NEURON.simulation
        cell_configuration      = []
     end
     
+    properties (Hidden)
+        logger %of the logger type
+    end
     %INITIALIZATION METHODS ==============================================
     methods (Access = private)
         function obj = extracellular_stim(xstim_options)
@@ -97,8 +100,73 @@ classdef extracellular_stim < NEURON.simulation
             obj.data_transfer_obj      = data_transfer(obj,obj.sim_hash);
             obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd_obj);
             
+            obj.logger = obj.xstim_logger(); %Is this ok?
         end
     end
+    
+    
+    %There are actually two superclasses here:
+    %1) is a logging class which has methods save, compare, etc
+    %
+    %   i.e. xstim_logger < logger
+    %        mrg_logger  < logger
+    %        anisotropic_tissue_logger < logger
+    %
+    %   has abstract methods, save, compare, update, etc, logNewInstance
+    %   
+    %
+    %2) a loggable class -> loggable_class? which has an abstract property
+    %called logger which should be instantiated in that class with an
+    %object of type 1 above
+    %
+    %       extracellular_stim < loggable_class
+    %       mrg < loggable_class
+    %
+    %   has an abstract property which should point to a specific logger
+    %   for that class
+    %       i.e. obj.logger = xstim_logger(obj) %pass in reference to parent
+    %       for later property access ...
+    %
+    
+    
+    %properties (Hidden,Abstract) - in logger super class
+    %   logger
+    %end
+%     %This definition below would go in the subclass
+%       It is a definition of the abtract property
+%     
+%    properties (Hidden)
+%         logger 
+%           In the constructor populate this property as such
+%           for example in xstim
+%                   obj.logger = NEURON.xstim.logger
+%     end
+%
+%   NOW What?
+%   In the superclass, I define these methods:
+% function log__save(obj)
+% obj.logger.save(); 
+% end
+% function log__comapare(obj)
+% obj.logger.compare();
+% en
+ 
+
+    methods (Hidden)
+
+        %Alternatively to this approach below
+        %
+        %   logger_property
+        %
+function log__save(obj)
+obj.logger.save(); 
+end
+function log__comapare(obj)
+obj.logger.compare();
+end
+    end
+    
+    
     methods
         function init__simulation(obj)
            %init__simulation Initializes simulation before being run
@@ -186,6 +254,16 @@ classdef extracellular_stim < NEURON.simulation
             %sim__getThresholdsMulipleLocations
             %
             %   sim__getThresholdsMulipleLocations(obj,cell_locations,varargin)
+            %
+            %   This method determines stimulus thresholds for the current
+            %   xstim obj where the cell location varies with respect to
+            %   the electrodes (as specified by the cell_locations input). 
+            %
+            %   Importantly, this method uses a prediction class (and
+            %   logging class) to determine thresholds as quickly as
+            %   possible. The logging class tries to catch repeated calls
+            %   and to serve the cached results instead of rerunning the
+            %   simulation.
             %
             %   INPUTS
             %   ===========================================================
