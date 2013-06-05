@@ -76,17 +76,47 @@ classdef sim_logger < handle_light
            %
            %    initializeLogging(obj,xstim_obj)
            %
-           %    This method can be used to initialize logging given a
-           %    particular extracellular stimulation object.
+           %    This method attempts to match the passed in xstim object
+           %    with previous runs which have used the logging system and
+           %    used xstim objects that were identical in properties.
+           %
+           %    If a match is not found, an entry is created so that future
+           %    runs will match this one.
            %
            %    INPUTS
            %    ===========================================================
            %    xstim_obj : Class: NEURON.simulation.extracellular_stim
            
            
-           %Here we force creation of a new matcher index
+           %Here we force creation of a new matcher index by making the
+           %second input value be "true"
            obj.findMatch(xstim_obj,true); 
+           
+           %Call adding function afterwards to register properties
+           %based on output from findMatch
+           
+           %Even better would be a method createSimulationIndex
+           %registerSimulationIndex(obj)
+           %
+           %    obj.registerSimulationIndex();
         end
+        
+        %This would be a better implementation
+%         function registerSimulationIndex(obj)
+%
+%            %The advantage of this method is that it is explicit
+%            %about what we want, and is the one place we go to do this
+%            
+%            %1) Determine if the xstim exists already or not
+%            %[simulation_index,is_new] = findMatch(obj,xstim_obj,add_if_not_found)
+%            
+%            %2) Based on the output, add or not
+%            
+%            %NOTE: this looks a lot like the current implementation of
+%            %findMatch but it is more explicit as to what we want
+%             
+%         end
+        
     end
     
     methods (Hidden)
@@ -116,11 +146,20 @@ classdef sim_logger < handle_light
            %NEURON.simulation.extracellular_stim.sim_logger.matcher
            [simulation_index,is_new] = obj.matcher_obj.getMatchingSimulation(xstim_obj,add_if_not_found);
            
+           
+           %This as well should probably be moved to an add method
            obj.current_simulation_number = simulation_index;
            
            if isempty(simulation_index)
                return
            end
+           
+           %NOTE: For better encapsulation this would be 
+           %made a separate method and would not be in this method
+           %The initialize logging could call this method if it wants to
+           %
+           %    The add if not found would be removed since the caller
+           %    would need to explicitly call the add method
            
            %For a valid sim logger entry, we'll create an associated data
            %object (either from scratch or reload from file)
@@ -154,6 +193,7 @@ classdef sim_logger < handle_light
                error('Simulation must currently be first initiated via .initializeLogging()')
            end
             
+           %NEURON.simulation.extracellular_stim.sim_logger.data.getThresholds
            thresholds = obj.simulation_data_obj.getThresholds(cell_locations,threshold_sign);
             
         end
