@@ -115,44 +115,44 @@ classdef electrode < handle_light
     end
 
     %FOR OTHERS    %=======================================================
-    methods (Hidden)
-        function [log_data,zero_scales] = getLogData(objs)
-            %getLogData
-            %
-            %   [log_data,zero_scales] = getLogData(objs)
-            %
-            %   OUTPUTS
-            %   ===========================================================
-            %   log_data    : output for sim_logger. Current format is the
-            %       duration of each stimulus and of each break, with the
-            %       exception of the first stimulus break (if present) at time
-            %       t = 0
-            %   zero_scales : (logical), for each stimulus transition time
-            %   this indicates whether or not
-            %
-            %
-            %   JAH NOTE: I would like to make this its own class
-            %   In addition it will support comparison methods
-            
-            [t_vec,all_scales] = getMergedStimTimes(objs);
-            
-            zero_scales = all(all_scales == 0,2);
-            
-            if ~zero_scales(end)
-                error('Expected no stimulation specification at the end')
-            end
-            %NOTE: If we stimulate until the end then
-            %we need to include a term that takes into account the length
-            %of the simulation
-            
-            if zero_scales(1)
-                log_data = diff(t_vec);
-            else
-                log_data = diff(t_vec(2:end));
-            end
-            
-        end
-    end
+%     methods (Hidden)
+%         function [log_data,zero_scales] = getLogData(objs)
+%             %getLogData
+%             %
+%             %   [log_data,zero_scales] = getLogData(objs)
+%             %
+%             %   OUTPUTS
+%             %   ===========================================================
+%             %   log_data    : output for sim_logger. Current format is the
+%             %       duration of each stimulus and of each break, with the
+%             %       exception of the first stimulus break (if present) at time
+%             %       t = 0
+%             %   zero_scales : (logical), for each stimulus transition time
+%             %   this indicates whether or not
+%             %
+%             %
+%             %   JAH NOTE: I would like to make this its own class
+%             %   In addition it will support comparison methods
+%             
+%             [t_vec,all_scales] = getMergedStimTimes(objs);
+%             
+%             zero_scales = all(all_scales == 0,2);
+%             
+%             if ~zero_scales(end)
+%                 error('Expected no stimulation specification at the end')
+%             end
+%             %NOTE: If we stimulate until the end then
+%             %we need to include a term that takes into account the length
+%             %of the simulation
+%             
+%             if zero_scales(1)
+%                 log_data = diff(t_vec);
+%             else
+%                 log_data = diff(t_vec(2:end));
+%             end
+%             
+%         end
+%     end
     
     
     %Info Retrieval   %====================================================
