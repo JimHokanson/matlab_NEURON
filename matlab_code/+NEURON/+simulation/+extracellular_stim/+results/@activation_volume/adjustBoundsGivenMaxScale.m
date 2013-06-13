@@ -1,15 +1,21 @@
-function adjustBoundsGivenMaxScale(obj,max_scale,varargin)
+function adjustBoundsGivenMaxScale(obj,max_scale)
 %adjustBoundsGivenMaxScale
 %
 %   adjustBoundsGivenMaxScale(obj,max_scale)
 %
-%   The goal of this method is to ensure that we encompass a sufficient
-%   testing volume so that for the maximum tested stimulus, we are aware of
-%   the tissue that would be activated by the given scale.
+%   This method adjusts the testing bounds of the object so that the all
+%   tissue with thresholds less than or equal to the maximum scale are
+%   encompassed within the bounds.
 %
-%   To do this, we find the thresholds at the current bounds. If any of the
-%   thresholds are less than the maximum stimulus to test, we grow the
+%   This involves finding the thresholds at the current bounds. If any of
+%   the thresholds are less than the maximum stimulus to test, we grow the
 %   bounds.
+%
+%   INPUTS
+%   =======================================================================
+%   max_scale  : signed max stimulus scale to make sure to encompass with
+%                the bounds
+%
 %
 %   Performance note:
 %   -----------------------------------------------------------------------
@@ -18,7 +24,7 @@ function adjustBoundsGivenMaxScale(obj,max_scale,varargin)
 %   include:
 %       1) overhead associated with code
 %       2) currently very poor threshold prediction given exptrapolation
-%               - may be slightly improved
+%               - there is room for improvement here ...
 %       3) in general better peformance given extremes of the stimulus
 %       inputs and the ability to improve prediction methods given more
 %       data
@@ -67,15 +73,15 @@ function adjustBoundsGivenMaxScale(obj,max_scale,varargin)
 %
 %   See Also:
 %       NEURON.simulation.extracellular_stim.results.activation_volume.checkBounds
+%
+%   FULL PATH
+%       NEURON.simulation.extracellular_stim.results.activation_volume.adjustBoundsGivenMaxScale
 
-in.sim_logger = [];
-in = processVarargin(in,varargin);
-
-min_history_all = zeros(100,4);
-bounds_all      = zeros(100,4);
+min_history_all = zeros(10,4); %10 is a guess of how many times we expand
+bounds_all      = zeros(10,4);
 cur_index       = 0;
 
-[too_small,min_abs_value_per_side] = obj.checkBounds(max_scale,'sim_logger',in.sim_logger);
+[too_small,min_abs_value_per_side] = obj.checkBounds(max_scale);
 
 min_history_all(1,:) = min_abs_value_per_side;
 
@@ -83,62 +89,58 @@ if ~any(too_small)
     return
 end
 
-fprintf(2,'Updating bounds to encompass a stimulation scale at %g\nCurrent min bound: %0.1f',max_scale,min(min_abs_value_per_side));
+fprintf('Updating bounds to encompass a stimulation scale at %g, Current min: %0.1f\n',max_scale,min(min_abs_value_per_side));
 
 %IMPORTANT: This is only valid for the axon model where z shouldn't need to
 %be resized ...
 done = false;
 while ~done
-    cur_index = cur_index + 1;
+    cur_index                    = cur_index + 1;
     min_history_all(cur_index,:) = min_abs_value_per_side;
-    bounds_all(cur_index,:) = [obj.bounds(1,2) obj.bounds(2,2) obj.bounds(1,1) obj.bounds(2,1)];
+    bounds_all(cur_index,:)      = obj.bounds(1:4);
     
     if cur_index == 3
-        %NOTE: For right now we'll only run this once
+        %NOTE: For right now we'll only run this once ...
         for iSide = 1:4
             if too_small(iSide)
+                %NOTE: This could be improved ...
+                %We are only using two points
                 new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'linear','extrap');
-                switch iSide
-                    case 1
-                        obj.bounds(1,2) = round2(new_bound,obj.step_size,@floor);
-                    case 2
-                        obj.bounds(2,2) = round2(new_bound,obj.step_size,@ceil);
-                    case 3
-                        obj.bounds(1,1) = round2(new_bound,obj.step_size,@floor);
-                    case 4
-                        obj.bounds(2,1) = round2(new_bound,obj.step_size,@ceil);
-                end
+                
+                %DEBUG PLOTTING ...
+%                 plot(min_history_all(1:3,iSide),bounds_all(1:3,iSide),'-o')
+%                 hold all
+%                 plot(max_scale,new_bound,'-o');
+%                 hold off
+                
+                obj.setBoundValue(iSide,new_bound);
             end
         end
-        %TODO: Add on some check that things haven't flipped
-        %I had pchip interpolation and it made my positive bound negative
-        %and my negative bound positive
     else
-        
-        %indices, bottom, top left, right
-        %           -y     y   -x     x
-        
-        if too_small(1)
-            obj.bounds(1,2) = obj.bounds(1,2) - obj.step_size;
-        end
-        
-        if too_small(2)
-            obj.bounds(2,2) = obj.bounds(2,2) + obj.step_size;
-        end
-        
-        if too_small(3)
-            obj.bounds(1,1) = obj.bounds(1,1) - obj.step_size;
-        end
-        
-        if too_small(4)
-            obj.bounds(2,1) = obj.bounds(2,1) + obj.step_size;
-        end
+        obj.growBounds(find(too_small)); %#ok<FNDSB>
     end
     
-    [too_small,min_abs_value_per_side] = obj.checkBounds(max_scale,'sim_logger',in.sim_logger);
+    [too_small,min_abs_value_per_side] = obj.checkBounds(max_scale);
     
-    fprintf(2,', %0.1f',min(min_abs_value_per_side));
+    %NOTE: This is where I was thinking of putting in some logic that 
+    %looked for where the minimum might be, and then only testing in that
+    %area instead of testing the entire side
+    %-----------------------------------------------------------------------
+%     %Crap we need to take into account only reshaping some dimensions ...
+%     i.e. xsides will grow if y changes
+%
+%    2:end-1 if both y's a reshaped
+%    1:end-1 if only top (bottom?) is changed
+%    2:end  if ...
+%     
+%     thresh_diff = cell(1,4);
+%     for iSide = 1:4
+%        thresh_diff = thresh2{iSide}(2:end-1,:) - thresh{iSide};
+%     end
+    
+    fprintf('Current min: %0.1f\n',min(min_abs_value_per_side));
     
     done = ~any(too_small);
 end
-fprintf(2,'\n');
+
+fprintf('Final Bounds:: %s\n',obj.getBoundsString);

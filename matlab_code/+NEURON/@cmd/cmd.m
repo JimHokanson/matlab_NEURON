@@ -7,7 +7,7 @@ classdef cmd < handle_light
     
     properties (Hidden)
         comm_obj        %Class: Implementation of NEURON.comm_obj
-        cmd_log_obj     %Class: NEURON.command_log
+        log    %Class: NEURON.command_log
     end
     
     properties
@@ -21,27 +21,23 @@ classdef cmd < handle_light
     
     %Constructor  ----------------------------------------------
     methods (Hidden)
-        function obj = cmd(paths_obj,cmd_log_obj,cmd_options)
+        function obj = cmd(cmd_options)
             %cmd
             %
-            %  obj = cmd(paths_obj,cmd_log_obj,cmd_options)
+            %   obj = cmd(cmd_options)
             %
-            %  This method should be called by the NEURON constructor.
+            %   INPUTS
+            %   ===================================================
+            %   cmd_options : NEURON.cmd.options
+            %
+            %  This method should be called by:
+            %  NEURON.simulation
             
             obj.options     = cmd_options;
-            obj.cmd_log_obj = cmd_log_obj;
+            obj.log = NEURON.cmd.log;
             
-            %Load communication object based on system type
-            %--------------------------------------------------------------
-            if ispc
-                if cmd_options.win_use_java
-                    obj.comm_obj = NEURON.comm_obj.java_comm_obj(paths_obj);
-                else
-                    obj.comm_obj = NEURON.comm_obj.windows_comm_obj(paths_obj);
-                end
-            else
-                obj.comm_obj = NEURON.comm_obj.java_comm_obj(paths_obj);
-            end
+            %Load communication object
+            obj.comm_obj = NEURON.comm_obj.java_comm_obj();
         end
     end
     
@@ -77,7 +73,7 @@ classdef cmd < handle_light
             [success,result_str] = write(obj.comm_obj,command_str,in);
             
             if opt.log_commands
-                obj.command_log_obj.addCommand(command_str,result_str,success);
+                obj.log.addCommand(command_str,result_str,success);
             end
             
             %Error Handling and Interactive Display Handling
@@ -296,7 +292,7 @@ classdef cmd < handle_light
                 throw_error = true;
             end
             
-            start_dir_cmd  = sprintf('chdir("%s")',NEURON.createNeuronPath(new_dir));
+            start_dir_cmd  = sprintf('chdir("%s")',NEURON.s.createNeuronPath(new_dir));
             [flag,results] = obj.write(start_dir_cmd);
             
             %chdir => -1, failed
@@ -344,9 +340,8 @@ classdef cmd < handle_light
     end
     
     methods (Static)
-        
+        %NEURON.cmd.loadMatrix
         data = loadMatrix(filePath)
     end
-    
 end
 

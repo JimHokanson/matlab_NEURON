@@ -1,10 +1,9 @@
-classdef options
+classdef options < NEURON.simulation.options
     %
     %   Class:
-    %   NEURON.simulation.intracellular_stim.options
+    %       NEURON.simulation.intracellular_stim.options
     
     properties
-        sim_options = NEURON.simulation.options
     end
     
     methods

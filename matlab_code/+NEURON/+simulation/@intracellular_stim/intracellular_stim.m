@@ -9,6 +9,11 @@ classdef intracellular_stim < NEURON.simulation
     %   1) Create cell
     %   2) place electrodes - single electrode for now ... ?
     %           - how to handle location
+    %
+    %
+    %   TODO:
+    %   --------------------------------------------------------
+    
     
     properties
         cell_obj
@@ -26,7 +31,11 @@ classdef intracellular_stim < NEURON.simulation
                 istim_options = NEURON.simulation.intracellular_stim.options;
             end
             
-            obj@NEURON.simulation(in);
+            obj@NEURON.simulation(istim_options);
+        end
+        function init__simulation(obj)
+           %1) Create cell
+           %2) Create stimulation info
         end
     end
     

@@ -5,8 +5,10 @@ classdef user_options < handle_light
     %   Class:
     %   NEURON.user_options
     %
-    %   The user options
+    %   SINGLETON: Use NEURON.user_options.getInstance
     %
+    %   OPTION DEFINITIONS
+    %   ===================================================================
     %
     %   IMPROVEMENTS
     %   ==============================================================
@@ -15,12 +17,14 @@ classdef user_options < handle_light
     %   3) Describe rules for properties and organization in file
     
     
-    %Required Properties
-    %----------------------------------
+    %Required Properties   %===============================================
     properties
         temp_data_base_path %(dir) This base path is used for having a location
         %to send data to NEURON and back again. The contents are not
         %critical and can be deleted at any time.
+        neuron_exe_path %path to neuron executable:
+        %For windows, point to nrniv.exe
+        %For mac, point to nrniv path
     end
     
     properties (Hidden)
@@ -28,22 +32,25 @@ classdef user_options < handle_light
         required_properties  %Populated dynamically based on position.
     end
     
-    %Class Required Properties
-    %----------------------------------
+    %======================================================================
+    %Class Required Properties   %=========================================
     properties
-        sim_logger_root_path  %(dir)
+        sim_logger_root_path  %(dir)  See class: 
+        %NEURON.simulation.extracellular_stim.sim_logger
     end
     
-    %Optional Properties
-    %----------------------------------------------------------------------
+    %======================================================================
+    %Optional Properties   %===============================================
     properties
-        hoc_editor  %(file_dir) Path to hoc editor. If the editor doesn't support
+        hoc_editor  %Path to hoc editor. If the editor doesn't support
         %filenames as an input, then perhaps we could expand this to a
-        %function handle.
+        %function handle. See NEURON.s.editHoc
     end
     
     properties (Hidden)
-        defined_properties
+        defined_properties  %When implemented properly this will be used
+        %in conjunction with the meta class ?, to grab all properties above
+        %and save their current values to file
     end
     
     properties (Hidden,Constant)
@@ -124,7 +131,7 @@ classdef user_options < handle_light
         function options_file_filepath = getFilePath(obj,missing_file_ok)
             %
             %
-            %
+            %   options_file_filepath = getFilePath(obj,*missing_file_ok)
             %
             
             if ~exist('missing_file_ok','var')

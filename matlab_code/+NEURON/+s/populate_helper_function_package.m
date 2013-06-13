@@ -33,6 +33,7 @@ function populate_helper_function_package
 %- user32           - currently we don't support class copying ...
 %                     Ideally we wouldn't need this function at all ...
 
+MATLAB_ROOT_PATH_NAME = 'matlab_code'; %Used to ensure correct path location
 RNEL_FUNCTIONS_FOLDER = 'RNEL_functions';
 
 methods = {
@@ -53,9 +54,16 @@ methods = {
     'unique2'                   %NEURON.extracellular_stim_electrode.getMergedStimTimes
     };
 
-my_path          = fileparts(mfilename('fullpath')); %This will return the
-%path to the @NEURON directory ...
-matlab_root_path = fileparts(my_path);
+my_path          = fileparts(mfilename('fullpath')); 
+matlab_root_path = fileparts(fileparts(my_path));
+
+[~,cur_dir_name] = fileparts(matlab_root_path);
+
+if ~strcmp(cur_dir_name,MATLAB_ROOT_PATH_NAME)
+%This is a check just in case we move this file.
+%I've already moved this function once to try and clean things up
+    error('Function path relative to library functions path has changed')
+end
 
 base_functions_directory = fullfile(matlab_root_path,RNEL_FUNCTIONS_FOLDER);
 

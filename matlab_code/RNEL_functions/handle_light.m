@@ -7,7 +7,12 @@ classdef handle_light < handle
          notify@handle(varargin{:});
       end
       function delete(varargin)
-         delete@handle(varargin{:});
+          try
+              delete@handle(varargin{:});
+          catch ME
+              formattedWarning('WHAT THE HECK')
+              keyboard
+          end
       end
       function Hmatch = findobj(varargin)
          Hmatch = findobj@handle(varargin{:});

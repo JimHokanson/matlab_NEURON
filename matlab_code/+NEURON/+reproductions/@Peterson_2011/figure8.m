@@ -36,7 +36,7 @@ xstim.elec_objs.setStimPattern(stim_start_time,stim_duration,stim_amps);
 
 thresh_active = zeros(N_diams,N_EAS);
 thresh_mdf1 = thresh_active;
-thresh_mdf2 = thresh_active;
+%thresh_mdf2 = thresh_active;
 % get thresholds
 for iDiam = 1:N_diams
     fiber_diameter = fiber_diams(iDiam);
@@ -46,23 +46,25 @@ for iDiam = 1:N_diams
     % test all EAS
     thresh_active(iDiam,:) = xstim.sim__getThresholdsMulipleLocations(cell_locations);
     thresh_mdf1(iDiam,:) = obj.computeThresholdMultipleLocations(xstim,cell_locations,1);
-    thresh_mdf2(iDiam,:) = obj.computeThresholdMultipleLocations(xstim,cell_locations,2);
+    %thresh_mdf2(iDiam,:) = obj.computeThresholdMultipleLocations(xstim,cell_locations,2);
     
 end
 
 % normalize thresholds
 thresh_active = normalizeThresholdsLocal(thresh_active);
 thresh_mdf1 = normalizeThresholdsLocal(thresh_mdf1);
-thresh_mdf2 = normalizeThresholdsLocal(thresh_mdf2);
+%thresh_mdf2 = normalizeThresholdsLocal(thresh_mdf2);
 
 % plot
 for iEAS = 1:N_EAS
     figure
-    plot(fiber_diams,thresh_active(:,iEAS),'o',fiber_diams,thresh_mdf1(:,iEAS),'s--',fiber_diams,thresh_mdf2(:,iEAS),'-','markersize',6)
-    fontsize = 15;
+    %plot(fiber_diams,thresh_active(:,iEAS),'o',fiber_diams,thresh_mdf1(:,iEAS),'s--',fiber_diams,thresh_mdf2(:,iEAS),'-','markersize',6)
+    plot(fiber_diams,thresh_active(:,iEAS),'o',fiber_diams,thresh_mdf1(:,iEAS),'s--','markersize',10,'linewidth',3)
+    fontsize = 18;
     xlabel('Axon Diameter [\mum]','fontsize',fontsize)
     ylabel('Normalized Activation Threshold','fontsize',fontsize)
-    legend('Active Axon','Single Node','Weighted Sum')
+    %legend('Active Axon','Single Node','Weighted Sum')
+    legend('Active Axon','Single Node')
     title(sprintf('Electrode-to-Axon Spacing = %i \\mum',EAS_all(iEAS)),'fontsize',fontsize+2)
     xlim([4 20])
     ylim([0 1.2])

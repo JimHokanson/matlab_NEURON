@@ -34,7 +34,7 @@ electrodes.setStimPattern(stim_start_time,stim_duration,stim_amps);
 % initialize thresholds
 thresh_active = zeros(N_elec_spacing,1);
 thresh_mdf1 = thresh_active;
-thresh_mdf2 = thresh_active;
+%thresh_mdf2 = thresh_active;
 
 for i_elec_spacing = 1:N_elec_spacing
     % move electrodes
@@ -46,22 +46,24 @@ for i_elec_spacing = 1:N_elec_spacing
     thresh_active(i_elec_spacing) = result.stimulus_threshold;
     %mdf1
     thresh_mdf1(i_elec_spacing) = obj.computeThreshold(xstim,1);
-    thresh_mdf2(i_elec_spacing) = obj.computeThreshold(xstim,2);
+    %thresh_mdf2(i_elec_spacing) = obj.computeThreshold(xstim,2);
     
 end
 
 % threshold error
 mdf1_error = obj.thresholdError(thresh_mdf1,thresh_active);
-mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
+%mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
 
 % plot
 figure
-plot(elec_spacings_all,mdf1_error,'s--',elec_spacings_all,mdf2_error,'-')
-fontsize = 15;
+%plot(elec_spacings_all,mdf1_error,'s--',elec_spacings_all,mdf2_error,'-')
+plot(elec_spacings_all,mdf1_error,'s--','markersize',10,'linewidth',3)
+fontsize = 18;
 xlabel('Adjacent Electrode Spacing [\mum]','fontsize',fontsize)
 ylabel('Threshold Error [%]','fontsize',fontsize)
 %ylim([-30 50])
-legend('Single Node Method','Weighted Sum Method')
+%legend('Single Node Method','Weighted Sum Method')
+legend('Single Node Method')
 set(gca,'fontsize',fontsize - 2)
 
 %% b, c

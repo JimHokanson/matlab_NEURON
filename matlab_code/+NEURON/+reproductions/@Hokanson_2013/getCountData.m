@@ -1,8 +1,8 @@
-function [dual_counts,single_counts,stim_amplitudes] = getCountData(obj,...
+function [dual_counts,single_counts,stim_amplitudes,extras] = getCountData(obj,...
     max_stim_level,electrode_locations,stim_widths,fiber_diameters,varargin)
 %getCountData
 %
-%   [dual_counts,single_counts,stim_amplitudes] = getCountData(obj,...
+%   [dual_counts,single_counts,stim_amplitudes,extras] = getCountData(obj,...
 %                   max_stim_level,electrode_locations,stim_widths,fiber_diameters,varargin)
 %
 %   This method computes the volume of tissue activated for the specified
@@ -16,7 +16,7 @@ function [dual_counts,single_counts,stim_amplitudes] = getCountData(obj,...
 %   INPUTS
 %   =======================================================================
 %   max_stim_level      : Max stimulus amplitude (can be + or -), must be
-%                         an integer
+%                         an integer. 
 %
 %   NOTE: The three values below can either match the maximum # of
 %   conditions to test, or can be singular.
@@ -28,6 +28,8 @@ function [dual_counts,single_counts,stim_amplitudes] = getCountData(obj,...
 %                         each cell, see:
 %       NEURON.simulation.extracellular_stim.electrode.setStimPattern
 %   fiber_diameters     : (units um) vector
+%
+%
 %
 %   OPTIONAL INPUTS
 %   =======================================================================
@@ -42,18 +44,31 @@ function [dual_counts,single_counts,stim_amplitudes] = getCountData(obj,...
 %                       electrode location in dual_counts.
 %   stim_amplitudes : Stimulus amplitudes used for outputs given
 %                       max_stim_level input.
+%   extras : Example
+%       dual_slice_thresholds: {1x5 cell}
+%              dual_slice_xyz: {{1x3 cell}  {1x3 cell}  {1x3 cell}  {1x3 cell}  {1x3 cell}}
+%     single_slice_thresholds: {1x5 cell}
+%            single_slice_xyz: {{1x3 cell}  {1x3 cell}  {1x3 cell}  {1x3 cell}  {1x3 cell}}
+%           internode_lengths:
 %
 %   See Also:
 %       NEURON.simulation.extracellular_stim.create_standard_sim.
 %       NEURON.simulation.extracellular_stim.create_standard_sim.sim__getActivationVolume
 %   
 
+extras = struct;
+
 in.stim_resolution = 0.5;
 in = processVarargin(in,varargin);
+
+in.stim_resolution = abs(in.stim_resolution);
 
 SINGLE_ELECTRODE_PAIRING = obj.ALL_ELECTRODE_PAIRINGS{1};
 STIM_START_TIME          = 0.1;
 PHASE_AMPLITUDES         = [-1 0.5];
+
+SLICE_DIM_USE   = 2;
+SLICE_DIM_VALUE = 0;
 
 %MLINT
 %==========================================================================
@@ -66,17 +81,6 @@ assert(round(max_stim_level) == max_stim_level,'max_stim_level must be an intege
 assert(iscell(electrode_locations),'Electrode locations input must be a cell array')
 assert(iscell(stim_widths),'Stim widths input must be a cell array')
 assert(isvector(fiber_diameters),'Fiber diameters input must be a vector')
-
-in.stim_resolution = abs(in.stim_resolution);
-
-if max_stim_level < 0
-    stim_amplitudes_original = -1:-1:max_stim_level;
-    stim_amplitudes_final    = -1:-1*in.stim_resolution:max_stim_level;
-else
-    stim_amplitudes_original = 1:max_stim_level;
-    stim_amplitudes_final    = 1:in.stim_resolution:max_stim_level;
-end
-stim_amplitudes = stim_amplitudes_final; %populate output
 
 %Step 1 - replicate inputs if necessary
 %--------------------------------------------------------------
@@ -109,15 +113,20 @@ end
 
 %Step 2 - Single Counts
 %--------------------------------------------------------------------------
-n_stim        = max_stim_level; %1:max_stim_level
-single_counts = zeros(n_stim,n_conditions);
+%TODO: Should be static method of activaton object ...
+n_stim        = length(1:in.stim_resolution:max_stim_level);
+
+single_counts           = zeros(n_stim,n_conditions);
+single_slice_thresholds = cell(1,n_conditions);
+single_slice_xyz        = cell(1,n_conditions);
+internode_lengths       = zeros(1,n_conditions);
 
 %We save some time if we can use the same act_obj for all instances of the
 %single electrode case
 if all(fiber_diameters) == fiber_diameters(1) && ...
     all(cellfun(@(x) isequal(x,stim_widths{1}),stim_widths))
 
-    act_obj = helper__getActivationObjectInstance(obj,fiber_diameters(1),...
+    [act_obj,internode_length] = helper__getActivationObjectInstance(obj,fiber_diameters(1),...
         stim_widths{1},PHASE_AMPLITUDES,SINGLE_ELECTRODE_PAIRING,STIM_START_TIME);
 
     use_single_act_obj = true;
@@ -131,18 +140,28 @@ for iBase = 1:n_conditions
     fprintf('Running Base Condition %d/%d\n',iBase,n_conditions);
     
     if ~use_single_act_obj
-    act_obj = helper__getActivationObjectInstance(obj,fiber_diameters(iBase),...
+    [act_obj,internode_length] = helper__getActivationObjectInstance(obj,fiber_diameters(iBase),...
         stim_widths{iBase},PHASE_AMPLITUDES,SINGLE_ELECTRODE_PAIRING,STIM_START_TIME);
     end
     
     single_counts(:,iBase) = act_obj.getVolumeCounts(max_stim_level,...
-        'replication_points',electrode_locations{iBase});
+        'replication_points',electrode_locations{iBase},'stim_resolution',in.stim_resolution);
+    
+    [single_slice_thresholds{iBase},single_slice_xyz{iBase}] = ... 
+        act_obj.getSliceThresholds(max_stim_level,SLICE_DIM_USE,SLICE_DIM_VALUE,'replication_points',electrode_locations{iBase});
+    
+    internode_lengths(iBase) = internode_length;
+    
+    %TODO: Retrieve threshold image at y = 0, and full extents of x & z
+    %=> Need new activation_volume method ...
 end
 
 
 %Step 3 - Dual Stim Counts
 %--------------------------------------------------------------------------
-dual_counts = zeros(n_stim,n_conditions);
+dual_counts             = zeros(n_stim,n_conditions);
+dual_slice_thresholds = cell(1,n_conditions);
+dual_slice_xyz        = cell(1,n_conditions);
 
 for iDual = 1:n_conditions
     
@@ -151,29 +170,21 @@ for iDual = 1:n_conditions
     act_obj = helper__getActivationObjectInstance(obj,fiber_diameters(iDual),...
         stim_widths{iDual},PHASE_AMPLITUDES,electrode_locations{iDual},STIM_START_TIME);
     
-    dual_counts(:,iDual) = act_obj.getVolumeCounts(max_stim_level);
+    [dual_counts(:,iDual),stim_amplitudes] = act_obj.getVolumeCounts(max_stim_level,'stim_resolution',in.stim_resolution);
+    [dual_slice_thresholds{iDual},dual_slice_xyz{iDual}] = ... 
+        act_obj.getSliceThresholds(max_stim_level,SLICE_DIM_USE,SLICE_DIM_VALUE);
     
 end
 
-%Step 4 - Interpolation of results
-%--------------------------------------------------------------------------
-n_stim_final = length(stim_amplitudes_final); 
-single_counts_interpolated = zeros(n_stim_final,n_conditions);
-dual_counts_interpolated   = zeros(n_stim_final,n_conditions);
-
-for iCondition = 1:n_conditions
-    single_counts_interpolated(:,iCondition) = interp1(stim_amplitudes_original(:),...
-                single_counts(:,iCondition),stim_amplitudes_final(:),'pchip');
-    dual_counts_interpolated(:,iCondition) = interp1(stim_amplitudes_original(:),...
-                dual_counts(:,iCondition),stim_amplitudes_final(:),'pchip');        
-end
-
-dual_counts   = dual_counts_interpolated;
-single_counts = single_counts_interpolated; 
+extras.dual_slice_thresholds   = dual_slice_thresholds;
+extras.dual_slice_xyz          = dual_slice_xyz;
+extras.single_slice_thresholds = single_slice_thresholds;
+extras.single_slice_xyz        = single_slice_xyz;
+extras.internode_lengths       = internode_lengths;
 
 end
 
-function act_obj = helper__getActivationObjectInstance(obj,fiber_diameter,...
+function [act_obj,internode_length] = helper__getActivationObjectInstance(obj,fiber_diameter,...
     stim_widths,PHASE_AMPLITUDES,electrode_locations,STIM_START_TIME)
 
 options = {...
@@ -182,6 +193,9 @@ options = {...
 xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
 
 xstim_obj.cell_obj.props_obj.changeFiberDiameter(fiber_diameter);
+
+internode_length = xstim_obj.cell_obj.getAverageNodeSpacing;
+
 xstim_obj.elec_objs.setStimPattern(STIM_START_TIME,stim_widths,PHASE_AMPLITUDES);
 
 %NEURON.simulation.extracellular_stim.sim__getActivationVolume

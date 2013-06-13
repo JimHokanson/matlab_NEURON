@@ -5,7 +5,7 @@ classdef options
     
     %Startup Properties     %==============================================
     properties
-       win_use_java  = true 
+       
     end
     
     %Peristent Properties   %==============================================

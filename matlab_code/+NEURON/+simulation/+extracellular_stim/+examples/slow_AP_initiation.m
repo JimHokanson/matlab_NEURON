@@ -21,7 +21,7 @@ in.STIM_AMPS          = 1;
 %BUILD THE MODEL
 %=============================================================================
 obj = NEURON.simulation.extracellular_stim;
-obj.n_obj.debug = true;
+%obj.n_obj.debug = true;
 
 %tissue ------------------------------------------------
 set_Tissue(obj,NEURON.tissue.homogeneous_anisotropic(in.TISSUE_RESISTIVITY));

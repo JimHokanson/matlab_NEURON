@@ -45,8 +45,8 @@ etc
 	strdef final_t_path, final_v_path
 
 	//NOTE: sim_hash is global ...
-	sprint(final_t_path,"%s%s%s","inputs/",sim_hash,"t_vec.bin")
-	sprint(final_v_path,"%s%s%s","inputs/",sim_hash,"v_ext.bin")
+	sprint(final_t_path,"%s/%s%s",binary_data_root_path,sim_hash,"t_vec.bin")
+	sprint(final_v_path,"%s/%s%s",binary_data_root_path,sim_hash,"v_ext.bin")
 	
 	file__loadDataVector(final_t_path,xstim__t_vec)
 	file__loadDataVector(final_v_path,xstim__v_ext_in)

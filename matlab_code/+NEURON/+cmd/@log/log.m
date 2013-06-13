@@ -1,7 +1,7 @@
-classdef command_log < handle_light
+classdef log < handle_light
     %
     %   Class:
-    %       NEURON.command_log
+    %       NEURON.cmd.log
     %
     %   This class can log commands sent to NEURON, and the responses
     %   that are received back.

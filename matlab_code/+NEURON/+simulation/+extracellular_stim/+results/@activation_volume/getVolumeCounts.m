@@ -1,12 +1,23 @@
-function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
+function [stim_level_counts,stim_amplitudes,xyz_cell] = getVolumeCounts(obj,max_stim_level,varargin)
 %getVolumeCounts
 %
 %   stim_level_counts = getVolumeCounts(obj,stim_levels,varargin)
 %
+%
+%   USAGE NOTES
+%   ======================================================================
+%   1) Tested stimulus levels currently run from 1 to the max stimulus
+%   level
+%
+%   INPUTS
+%   =======================================================================
+%   max_stim_level : sign of this value is important. It indicates the
+%   maximum stimulus scaling value to use when getting count points.
+%
 %   OUTPUTS
 %   =======================================================================
-%   stim_level_counts : (vector, same sign) For each stimulus level input
-%       this specifies the # of cubic microns.
+%   stim_level_counts : (vector, same sign as max_stim_level) For each 
+%       stimulus level input this specifies the # of cubic microns.
 %
 %   OPTIONAL INPUTS
 %   =======================================================================
@@ -18,11 +29,13 @@ function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
 %   replication_center : (default [0 0 0]), This defines the center of
 %           the original data. The data is moved such that the center is
 %           located at each replication point.
+%   stim_resolution : (default 0.5), This indicates the resolution of 
+%   the stimulus amplitudes that are tested, and for which, count data is
+%   returned.
 %
 %   IMPROVEMENTS
 %   =======================================================================
-%   1) ind2sub could be removed, it is very slow
-%   2) Implement gradient testing to ensure that the mesh is significantly
+%   1) Implement gradient testing to ensure that the mesh is significantly
 %      refined enough to allow interpolation.
 %
 %   See Also:
@@ -32,91 +45,37 @@ function stim_level_counts = getVolumeCounts(obj,max_stim_level,varargin)
 %   FULL PATH:
 %       NEURON.simulation.extracellular_stim.results.activation_volume.populateVolumeCounts
 
-%Performance:
-%---------------------------------------------------------------------
-%This function used to be really slow. It's performance still isn't great.
-%Here are some notes:
-%
-%1) Rewrote linear interpolation to take advantage of constant weights but
-%limited memory
-%2) Used accumarray instead of histc which in limited testing seemed to
-%increase performance as well
-%3)
-
-
+%Input Handling
+%--------------------------------------------------------------------------
 in.replication_points = [];
 in.replication_center = [0 0 0];
-
+in.stim_resolution    = 0.5;
 in = processVarargin(in,varargin);
 
-if sign(max_stim_level) == 1
-    stim_levels = 1:max_stim_level;
+%Input Handling
+%--------------------------------------------------------------------------
+in.stim_resolution = abs(in.stim_resolution);
+
+if max_stim_level < 0
+    max_stim_level = floor(max_stim_level);
 else
-    stim_levels = -1:1:max_stim_level;
+    max_stim_level = ceil(max_stim_level);
 end
 
-stim_level_counts = zeros(length(stim_levels),1);
+abs_max_scale = abs(max_stim_level);
 
-%Step 1: Stim level input processing
+n_stim_levels = abs_max_scale; %We'll go from 1 to n
+
+%Threshold retrieval
 %--------------------------------------------------------------------------
-if isempty(stim_levels)
-    error('stim_levels can not be empty')
-end
+[abs_thresholds,x,y,z] = obj.getThresholdsAndBounds(max_stim_level,in.replication_points,in.replication_center);
 
-if ~all(sign(stim_levels) == sign(stim_levels(1)))
-    error('All stim levels to test must have the same sign')
-end
-
-abs_stim_levels = abs(stim_levels);
-%TODO: add issorted check - ascending
-
-abs_max_scale = max(abs_stim_levels);
-
-%Reapply sign
-signed_max_scale = abs_max_scale*sign(stim_levels(1));
-
-%Step 2: Stim Bounds determination
-%--------------------------------------------------------------------------
-xstim_obj  = obj.xstim_obj;
-sim_logger = xstim_obj.sim__getLogInfo;
-
-%NEURON.simulation.extracellular_stim.results.activation_volume.adjustBoundsGivenMaxScale
-obj.adjustBoundsGivenMaxScale(signed_max_scale,'sim_logger',sim_logger)
-
-%Step 3: Retrieval of thresholds
-%--------------------------------------------------------------------------
-done = false;
-while ~done
-    
-    thresholds = xstim_obj.sim__getThresholdsMulipleLocations(obj.getXYZlattice(true),...
-        'threshold_sign',sign(stim_levels(1)),'initialized_logger',sim_logger);
-    
-    %TODO: Implement gradient testing
-    
-    %   Determine area of large gradient, test maybe 10 - 20 places
-    %   see how they compare to interpolation values at those locations
-    %   if they are too different, then change scale and rerun
-    %
-    %   If they are close, then do interpolation and return result
-    done = true;
-end
-
-abs_thresholds = abs(thresholds);
-
-%Possible Improvement: Shrink bounds here to only interpolate over
-%region where thresholds are within range
-
-%Step 4 - Get Counts
-%--------------------------------------------------------------------------
-if ~isempty(in.replication_points)
-    [abs_thresholds,x,y,z] = helper__createReplicatedData(obj,abs_thresholds,in);
-else
-    [x,y,z] = obj.getXYZlattice(false); %false - return as vectors
-end
+xyz_cell = {x y z};
 
 internode_length = obj.getInternodeLength;
 max_z_index_keep = floor(internode_length);
-n_z_final = z(end)-z(1);
+n_z_final        = z(end)-z(1); %# of final values in z after interpolation
+%NOTE: This suggests we are interpolating down to 1 unit (1 micron)
 if n_z_final < max_z_index_keep
     %TODO: Provide more detail in error -> give #s
     error('Insufficient testing volume given length of current fiber')
@@ -131,6 +90,108 @@ end
 nx = length(x);
 ny = length(y);
 nz = length(z);
+
+[f1,f2,f3,f4,f5,f6,f7,f8] = helper__getWeights(x,y,z);
+
+%TODO: Remove need for this
+dz = z(2)-z(1);
+
+fprintf('Integrating Volume')
+
+percentage_display_mask = false(1,nx);
+percentage_display_mask(ceil((0.1:0.1:0.9)*nx)) = true;
+
+%With linear interpolation, if none of the values on the cube (3d) are
+%less than the value we are looking for or if any of the values are NaN, 
+%then we don't need to bother with interpolating between those values.
+all_values_greater = helper__cubeFunction(@and,abs_thresholds > abs_max_scale);
+isnan_any_neighbor = helper__cubeFunction(@or,isnan(abs_thresholds));
+
+cube_test_mask = ~(all_values_greater | isnan_any_neighbor);
+
+%We'll use these values to limit the histc function to only
+%be over the range of possible outcomes from linear interpolation, i.e. all
+%values must be between the minimum and the maximum, which can
+%significantly reduce the time for the binary search to find a result as
+%the range is often much less than the range of the entire data set
+min_cube = floor(helper__cubeFunction(@min,abs_thresholds));
+max_cube = ceil(helper__cubeFunction(@max,abs_thresholds));
+
+
+N = zeros(n_stim_levels,1);
+for ix = 1:nx-1    
+    %Print progress to command window, keep on same line
+    if percentage_display_mask(ix)
+        fprintf(', %0.0f%%',100*ix/nx);
+    end
+    
+    if ~any(cube_test_mask(ix,:,:))
+        continue
+    end
+    
+    for iy = 1:ny-1
+        last_z_index = 0;
+        for iz = 1:nz-1
+            if cube_test_mask(ix,iy,iz)
+                temp = ...
+                    f1*abs_thresholds(ix, iy,   iz)   + f2*abs_thresholds(ix+1, iy  , iz)   + ...
+                    f3*abs_thresholds(ix, iy+1, iz)   + f4*abs_thresholds(ix+1, iy+1, iz)   + ...
+                    f5*abs_thresholds(ix, iy  , iz+1) + f6*abs_thresholds(ix+1, iy  , iz+1) + ...
+                    f7*abs_thresholds(ix, iy+1, iz+1) + f8*abs_thresholds(ix+1, iy+1, iz+1);
+                
+                %TODO: This test should really be a test on iz ...
+                if last_z_index + dz > max_z_index_keep
+                    %JAH TODO: Fix this, my head hurts and I can't
+                    %do this math right now ...
+                    temp_indices = last_z_index+1:last_z_index+dz;
+                    temp(:,:,temp_indices > max_z_index_keep) = abs_max_scale + 1;
+                end
+                
+                %NOTE: The following few lines of code force the resulting
+                %counts to be on a scale from 1 to the maximum stimulus
+                %amplitude 
+                %i.e. absolute_stim_amplitudes = 1:abs_max_scale
+                min_stim_level_cur = min_cube(ix,iy,iz);
+                
+                %limit the max to abs_max_scale
+                max_stim_level_cur = min(max_cube(ix,iy,iz),abs_max_scale);
+                
+                temp2 = histc(temp(:),min_stim_level_cur:max_stim_level_cur);
+
+                %NOTE: temp2 has one extra bin for exactly equal to the end
+                %value which we don't care about ...
+                N(min_stim_level_cur+1:max_stim_level_cur) = ...
+                            N(min_stim_level_cur+1:max_stim_level_cur) + temp2(1:end-1);
+            end
+            last_z_index = last_z_index + dz;
+        end
+    end
+end
+fprintf('\n'); %Terminates line for progress display.
+
+stim_level_counts = cumsum(N)';
+abs_stim_amplitudes   = 1:abs_max_scale;
+
+final_abs_stim_amplitudes = 1:in.stim_resolution:abs_max_scale;
+
+stim_level_counts = interp1(abs_stim_amplitudes,stim_level_counts,final_abs_stim_amplitudes,'pchip');
+
+if sign(max_stim_level) == -1
+   stim_amplitudes = -1*final_abs_stim_amplitudes(end:-1:1);
+else
+   stim_amplitudes = final_abs_stim_amplitudes; 
+end
+
+%Optional interpolaton
+
+
+end
+
+function [f1,f2,f3,f4,f5,f6,f7,f8] = helper__getWeights(x,y,z)
+%
+%   TODO: Finish checks ...
+%
+%
 
 %TODO: These should be integers, check
 dx = x(2)-x(1);
@@ -181,197 +242,29 @@ f6 = x2_3d.*y1_3d.*z2_3d;  %2 1 2
 f7 = x1_3d.*y2_3d.*z2_3d;  %1 2 2
 f8 = x2_3d.*y2_3d.*z2_3d;  %2 2 2
 
-%This is a temporary variable used to all interpolated values over
-%all y and z but only one set of x points
-thresh_values_interpolated = zeros(dx,dy*(ny-1),n_z_final);
-
-fprintf('Integrating Volume')
-
-percentage_display_mask = false(1,nx);
-percentage_display_mask(ceil((0.1:0.1:0.9)*nx)) = true;
-
-for ix = 1:nx-1
-    last_y_index = 0;
-    
-    %Print progress to command window, keep on same line
-    if percentage_display_mask(ix)
-        fprintf(', %0.0f%%',100*ix/nx);
-    end
-    
-    %iterating over abs_thresholds
-    %- abs_thresholds(ix,:,:)
-    if ~any(abs_thresholds(ix,:,:) <= abs_max_scale)
-        continue
-    end
-    
-    for iy = 1:ny-1
-        last_z_index = 0;
-        for iz = 1:nz-1
-            thresh_values_interpolated(:,last_y_index+1:last_y_index+dy,last_z_index+1:last_z_index+dz) = ...
-                f1*abs_thresholds(ix, iy,   iz)   + f2*abs_thresholds(ix+1, iy  , iz)   + ...
-                f3*abs_thresholds(ix, iy+1, iz)   + f4*abs_thresholds(ix+1, iy+1, iz)   + ...
-                f5*abs_thresholds(ix, iy  , iz+1) + f6*abs_thresholds(ix+1, iy  , iz+1) + ...
-                f7*abs_thresholds(ix, iy+1, iz+1) + f8*abs_thresholds(ix+1, iy+1, iz+1);
-            last_z_index = last_z_index + dz;
-        end
-        last_y_index = last_y_index + dy;
-    end
-    
-    %Let's update counts here.
-    %----------------------------------------------------------------
-    %- We could wait for all loops over x but this would stress the
-    %memory of the computer
-    %- We could do this inside the z loop, but the extra function calls
-    %would probably slow things down
-    
-    %This approach is quicker and more efficient than histc but relies
-    %heavily on the amplitudes of interest being 1:1:abs_max_scale
-    %
-    %We could do multiplication
-    
-    truncated_data = ceil(thresh_values_interpolated(:,:,1:max_z_index_keep));
-    ranged_data    = truncated_data(truncated_data <= abs_max_scale);
-    if ~isempty(ranged_data)
-        %accumarray counts how many of each integer it sees
-        %and places that count at the corresponding index, i.e. the
-        %value at index
-        %7 will tell us how many 7s are presented in 'ranged_data'
-        %or more specifically, how many points in space had a threshold
-        %between 6 and 7 (as ceil() rounds all these values up to 7
-        %
-        %Using cumsum we can get the total # of points with thresholds
-        %below each integer value.
-        N                 = accumarray(ranged_data(:),ones(numel(ranged_data),1),[abs_max_scale 1]);
-        N_cumulative      = cumsum(N);
-        stim_level_counts = stim_level_counts + N_cumulative;
-        
-        %This code is equivalent but I find it to be slower ...
-        %             N2 = histc(thresh_values_interpolated(:,:,1:max_z_index_keep),stim_levels_histc,3);
-        %             N2_xy = reshape(N2,[n_xy n_stim]);
-        %             N2_cumulative = cumsum(N2_xy(:,1:end-1),2);
-        %             N3_cumulative = sum(N2_cumulative,1);
-        %
-        %             if any(N_cumulative' ~= N3_cumulative(1:length(N)))
-        %                 keyboard
-        %             end
-    end
-    
 end
 
-fprintf('\n'); %Terminates line for progress display.
-
-stim_level_counts = stim_level_counts'; %Transpose back to row vector
-
-end
-
-function [replicated_thresholds,x,y,z] = helper__createReplicatedData(obj,abs_thresholds,in)
+function result = helper__cubeFunction(f,value)
 %
-%   The goal of this function is to replicate data given the locations we
-%   wish to replicate the data to. This is specifically for the single
-%   electrode case.
-
-xyz_orig         = obj.getXYZlattice(true);
-[V_temp,xyz_new] = arrayfcns.replicate3dData(abs_thresholds,xyz_orig,...
-                        in.replication_points,obj.step_size,...
-                        'data_center',in.replication_center);
-
-x = xyz_new{1};
-y = xyz_new{2};
-z = xyz_new{3};
-                    
-replicated_thresholds = squeeze(min(V_temp,[],4));
-
-% %1) Get New Bounds
-% %--------------------------------------------------------------------------
-% n_replication_points = size(in.replication_points,1);
-% 
-% min_replication_points = min(in.replication_points);
-% max_replication_points = max(in.replication_points);
-% 
-% new_min_extents = obj.bounds(1,:) + min_replication_points;
-% new_max_extents = obj.bounds(2,:) + max_replication_points;
-% 
-% x = new_min_extents(1):obj.step_size:new_max_extents(1);
-% y = new_min_extents(2):obj.step_size:new_max_extents(2);
-% z = new_min_extents(3):obj.step_size:new_max_extents(3);
-% 
-% %2) Interpolate all voltages to "new points" on lattice
-% %--------------------------------------------------------------------------
-% V_temp = NaN(length(y),length(x),length(z),n_replication_points);
-% 
-% 
-% 
-% [Xo,Yo,Zo] = meshgrid(xyz_orig{:});
-% 
-% [Xn,Yn,Zn] = meshgrid(x,y,z);
-% 
-% for iPoint = 1:n_replication_points
-%     shift_x = in.replication_points(iPoint,1) - in.replication_center(1);
-%     shift_y = in.replication_points(iPoint,2) - in.replication_center(1);
-%     shift_z = in.replication_points(iPoint,3) - in.replication_center(1);
-%     V_temp(:,:,:,iPoint) = interp3(Xo+shift_x, Yo+shift_y, Zo+shift_z,abs_thresholds,Xn,Yn,Zn);
-% end
-% % % 
-% % % %Take min over all replicated points, then switch x&y to be correct
-% % % replicated_thresholds = permute(min(V_temp,[],4),[2 1 3]);
-
-%3) NaN check in Z
-%--------------------------------------------------------------------------
-%We currently assume that we can truncate in z, since the solution should
-%repeat itself in that dimensionnnn. This is not true if the solution is
-%the result of z-expansion, where real data doesn't fill the z axis.
-
-%Example
-%1   NaN NaN
-%2   3   NaN
-%4   3   1
-%NaN 3   2
-%NaN NaN 4
-
-%We'll currently just check that we don't have this problem. It should only
-%occur with replicating points that vary in z.
-
-xy_any_NaN = any(isnan(replicated_thresholds),2);
-xy_all_NaN = all(isnan(replicated_thresholds),2);
-
-some_but_not_all_z_NaN = any(xy_any_NaN(:) & ~xy_all_NaN(:));
-
-if any(some_but_not_all_z_NaN)
-    error('Code does not yet support partial NaN z axis, counts will be incorrect')
-    %NOTE: We can fix this problem by shifting all real data up to higher index
-    %z. We would only get one shift per xy location. We would then need to
-    %make sure that for each xy location, we have enough real valued z to
-    %estimate z at that value. This should always be the case unless higher
-    %level code fails to test z properly...
-    %
-    %    Example 1: Fix to above
-    %    1 3 1
-    %    2 3 2
-    %    4 3 4
-    %
-    %    This is good for the counts, asssuming we only need 3 values
-    %
-    %    1   NaN 2
-    %    NaN  3  4
-    %    5    6  7
-    %    NaN  8  9
-    %
-    %    Could only be shifted to:
-    %    1    3   2
-    %    NaN  6   4
-    %    5    8   9
-    %    NaN
-    %
-    %    Mentally, one can think of this as for each column, taking a node
-    %    of Ranvier and varying its row position, we can't break space rules
-    %    for the rows by putting the 1 & 5 next to each otehr. In addition
-    %    if we need 3 values, column 1 doesn't have enough tested values,
-    %    but again earlier code which sets the z-axis based on the internode
-    %    length must have failed for this to occur.
-    %
-    
-end
-
+%   This function evaluates a function at all corners of a cube and links
+%   the results of each evaluation, which is useful for functions which
+%   link over all points like, max(), min(), and(), and or(), where we want
+%   to know, for example, the max of all points that make up the corner of
+%   a cube
 %
-%For counting purposes, replace this with:
+%   i.e. max(all_corner_points) => r =  max(corner1,corner2)
+%            r = max(r,corner3), r = max(r,corner4), etc
+%
+
+result = f(        value(1:end-1,1:end-1,1:end-1) ,...
+                   value(1:end-1,1:end-1,2:end  ));
+result = f(result, value(1:end-1,2:end  ,1:end-1));
+result = f(result, value(1:end-1,2:end  ,2:end  ));
+result = f(result, value(2:end  ,1:end-1,1:end-1));
+result = f(result, value(2:end  ,1:end-1,2:end  ));
+result = f(result, value(2:end  ,2:end  ,1:end-1));
+result = f(result, value(2:end  ,2:end  ,2:end  ));
+
+
 end
+

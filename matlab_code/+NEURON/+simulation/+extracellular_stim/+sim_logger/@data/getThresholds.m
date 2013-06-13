@@ -108,6 +108,9 @@ cur_sim_index = 0;
 %This is low priority
 threshold_options_obj = xstim_obj.threshold_options_obj;
 
+%This variable is used to allow the prediction method to use new stimuli
+%that have been learned (thresholds ascertained) when predicting new
+%thresholds.
 %NOTE: We don't want to set redundant inputs true here as we will use
 %this to help with prediction, which won't benefit from redundant
 %information
@@ -121,6 +124,8 @@ for iGroup = 1:n_groups
     current_indices = groups_of_indices_to_run{iGroup};
     n_indices       = length(current_indices);
     
+    fprintf('%s %d:%d =>',datestr(now,'HH:MM:SS'),cur_sim_index+1,cur_sim_index+n_indices) 
+    
     %Threshold prediction
     %-----------------------------------------------------------------------
     %NEURON.simulation.extracellular_stim.threshold_predictor.predictThresholds
@@ -130,29 +135,20 @@ for iGroup = 1:n_groups
         current_indices,...
         thresholds); %#ok<FNDSB>
     
-    thresholds_local = zeros(1,n_indices);
-    for iIndex = 1:n_indices
-        current_index = current_indices(iIndex);
-        
-        %Move cell
-        cell_obj.moveCenter(cell_locations(current_index,:));
-        
-        %NEURON.simulation.extracellular_stim.sim__determine_threshold
-        %NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
-        %NEURON.simulation.extracellular_stim.results.threshold_testing_history
-        result_obj = xstim_obj.sim__determine_threshold(threshold_sign*predicted_thresholds(iIndex));
-        
-        thresholds_local(iIndex) = threshold_sign*result_obj.stimulus_threshold;
-        
-        if isnan(thresholds_local(iIndex))
-            error('Something went wrong, NaN encountered')
-        end
-    end
+    %TODO: When the prediction error is consistently low
+    %consider updating the groups to avoid the large time that prediction
+    %can take
     
+    fprintf('Prediction: %0.1fs, ',toc(t_group))
+    
+    %Actual retrieval of new threshold values ...
+    thresholds_local = helper__getThresholdsOfIndices(threshold_sign,...
+    cell_locations,current_indices,predicted_thresholds,cell_obj,xstim_obj);
+    
+
     new_threshold_learned_mask(current_indices) = true;
     
     %TODO: Evaluate performance. Consider stopping due to known answer ...
-    
     
     thresholds(current_indices) = thresholds_local;
     
@@ -174,8 +170,8 @@ for iGroup = 1:n_groups
     time_run_single_group = toc(t_group);
     
     cur_sim_index = cur_sim_index + n_indices;
-    fprintf(2,'Finished %d of %d, avg time per sim: %0.3g, Avg Error Last Run: %0.3g\n',...
-        cur_sim_index,n_sims_total,time_run_single_group/n_indices,avg_error);
+    fprintf('Last Index: %d, group avg time: %0.3g, error: %0.3g\n',...
+        cur_sim_index,time_run_single_group/n_indices,avg_error);
     
 end
 toc(t_start_all)
@@ -184,8 +180,51 @@ thresholds = helper__cleanupThresholds(thresholds,m_obj,threshold_sign);
 
 end
 
-function thresholds = helper__cleanupThresholds(thresholds,m_obj,threshold_sign)
+function thresholds_local = helper__getThresholdsOfIndices(threshold_sign,...
+    cell_locations,current_indices,predicted_thresholds,cell_obj,xstim_obj)
 %
+%
+%
+%
+
+n_indices        = length(current_indices);
+thresholds_local = zeros(1,n_indices);
+
+if n_indices > 9
+   %I want to do a countdown from 9 to 1
+   %to indicate finishing
+   display_number = zeros(1,n_indices);
+   display_number(ceil((0.1:0.1:0.9)*n_indices)) = 9:-1:1;
+end
+for iIndex = 1:n_indices
+    current_index = current_indices(iIndex);
+
+    if n_indices > 9
+       if display_number(iIndex) ~= 0
+          fprintf('%d,',display_number(iIndex)) 
+       end
+    end
+
+    %Move cell
+    cell_obj.moveCenter(cell_locations(current_index,:));
+
+    %NEURON.simulation.extracellular_stim.sim__determine_threshold
+    %NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
+    %NEURON.simulation.extracellular_stim.results.threshold_testing_history
+    result_obj = xstim_obj.sim__determine_threshold(threshold_sign*predicted_thresholds(iIndex));
+
+    thresholds_local(iIndex) = threshold_sign*result_obj.stimulus_threshold;
+
+    if isnan(thresholds_local(iIndex))
+        error('Something went wrong, NaN encountered')
+    end
+end
+
+
+end
+
+function thresholds = helper__cleanupThresholds(thresholds,m_obj,threshold_sign)
+%helper__cleanupThresholds
 %
 %   thresholds = helper__cleanupThresholds(thresholds,m_obj,threshold_sign)
 
