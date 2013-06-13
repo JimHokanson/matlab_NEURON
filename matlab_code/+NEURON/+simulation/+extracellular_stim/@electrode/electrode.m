@@ -1,4 +1,4 @@
-classdef electrode < handle_light
+classdef electrode < NEURON.loggable
     %
     %   Class:
     %       NEURON.simulation.extracellular_stim.electrode
@@ -60,6 +60,10 @@ classdef electrode < handle_light
         %recomputing the applied stimulus to a cell.
     end
     
+    properties
+        logger
+    end
+    
     %INITIALIZATION METHODS ===============================================
     methods (Static)
         function objs = create(xyz,xstim_obj)
@@ -115,6 +119,16 @@ classdef electrode < handle_light
     end
 
     %FOR OTHERS    %=======================================================
+    
+    methods
+        function logger = getLogger(obj)
+            if(isempty(obj.logger))                
+                obj.logger = NEURON.simulation.extracellular_stim.electrode.elec_logger(obj);
+            end
+            logger = obj.logger;
+        end
+    end
+    
     methods (Hidden)
         function [log_data,zero_scales] = getLogData(objs)
             %getLogData

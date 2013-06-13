@@ -1,6 +1,11 @@
 classdef ID < handle_light
+    %
+    %
+    %   Class:
+    %   NEURON.loggable.ID
 
     properties(SetAccess = private)
+        class_type
         type
         row
     end

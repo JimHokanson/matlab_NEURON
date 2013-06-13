@@ -1,6 +1,9 @@
-classdef auto_logger < logger
+classdef auto_logger < NEURON.loggable.logger
     %
-    
+    %
+    %   Class:
+    %   NEURON.loggable.logger.auto_logger
+    %
     %This makes comparison of a set of scalars not as appealing since
     %we now need to do more comparisons
     %
@@ -24,6 +27,7 @@ classdef auto_logger < logger
         %Column 1 - prop_name
         %Column 2 - compare_type - string or function handle
         %Column 3 - custom retrieval method
+        IS_SINGULAR_OBJECT
         AUTO_INFO
         %========================================
         %types
@@ -33,16 +37,16 @@ classdef auto_logger < logger
         %- cellFP    - Varying lengths of matrices
     end
     
-    properties (Abstract)
-        log_manager
-        loggable
-        type
+    properties 
+        %log_manager
+        %loggable
+        %type 
+        n_trials = 0
     end
     
     properties
         log_events
         log_IDs
-        next = 1
     end
     
     methods(Abstract)
@@ -51,12 +55,12 @@ classdef auto_logger < logger
     
     
     methods
-        function obj = auto_logger(obj)
-            
+        function obj = auto_logger(parent)
+            obj.parent = parent;
             %define props
             prop_names = obj.getPropNames;
             for iProp = 1:length(prop_names)
-                addprop(obj,prop_names{iProp})
+                addprop(obj,prop_names{iProp});
             end
             
             %Reload objects
@@ -158,6 +162,13 @@ classdef auto_logger < logger
             propNames = obj.AUTO_INFO(:,1);
         end
         
+        function typeNames = getTypeNames(obj)
+            %Try to reduce the # of places where we randomly index into
+            %a structure
+            typeNames = obj.AUTO_INFO(:,2);
+        end
+        
+        
         function methods = getComparisonMethods(obj)
             methNames = obj.AUTO_INFO(:,3);
             len = length(methNames);
@@ -169,7 +180,7 @@ classdef auto_logger < logger
         end
         
         %This needs to be finished... will the
-        function fHandle = getHandle(obj, fName, type)
+        function fHandle = getHandle(obj, type)
             %Returns the appropriate handle to the function needed
             %depending on the kind of functionyour running.. if not
             %specified it returns the default for that type of function
@@ -197,15 +208,12 @@ classdef auto_logger < logger
     methods
         
         function var = getVar(varname)
-            str = strcat('obj.',varname);
-            var = eval(str);
+           var = obj.(varname);
         end
         
-        function var = extendVar(varname, row)
-            var = getVar(varname);
-            var = [var;row];
-            str = strcat('obj.',varname,' = var');
-            eval(str);
+        function var = extendVar(obj, varname, row)
+            obj.(varname) = [obj.(varname) row]; %yes? 
+            var = obj.(varname);
         end
         
         function addLogProps(obj)
@@ -220,24 +228,17 @@ classdef auto_logger < logger
             end
         end
         
-        %function compare(obj, varname)
-        %end
         
+        %finish this later
         function loadProps(obj)
             path = getLoggerPath(obj);
             p = load(path);
             if p.version == obj.VERSION
-                %IS THE EVAL FUNCTION BAD? I'm not using it in a way that
-                %breaks down our OOP and encapscilation.
                 addLogProps(obj);
-                objTemp = 'obj.';
-                filTemp = ' = p.';
                 names = getPropNames(obj);
                 len = length(names);
                 for i = 1:len
                     var = names{i};
-                    commandStr = strcat(objTemp,var,filTemp,var);
-                    eval(commandStr);
                 end
             end
         end    
@@ -270,6 +271,152 @@ classdef auto_logger < logger
         function mask = compareVectorExact(old,new)
             %NOTE: Might need to do empty ...
         end
+    end
+    
+    %Property Processing Methods ==========================================
+    methods 
+        function new_value = getNewValue(obj,prop_name,retrieval_method)
+           %
+           %    retrieval method
+           %    1) default ''
+           %    2) string -> predefined method to run -> implemented in
+           %                auto_logger
+           %    3) 
+           
+           parent = obj.parent;
+           is_singular = obj.IS_SINGULAR_OBJECT;
+           
+% % %            if isempty(retrieval_method)
+% % %               new_value = parent.(prop_name); 
+% % %            elseif ischar(retrieval_method)
+% % %               fh = str2func(retrieval_method);
+% % %               new_value = fh(obj,prop_name);
+% % %            else
+% % %               new_value = retrieval_method(p,prop_name); 
+% % %            end
+           
+           
+           if isempty(retrieval_method)
+              new_value = parent.(prop_name); 
+           elseif ischar(retrieval_method)
+               switch retrieval_method
+                   case 'numeric'
+                       if ~is_singular
+                          new_value = [parent.(prop_name)];
+                       else
+                          error('Implementation not yet defined')
+                       end
+                   case 'string'
+                       if ~is_singular
+                          new_value = {parent.(prop_name)};
+                       else
+                          error('Implementation not yet defined')
+                       end 
+                   otherwise
+                       error('Case not yet handled')
+               end
+           else
+               %function handle
+               new_value = feval(retrieval_method,obj,p,prop_name);
+           end
+        end
+        
+        function output_indices = compare(obj, new, old, type, input_indices)
+            %depending on the type find the appropriate comparison method
+            %return indices of the same prop...
+            
+            switch type
+                case 'simple_numeric'
+                   temp_indices = find(new == old(input_indices));
+                case 'cellFP'
+                    %- each old element is an entry in a cell array
+                    %- the entries themselves are arrays
+                    %- the values inside should be considered floating point
+                    %   so we need to do a floating point comparison
+                    
+                    %old = {[1 2 3] [1 2 3 4 5 6] [0 100 0] };
+                    
+                    truncated_values = old(input_indices);
+                    
+                    %Remove dimensions that are not the same length
+                    %------------------------------------------------------
+                    same_size   = cellfun('length',truncated_values) == length(new);
+                    temp_matrix = vertcat(truncated_values{same_size});
+                    
+                    %Use matrix comparision function for final comparison
+                    %------------------------------------------------------
+                    I = obj.compare(new,temp_matrix,'matrixFP',1:size(temp_matrix,1));
+                    
+                    %Adjust indices to match input scale ...
+                    %-----------------------------------------------------
+                    same_size_indices = find(same_size);
+                    temp_indices      = same_size_indices(I);
+                    
+                    keyboard
+                case 'matrixFP'
+                    a
+                    
+                otherwise
+                    error('Type %s not recognized',type)
+            end
+            
+            output_indices = input_indices(temp_indices);
+            
+            %method = getCompar
+            %ind = find(~cellfun(method, new, old));
+        end
+        
+    end
+    
+    
+    %Implementation of Abstract Methods ===================================
+    methods
+        
+        %move later with other similar methods, K?
+        function output = getRetrievalMethods(obj)
+            %returns functionHandles for retieving.
+            output = obj.AUTO_INFO(:,3); 
+        end
+        
+        
+        function update()
+        end
+        
+
+        
+        function deleteIndices()
+        end
+
+        %function [ID,is_new] = find_addIfNotFound()
+        
+        
+        function addEntry(obj)
+           %
+        end
+        
+        
+%         function id = createID(obj,match_row)
+%             
+%             
+%             if ~exist('match_row','var')
+%                match_row = -1; 
+%             end
+%             
+%            if ~exist('match_row','var')
+%                %Make null call to constructor
+%               id = NEURON.loggable.ID; 
+%            else
+%                %
+%                id = NEURON.loggable.ID(match_row);
+%            end
+%             
+%            id = NEURON.loggable.ID;
+%            id.setType(obj.type);
+%            id.setRow(match_row);
+%         end
+        function save()
+        end
+    
     end
     
 end
