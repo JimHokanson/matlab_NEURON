@@ -75,6 +75,14 @@ classdef extracellular_stim < NEURON.simulation
        cell_configuration      = []
     end
     
+    properties
+        previous_runs = []
+    end
+    
+    properties
+        logger
+    end
+    
     %INITIALIZATION METHODS ==============================================
     methods (Access = private)
         function obj = extracellular_stim(xstim_options)
@@ -97,6 +105,7 @@ classdef extracellular_stim < NEURON.simulation
             obj.data_transfer_obj      = data_transfer(obj,obj.sim_hash);
             obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd_obj);
             
+            %obj.logger = xstim_logger(obj);
         end
     end
     methods
@@ -146,12 +155,15 @@ classdef extracellular_stim < NEURON.simulation
         
         function set_Tissue(obj,tissue_obj)
             obj.tissue_obj = tissue_obj;
+           % obj.logger.set_TissLogger(tissue_obj);
         end
         function set_Electrodes(obj,elec_objs)
             obj.elec_objs = elec_objs;
+            %obj.logger.set_ElecLogger(elec_objs);            
         end
         function set_CellModel(obj,cell_obj)
             obj.cell_obj = cell_obj;
+            %obj.logger.set_CellLogger(cell_obj);
             
             %NOTE: This must follow population of this object
             %in the cell class
