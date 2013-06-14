@@ -18,7 +18,6 @@ classdef logger < dynamicprops
     end
     
     properties
-        ID %might not need/want this :P
         log
         parent
     end

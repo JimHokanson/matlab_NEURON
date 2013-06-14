@@ -324,7 +324,10 @@ classdef auto_logger < NEURON.loggable.logger
         function output_indices = compare(obj, new, old, type, input_indices)
             %depending on the type find the appropriate comparison method
             %return indices of the same prop...
-            
+            if isempty(input_indices)
+                output_indices = [];
+                return;
+            end
             switch type
                 case 'simple_numeric'
                    temp_indices = find(new == old(input_indices));
@@ -354,8 +357,10 @@ classdef auto_logger < NEURON.loggable.logger
                     
                     keyboard
                 case 'matrixFP'
-                    a
-                    
+                    keyboard
+                    temp = old(input_indices,:);
+                    difference = bsxfun(@minus, new, temp);
+                    temp_indices = find(sum(abs(difference)),2);
                 otherwise
                     error('Type %s not recognized',type)
             end
