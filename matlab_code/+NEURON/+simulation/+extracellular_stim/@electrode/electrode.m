@@ -1,4 +1,4 @@
-classdef electrode < handle_light
+classdef electrode < NEURON.super
     %
     %   Class:
     %       NEURON.simulation.extracellular_stim.electrode
@@ -11,6 +11,7 @@ classdef electrode < handle_light
     %       NEURON.simulation.extracellular_stim
     %
     %   CONSTRUCTOR CALL:
+    %   ===================================================================
     %   NEURON.simulation.extracellular_stim.electrode.create
     %
     %   DATA SETTING METHODS
@@ -31,10 +32,21 @@ classdef electrode < handle_light
     %   matrix of all electrode channels and their stimulus amplitude over
     %   time.
     %   3) Could make it easier to insert a train of pulses ...
+    %       This should be executed 
     %   4) Add ability to change # of electrodes
+    %
+    %   QUESTIONS
+    %   ===================================================================
+    %   1) How can I merge this with the work done for an intracellular
+    %   stimulation electrode? In particular, a timing for stimulus pattern
+    %   class may be necessary to for both.
+    %
     
     properties (Hidden)
        parent  %Class: NEURON.simulation.extracellular_stim
+       %Known uses: TODO: Make this dynamic from the help class 
+       %1) 
+       
     end
     
     properties (SetAccess = private)
@@ -57,7 +69,11 @@ classdef electrode < handle_light
         %.objectChanged()
         configuration = 1 %This was added on to allow querying as to whether
         %or not it had changed since last asked. This is primarily for
-        %recomputing the applied stimulus to a cell.
+        %recomputing the applied stimulus to a cell. In other words, if
+        %something about this has changed since the last time the
+        %simulation computed the applied stimulus, then the stimulus needs
+        %to be recalculated since changing parameters here would change the
+        %applied stimulus.
     end
     
     %INITIALIZATION METHODS ===============================================
@@ -181,7 +197,7 @@ classdef electrode < handle_light
         %   - the goal is to provide a method which
         %   will mark up current plots with the locations of the electrodes
         %end
-        function plot(objs)
+        function plot(objs,amp_scalar)
            %plot(objs)
            %
            %    
@@ -193,6 +209,15 @@ classdef electrode < handle_light
            %    2) amplitude data 
            %        -> offsets ????
            
+           if ~exist('amp_scalar','var')
+               amp_scalar = 1;
+           end
+           
+           [stim_amps,time] = getPlotData(objs,amp_scalar);
+           
+           stairs(time,stim_amps)
+           
+           %keyboard
            
         end 
         function [stim_amps,time] = getPlotData(objs,amp_scalar)
@@ -213,7 +238,6 @@ classdef electrode < handle_light
            %    ===========================================================
            %    amp_scalar : 
            %
-           %    OUTPUTP
            
            %Currently this algorithm just needs to:
            %1) add on a final time
@@ -249,6 +273,12 @@ classdef electrode < handle_light
     %EVENT HANDLING    %===================================================
     methods (Access = private, Hidden)
         function objectChanged(objs)
+            %
+            %   objectsChanged(objs)
+            %
+            %   Any method that changes some property of the object should
+            %   call this method to update the configuration numbers.
+            
             for iObj = 1:length(objs)
                 obj = objs(iObj);
                 obj.configuration = obj.configuration + 1;

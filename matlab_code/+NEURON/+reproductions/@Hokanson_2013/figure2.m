@@ -110,28 +110,32 @@ keyboard
 %==========================================================================
 %==========================================================================
 %TODO: Add labels
-I = 1;
+
+n_fibers = length(fiber_diameters);
+
+for iFigure = 1:n_fibers
+
 figure
 subplot(2,1,1)
 
 % [temp,xyz_single_temp] = arrayfcns.replicate3dData(thresholds_single,...
 %                             XYZ_MESH_SINGLE,current_pair,STEP_SIZE);
 
-cur_xyz = extras.single_slice_xyz{I};
-imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.single_slice_thresholds{I})')
+cur_xyz = extras.single_slice_xyz{iFigure};
+imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.single_slice_thresholds{iFigure})')
 set(gca,'CLim',[0 40])
 axis equal
 colorbar
 
 
 subplot(2,1,2)
-cur_xyz = extras.dual_slice_xyz{I};
-imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.dual_slice_thresholds{I})')
+cur_xyz = extras.dual_slice_xyz{iFigure};
+imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.dual_slice_thresholds{iFigure})')
 set(gca,'CLim',[0 40])
 axis equal
 colorbar
 
-
+end
 
 
 end

@@ -1,9 +1,7 @@
 function varargout = computeStimulus(obj,varargin)
 %computeStimulus Computes the stimulus
 %
-%   varargout = computeStimulus(obj,varargin)
-%
-%   [tvec,vall] = computeStimulus(obj,varargin)
+%   [tvec,vall,cell_xyz_all] = computeStimulus(obj,varargin)
 %
 %   Computes the stimulus that is applied to a cell.
 %
@@ -43,6 +41,7 @@ function varargout = computeStimulus(obj,varargin)
 %
 %   See Also:
 %       NEURON.cell.extracellular_stim_capable.getXYZnodes
+%       NEURON.simulation.extracellular_stim.plot__AppliedStimulus
 
 INF_MOVE_CELL = sqrt(1/3); %Distance between this (for x,y,and z) and 0 is 1
 
@@ -118,6 +117,7 @@ end
 if nargout
     varargout{1} = t_vec;
     varargout{2} = v_all;
+    varargout{3} = cell_xyz_all;
 else
     obj.v_all = v_all;
     obj.t_vec = t_vec;

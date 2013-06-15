@@ -33,7 +33,7 @@ function [dual_counts,single_counts,stim_amplitudes,extras] = getCountData(obj,.
 %
 %   OPTIONAL INPUTS
 %   =======================================================================
-%   stim_resolution : 
+%   stim_resolution : (default 0.5) 
 %
 %   OUTPUTS
 %   =======================================================================
@@ -44,12 +44,13 @@ function [dual_counts,single_counts,stim_amplitudes,extras] = getCountData(obj,.
 %                       electrode location in dual_counts.
 %   stim_amplitudes : Stimulus amplitudes used for outputs given
 %                       max_stim_level input.
-%   extras : Example
+%   extras : This became a bit of a catch all for things that I needed ...
+%       Example ------
 %       dual_slice_thresholds: {1x5 cell}
 %              dual_slice_xyz: {{1x3 cell}  {1x3 cell}  {1x3 cell}  {1x3 cell}  {1x3 cell}}
 %     single_slice_thresholds: {1x5 cell}
 %            single_slice_xyz: {{1x3 cell}  {1x3 cell}  {1x3 cell}  {1x3 cell}  {1x3 cell}}
-%           internode_lengths:
+%           internode_lengths: [1 x n]
 %
 %   See Also:
 %       NEURON.simulation.extracellular_stim.create_standard_sim.
@@ -58,7 +59,7 @@ function [dual_counts,single_counts,stim_amplitudes,extras] = getCountData(obj,.
 
 extras = struct;
 
-in.stim_resolution = 0.5;
+in.stim_resolution = 0.1;
 in = processVarargin(in,varargin);
 
 in.stim_resolution = abs(in.stim_resolution);
@@ -144,6 +145,7 @@ for iBase = 1:n_conditions
         stim_widths{iBase},PHASE_AMPLITUDES,SINGLE_ELECTRODE_PAIRING,STIM_START_TIME);
     end
     
+    %NEURON.simulation.extracellular_stim.results.activation_volume.getVolumeCounts
     single_counts(:,iBase) = act_obj.getVolumeCounts(max_stim_level,...
         'replication_points',electrode_locations{iBase},'stim_resolution',in.stim_resolution);
     
@@ -170,11 +172,13 @@ for iDual = 1:n_conditions
     act_obj = helper__getActivationObjectInstance(obj,fiber_diameters(iDual),...
         stim_widths{iDual},PHASE_AMPLITUDES,electrode_locations{iDual},STIM_START_TIME);
     
-    [dual_counts(:,iDual),stim_amplitudes] = act_obj.getVolumeCounts(max_stim_level,'stim_resolution',in.stim_resolution);
+    [dual_counts(:,iDual),temp_extras] = act_obj.getVolumeCounts(max_stim_level,'stim_resolution',in.stim_resolution);
     [dual_slice_thresholds{iDual},dual_slice_xyz{iDual}] = ... 
         act_obj.getSliceThresholds(max_stim_level,SLICE_DIM_USE,SLICE_DIM_VALUE);
     
 end
+
+stim_amplitudes = temp_extras.stim_amplitudes;
 
 extras.dual_slice_thresholds   = dual_slice_thresholds;
 extras.dual_slice_xyz          = dual_slice_xyz;
@@ -187,10 +191,7 @@ end
 function [act_obj,internode_length] = helper__getActivationObjectInstance(obj,fiber_diameter,...
     stim_widths,PHASE_AMPLITUDES,electrode_locations,STIM_START_TIME)
 
-options = {...
-    'electrode_locations',electrode_locations,...
-    'tissue_resistivity',obj.TISSUE_RESISTIVITY};
-xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
+xstim_obj = obj.instantiateXstim(electrode_locations);
 
 xstim_obj.cell_obj.props_obj.changeFiberDiameter(fiber_diameter);
 

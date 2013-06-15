@@ -1,8 +1,17 @@
-function [abs_thresholds,x,y,z] = getThresholdsAndBounds(obj,max_stim_level,replication_points,replication_center)
+function [abs_thresholds,x,y,z] = getThresholdsAndBounds(obj,max_stim_level,replication_points,replication_center,varargin)
+%
+%   [abs_thresholds,x,y,z] = getThresholdsAndBounds(obj,max_stim_level,replication_points,replication_center)
+%
+%
+
+in.bounds_guess = []; %NYI
+in = processVarargin(in,varargin);
 
 %Check cache, if a miss, then retrieve data ...
 
-if obj.cached_threshold_data_present && sign(obj.cached_max_stim_level) == sign(max_stim_level) && abs(obj.cached_max_stim_level) >= abs(max_stim_level)
+if obj.cached_threshold_data_present && ...
+        sign(obj.cached_max_stim_level) == sign(max_stim_level) && ...
+        abs(obj.cached_max_stim_level) >= abs(max_stim_level)
    abs_thresholds = abs(obj.cached_threshold_data);
    
    %Update bounds for usage below ...
@@ -12,7 +21,6 @@ else
 end
 
 %TODO: Move to a separate function ...
-%Step 4 - Get Counts
 %--------------------------------------------------------------------------
 if ~isempty(replication_points)
     [abs_thresholds,x,y,z] = helper__createReplicatedData(obj,abs_thresholds,replication_points,replication_center);

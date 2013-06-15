@@ -14,8 +14,8 @@ function figure0()
 %Random placement statistics
 %What is the density?
 
-NEURON_DENSITY  = 0;
-N_SIMS          = 10000;
+N_SIMS          = 10000;  %# of random drawings of neurons to use in
+        %comparing random data to normal data
 
 FONT_SIZE       = 18;
 
@@ -27,16 +27,17 @@ Y_TEST_MIN = -1*Y_TEST_MAX;
 
 %There is a bug in arrayfcns.replicate3dData
 %which doesn't support 2d data for interpolation ...
-XYZ_MESH_DOUBLE = {-400:STEP_SIZE:400 [0 STEP_SIZE] Y_TEST_MIN:STEP_SIZE:Y_TEST_MAX};
-XYZ_MESH_SINGLE = {-200:STEP_SIZE:200 [0 STEP_SIZE] Y_TEST_MIN:STEP_SIZE:Y_TEST_MAX};
-X_LIM           = [-400 400];
+XYZ_MESH_DOUBLE = {-500:STEP_SIZE:500 [0 STEP_SIZE] Y_TEST_MIN:STEP_SIZE:Y_TEST_MAX};
+XYZ_MESH_SINGLE = {-300:STEP_SIZE:300 [0 STEP_SIZE] Y_TEST_MIN:STEP_SIZE:Y_TEST_MAX};
+X_LIM           = [-500 500];
 Y_LIM           = [-800 800];
-X_MERGE_Y_LIMS  = [-200 200];
-C_LIM           = [0 25];
+X_MERGE_Y_LIMS  = [-200 200]; %Where to draw the lines
+C_LIM           = [0 35];
 
 STIM_RESOLUTION = 0.1;
 
 MAX_THRESHOLD   = 30;
+MIN_STIM_TO_COUNT = 2;
 
 THRESHOLD_TEST  = 10;
 
@@ -54,11 +55,15 @@ xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:})
 
 thresholds_single = xstim_obj.sim__getThresholdsMulipleLocations(XYZ_MESH_SINGLE);
 
+%NEURON.simulation.extracellular_stim.results.activation_volume
 act_obj_single   = xstim_obj.sim__getActivationVolume();
 %act_obj.bounds(:,3) = [Y_TEST_MIN; Y_TEST_MAX];
 
-[threshold_counts_single,stim_amplitudes_used,xyz_used_single] = act_obj_single.getVolumeCounts(MAX_THRESHOLD,...
+[threshold_counts_single,extras] = act_obj_single.getVolumeCounts(MAX_THRESHOLD,...
                'replication_points',current_pair,'stim_resolution',STIM_RESOLUTION);
+
+stim_amplitudes_used = extras.stim_amplitudes;
+xyz_used_single      = extras.xyz_cell;
            
 %Thresholds double electrode
 %---------------------------------------------------------------------------
@@ -73,8 +78,9 @@ thresholds_double_2d = squeeze(thresholds_double(:,1,:));
 
 act_obj_dual  = xstim_obj.sim__getActivationVolume();
 
-[threshold_counts_double,~,xyz_used_double] = act_obj_dual.getVolumeCounts(MAX_THRESHOLD,'stim_resolution',STIM_RESOLUTION);
+[threshold_counts_double,extras] = act_obj_dual.getVolumeCounts(MAX_THRESHOLD,'stim_resolution',STIM_RESOLUTION);
 
+xyz_used_double = extras.xyz_cell;
 
 %Plotting Results
 %--------------------------------------------------------------------------
@@ -82,10 +88,12 @@ avg_node_spacing      = xstim_obj.cell_obj.getAverageNodeSpacing;
 half_avg_node_spacing = avg_node_spacing/2;
 
 [temp,xyz_single_temp] = arrayfcns.replicate3dData(thresholds_single,...
-                            XYZ_MESH_SINGLE,current_pair,STEP_SIZE);                     
+                            XYZ_MESH_SINGLE,current_pair,STEP_SIZE);
+                        
+              
 thresholds_single_2d = squeeze(min(temp(:,1,:,:),[],4)); 
         
-line_props = {'Color' 'w' 'Linewidth' 3 'LineStyle' ':'};
+line_props = {'Color' 'w' 'Linewidth' 3 'LineStyle' '-'};
     
 z_lim = [half_avg_node_spacing half_avg_node_spacing];
 z_line_top    = @()(line(X_LIM,z_lim,line_props{:}));
@@ -94,10 +102,26 @@ z_line_bottom = @()(line(X_LIM,-z_lim,line_props{:}));
 line_props{2} = 'k';
 x_line        = @()(line([0 0],X_MERGE_Y_LIMS,line_props{:}));
 
+
+figure
+%scatter(0,0,100,'w','filled','^')
+%hold on
+tcs_non_replicated = squeeze(thresholds_single(:,1,:))';    
+h = imagesc(XYZ_MESH_SINGLE{1},XYZ_MESH_SINGLE{3},tcs_non_replicated);
+PLOT_imagescToPatch(h);
+axis equal
+% scatter(0,0,100,'w','filled','^')
+% hold off
+colorbar
+set(gca,'CLim',C_LIM);
+
+
+figure
 %NOTE: This looks better if the figure is magnified first ...
 subplot(1,3,1)
 set(gca,'FontSize',FONT_SIZE)
-imagesc(xyz_single_temp{1},xyz_single_temp{3},thresholds_single_2d')
+h = imagesc(xyz_single_temp{1},xyz_single_temp{3},thresholds_single_2d');
+PLOT_imagescToPatch(h);
 axis equal
 hold on
 scatter(current_pair(:,1),current_pair(:,3),100,'w','filled','^')
@@ -115,7 +139,8 @@ ylabel('Z - main neuron axis')
 
 subplot(1,3,2)
 set(gca,'FontSize',FONT_SIZE)
-imagesc(XYZ_MESH_DOUBLE{1},XYZ_MESH_DOUBLE{3},thresholds_double_2d')
+h = imagesc(XYZ_MESH_DOUBLE{1},XYZ_MESH_DOUBLE{3},thresholds_double_2d');
+PLOT_imagescToPatch(h);
 hold all
 scatter(current_pair(:,1),current_pair(:,3),100,'w','filled','^')
 hold off
@@ -148,7 +173,7 @@ set(h1,'Linewidth',2,'LineColor','r')
 %NOTE: Often the export of the contour produces a bunch of lines
 %that don't play well together in Illustrator, minimal style
 %editing in Illustrator is desired
-set(h2,'Linewidth',2,'LineColor','k','LineStyle',':')
+set(h2,'Linewidth',2,'LineColor','k','LineStyle','-')
 set(gca,'XLim',X_LIM,'CLim',C_LIM,'YLim',Y_LIM);
 axis equal
 colorbar
@@ -165,9 +190,9 @@ title(sprintf('Volume Ratio %0.2f, %d uA threshold',...
 
 internode_length = xstim_obj.cell_obj.getAverageNodeSpacing;
 
-[temp,xyz_single_temp] = act_obj_single.getSliceThresholds(MAX_THRESHOLD,2,0,'replication_points',current_pair);                        
+[temp,xyz_single_temp_g] = act_obj_single.getSliceThresholds(MAX_THRESHOLD,2,0,'replication_points',current_pair);                        
      
-thresholds_single_2d = squeeze(temp);
+thresholds_single_2d_g = squeeze(temp);
 
 figure()
 subplot(3,1,1)
@@ -183,7 +208,7 @@ set(gca,'FontSize',18);
 plot(x_new,dy,'Linewidth',3)
 
 [x_lim__amp,z_lim__amp,x_lim__y_val,z_lim__y_val] = ...
-                getLimitInfo(obj,x_new(:),dy(:,2),thresholds_single_2d,xyz_single_temp,internode_length);
+                getLimitInfo(obj,x_new(:),dy(:,2),thresholds_single_2d_g,xyz_single_temp_g,internode_length);
 [X_lim__amp,Z_lim__amp,X_lim__y_val,Z_lim__y_val] = ...
                 getLimitInfo(obj,x_new(:),dy(:,1),thresholds_double_2d,XYZ_MESH_DOUBLE,internode_length);
 

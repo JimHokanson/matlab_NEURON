@@ -1,5 +1,9 @@
 function estimated_thresholds = computeThresholdsRandomNeurons(obj,xyz_neurons,max_stim_level,varargin)
-
+%
+%
+%   estimated_thresholds = computeThresholdsRandomNeurons(obj,xyz_neurons,max_stim_level,varargin)
+%
+%
 %This function should compute the threshold for a randomly placed set
 %of neurons.
 

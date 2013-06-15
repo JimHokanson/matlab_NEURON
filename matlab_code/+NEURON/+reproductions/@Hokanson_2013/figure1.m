@@ -21,6 +21,8 @@ obj = NEURON.reproductions.Hokanson_2013;
         obj.ALL_ELECTRODE_PAIRINGS(ELECTRODE_LOCATIONS_TEST),...
         STIM_WIDTH,FIBER_DIAMETER);
 
+    
+    
 vol_ratio = dual_counts./single_counts;
 
 %Plot Type 1

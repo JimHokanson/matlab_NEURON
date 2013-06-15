@@ -1,8 +1,7 @@
-function [stim_level_counts,stim_amplitudes,xyz_cell] = getVolumeCounts(obj,max_stim_level,varargin)
+function [stim_level_counts,extras] = getVolumeCounts(obj,max_stim_level,varargin)
 %getVolumeCounts
 %
 %   stim_level_counts = getVolumeCounts(obj,stim_levels,varargin)
-%
 %
 %   USAGE NOTES
 %   ======================================================================
@@ -19,6 +18,12 @@ function [stim_level_counts,stim_amplitudes,xyz_cell] = getVolumeCounts(obj,max_
 %   stim_level_counts : (vector, same sign as max_stim_level) For each 
 %       stimulus level input this specifies the # of cubic microns.
 %
+%   extras : 
+%   extras.stim_amplitudes = final_stim_amplitudes;
+%   extras.xyz_cell        = xyz_cell;
+%   extras.N               = N;
+%
+%
 %   OPTIONAL INPUTS
 %   =======================================================================
 %   replication_points : (default []), This allows us to replicate the
@@ -29,9 +34,11 @@ function [stim_level_counts,stim_amplitudes,xyz_cell] = getVolumeCounts(obj,max_
 %   replication_center : (default [0 0 0]), This defines the center of
 %           the original data. The data is moved such that the center is
 %           located at each replication point.
-%   stim_resolution : (default 0.5), This indicates the resolution of 
-%   the stimulus amplitudes that are tested, and for which, count data is
-%   returned.
+%   stim_resolution    : (default 0.1), This indicates the resolution of 
+%           the stimulus amplitudes that are tested, and for which, count data is
+%           returned.
+%   min_amp            : (defaul 2), This is the minimum amplitude that
+%           should be counted.
 %
 %   IMPROVEMENTS
 %   =======================================================================
@@ -49,25 +56,31 @@ function [stim_level_counts,stim_amplitudes,xyz_cell] = getVolumeCounts(obj,max_
 %--------------------------------------------------------------------------
 in.replication_points = [];
 in.replication_center = [0 0 0];
-in.stim_resolution    = 0.5;
+in.stim_resolution    = 0.1;
+in.min_amp            = 1;
+in.bounds_guess       = [];
 in = processVarargin(in,varargin);
 
 %Input Handling
 %--------------------------------------------------------------------------
 in.stim_resolution = abs(in.stim_resolution);
 
+%I decided to make this an input ...
+MIN_AMP = abs(in.min_amp);
+
 if max_stim_level < 0
     max_stim_level = floor(max_stim_level);
+    final_stim_amplitudes = -MIN_AMP:-in.stim_resolution:max_stim_level;
 else
     max_stim_level = ceil(max_stim_level);
+    final_stim_amplitudes = MIN_AMP:in.stim_resolution:max_stim_level;
 end
 
 abs_max_scale = abs(max_stim_level);
 
-n_stim_levels = abs_max_scale; %We'll go from 1 to n
-
 %Threshold retrieval
 %--------------------------------------------------------------------------
+%NEURON.simulation.extracellular_stim.results.activation_volume.getThresholdsAndBounds
 [abs_thresholds,x,y,z] = obj.getThresholdsAndBounds(max_stim_level,in.replication_points,in.replication_center);
 
 xyz_cell = {x y z};
@@ -87,19 +100,10 @@ end
 %Interpolating on the halves allows us to skip worrying about the edges
 %but slightly reduces the # of points on all sides.
 
-nx = length(x);
-ny = length(y);
-nz = length(z);
 
-[f1,f2,f3,f4,f5,f6,f7,f8] = helper__getWeights(x,y,z);
 
 %TODO: Remove need for this
 dz = z(2)-z(1);
-
-fprintf('Integrating Volume')
-
-percentage_display_mask = false(1,nx);
-percentage_display_mask(ceil((0.1:0.1:0.9)*nx)) = true;
 
 %With linear interpolation, if none of the values on the cube (3d) are
 %less than the value we are looking for or if any of the values are NaN, 
@@ -114,11 +118,77 @@ cube_test_mask = ~(all_values_greater | isnan_any_neighbor);
 %values must be between the minimum and the maximum, which can
 %significantly reduce the time for the binary search to find a result as
 %the range is often much less than the range of the entire data set
-min_cube = floor(helper__cubeFunction(@min,abs_thresholds));
-max_cube = ceil(helper__cubeFunction(@max,abs_thresholds));
+
+%MIN_AMP:in.stim_resolution:max_stim_level
 
 
-N = zeros(n_stim_levels,1);
+min_cube = floor(helper__cubeFunction(@min,abs_thresholds)/in.stim_resolution)*in.stim_resolution;
+max_cube = ceil(helper__cubeFunction(@max,abs_thresholds)/in.stim_resolution)*in.stim_resolution;
+
+%NOTE: We don't need to count higher values ...
+max_cube = min(max_cube,abs_max_scale);
+
+%Although, we don't count above we need to count below to get accurate
+%counts
+
+use_zero_edge = min_cube < MIN_AMP;
+
+%NOTE: Value of MIN_AMP should got to 2
+start_index = round((min_cube-MIN_AMP)/in.stim_resolution) + 2;
+
+start_index(start_index < 1) = 1;
+
+%value 1.63
+%
+%min = 1.3
+%
+%[0 1.3 1.4 1.5 1.6 1.7]
+%                x       <- match in histc
+% 1  2   3   4   5   6
+%
+%final amps
+%1 1.1 1.2 1.3 1.4 1.5 1.6 1.7
+%1  2   3   4   5   6   7   8
+
+N = zeros(length(final_stim_amplitudes),1)+1;
+
+%  :/   I don't like all these variables ...
+N = integrate(x,y,z,dz,max_z_index_keep,in.stim_resolution,start_index,cube_test_mask,min_cube,max_cube,use_zero_edge,abs_thresholds,N,MIN_AMP);
+
+stim_level_counts     = cumsum(N)';
+
+% stim_level_counts = interp1(abs_stim_amplitudes,stim_level_counts,final_abs_stim_amplitudes,'pchip');
+% 
+% if sign(max_stim_level) == -1
+%    stim_amplitudes = -1*final_abs_stim_amplitudes(end:-1:1);
+% else
+%    stim_amplitudes = final_abs_stim_amplitudes; 
+% end
+% 
+% %Optional interpolaton
+
+extras.stim_amplitudes = final_stim_amplitudes;
+extras.xyz_cell        = xyz_cell;
+extras.N               = N;
+%Add raw counts ...
+%NOTE: I guess this is just diff of the counts ...
+
+end
+
+function N = integrate(x,y,z,dz,max_z_index_keep,stim_resolution,start_index,cube_test_mask,min_cube,max_cube,use_zero_edge,abs_thresholds,N,MIN_AMP)
+
+
+nx = length(x);
+ny = length(y);
+nz = length(z);
+
+[f1,f2,f3,f4,f5,f6,f7,f8] = helper__getWeights(x,y,z);
+
+percentage_display_mask = false(1,nx);
+percentage_display_mask(ceil((0.1:0.1:0.9)*nx)) = true;
+
+fprintf('Integrating Volume')
+tic;
 for ix = 1:nx-1    
     %Print progress to command window, keep on same line
     if percentage_display_mask(ix)
@@ -140,52 +210,52 @@ for ix = 1:nx-1
                     f7*abs_thresholds(ix, iy+1, iz+1) + f8*abs_thresholds(ix+1, iy+1, iz+1);
                 
                 %TODO: This test should really be a test on iz ...
+                %
+                %   i.e. if iz ...
                 if last_z_index + dz > max_z_index_keep
                     %JAH TODO: Fix this, my head hurts and I can't
                     %do this math right now ...
                     temp_indices = last_z_index+1:last_z_index+dz;
-                    temp(:,:,temp_indices > max_z_index_keep) = abs_max_scale + 1;
+                    temp(:,:,temp_indices > max_z_index_keep) = Inf;
                 end
-                
-                %NOTE: The following few lines of code force the resulting
-                %counts to be on a scale from 1 to the maximum stimulus
-                %amplitude 
-                %i.e. absolute_stim_amplitudes = 1:abs_max_scale
+                                
+                %NOTE: min and max are precomputed on the original data 
+                %set and rounded appropriately (floor - min & ceil - max)
                 min_stim_level_cur = min_cube(ix,iy,iz);
+                max_stim_level_cur = max_cube(ix,iy,iz);
+                                
+                cur_start = start_index(ix,iy,iz);
                 
-                %limit the max to abs_max_scale
-                max_stim_level_cur = min(max_cube(ix,iy,iz),abs_max_scale);
-                
-                temp2 = histc(temp(:),min_stim_level_cur:max_stim_level_cur);
+                if use_zero_edge(ix,iy,iz)
+                    %If everything is less than the hardcoded min value to
+                    %evaluate, then find the valid values and add them
+                    %NOTE: Above we set out of range values to Inf
+                    %The comparison will take care of ignorning this
+                    if max_stim_level_cur < MIN_AMP
+                        temp2(1) = temp2(1) + sum(temp(:) < MIN_AMP);
+                        continue
+                    else
+                        edges = [0 MIN_AMP:stim_resolution:max_stim_level_cur];
+                    end
+                else
+                    edges = min_stim_level_cur:stim_resolution:max_stim_level_cur;
+                end
 
+                temp2 = histc(temp(:),edges);
                 %NOTE: temp2 has one extra bin for exactly equal to the end
                 %value which we don't care about ...
-                N(min_stim_level_cur+1:max_stim_level_cur) = ...
-                            N(min_stim_level_cur+1:max_stim_level_cur) + temp2(1:end-1);
+                N(cur_start:cur_start+length(edges)-2) = ...
+                            N(cur_start:cur_start+length(edges)-2) + temp2(1:end-1);
             end
             last_z_index = last_z_index + dz;
         end
     end
 end
 fprintf('\n'); %Terminates line for progress display.
-
-stim_level_counts = cumsum(N)';
-abs_stim_amplitudes   = 1:abs_max_scale;
-
-final_abs_stim_amplitudes = 1:in.stim_resolution:abs_max_scale;
-
-stim_level_counts = interp1(abs_stim_amplitudes,stim_level_counts,final_abs_stim_amplitudes,'pchip');
-
-if sign(max_stim_level) == -1
-   stim_amplitudes = -1*final_abs_stim_amplitudes(end:-1:1);
-else
-   stim_amplitudes = final_abs_stim_amplitudes; 
-end
-
-%Optional interpolaton
-
+toc;
 
 end
+
 
 function [f1,f2,f3,f4,f5,f6,f7,f8] = helper__getWeights(x,y,z)
 %

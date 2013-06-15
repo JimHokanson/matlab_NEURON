@@ -1,4 +1,4 @@
-classdef tissue < handle
+classdef tissue < handle_light
     %
     %   CLASS: NEURON.tissue
     %
