@@ -17,9 +17,9 @@ classdef elec_logger < NEURON.loggable.logger.auto_logger
     
     properties (Constant)
         IS_SINGULAR_OBJECT = false;
-        AUTO_INFO = {'xyz'  'cellFP'    'numeric'
-                     'stim' 'cellFP'    'numeric'
-                     'time' 'cellFP'    'numeric'}   
+        AUTO_INFO = {'xyz'                       'cellFP'    'numeric'
+                     'base_amplitudes'           'cellFP'    'numeric'
+                     'stimulus_transition_times' 'cellFP'    'numeric'}   
                  %i need to better specify these types and be consistent
     end
     
