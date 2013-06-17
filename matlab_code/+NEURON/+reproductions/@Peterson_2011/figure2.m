@@ -2,14 +2,16 @@ function figure2(obj)
 fd = 4; % arbitrary fiber diameter off of chart, there's actually no dependence
 pw = [0.02,0.2];
 
+fontsize = 18;
 for iPW = 1:2
    subplot(1,2,iPW)
    [v,m] = getVM(obj,1,fd,pw(iPW));
-   plot(abs(v),m)
-   title(['Pulse Duration = ',num2str(pw(iPW)*1000),' \mus'])
-   xlabel('Peak Extracellular Voltage (V_e) [mV]')
-   ylabel('Second Nodal Difference (\Delta^2V_e) [mV]')
-   set(gca,'XLim',[0 500],'YLim',[0 180])
+   plot(abs(v),m,'linewidth',3)
+   title(['Pulse Duration = ',num2str(pw(iPW)*1000),' \mus'],'fontsize',fontsize+2)
+   xlabel('Peak Extracellular Voltage (V_e) [-mV]','fontsize',fontsize)
+   %ylabel('Second Nodal Difference (\Delta^2V_e) [mV]','fontsize',fontsize)
+   ylabel('MDF_1 [mV]','fontsize',fontsize)
+   set(gca,'XLim',[0 500],'YLim',[0 180],'fontsize',fontsize-2)
 end
 
 % ====== This verifies there's no dependence of fiber diameter on MDF 1.
