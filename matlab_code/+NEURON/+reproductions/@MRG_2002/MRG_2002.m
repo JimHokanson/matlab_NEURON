@@ -19,6 +19,7 @@ classdef MRG_2002 < handle
     %
     
     properties
+    	TISSUE_RESISTIVITY = [1200 1200 300]; %See Stimulation Procedure Section
     end
     
     methods (Static)

@@ -1,42 +1,40 @@
-classdef elec_logger < NEURON.loggable.logger.auto_logger
+classdef elec_logger < NEURON.logger.auto_logger
     %
     %
     %   Class:
     %   NEURON.simulation.extracellular_stim.electrode.elec_logger
     
-    properties
-        %loggable
-        type = 1
-        %next = 1
-    end
-    
     properties(Constant)
-        VERSION = 1
-        CLASS_NAME = 'elec_logger'
+        LOGGER__VERSION    = 1
+        LOGGER__CLASS_NAME = 'NEURON.simulation.extracellular_stim.electrode.elec_logger'
+        LOGGER__TYPE       = 1
     end
     
     properties (Constant)
-        IS_SINGULAR_OBJECT = false;
-        AUTO_INFO = {'xyz'                       'cellFP'    'numeric'
-                     'base_amplitudes'           'cellFP'    'numeric'
-                     'stimulus_transition_times' 'cellFP'    'numeric'}   
-                 %i need to better specify these types and be consistent
+        AUTO_LOGGER__IS_SINGULAR_OBJECT = false;
+        AUTO_LOGGER__INFO = {...
+            'xyz'                       'cellFP'    'numeric'
+            'stimulus_transition_times' 'cellFP'    'numeric'
+            'base_amplitudes'           'cellFP'    'numeric'}   
     end
     
-    methods
+    methods(Access = private)
         function obj = elec_logger(varargin)
-            obj@NEURON.loggable.logger.auto_logger(varargin{:});
+            obj@NEURON.logger.auto_logger(varargin{:});
+        end 
+    end
+    
+    methods(Static)
+        function obj = getLogger(varargin)
+            persistent e_logger
+            if isempty(e_logger)
+                obj = NEURON.simulation.extracellular_stim.electrode.elec_logger(varargin{:});
+                e_logger = obj;
+            else
+                e_logger.editParent(varargin{:});
+            end
+            obj = e_logger;
         end
-        
-        function event = makeEvent(obj, xyz, stim, time)
-            %propagate this appropriately...???
-            %momentarily assuming this functions exist... they don't
-            event{1} = xyz();
-            event{2} = stim();
-            event{3} = time();
-            obj.loggable = obj;
-        end
-
     end
     
 end

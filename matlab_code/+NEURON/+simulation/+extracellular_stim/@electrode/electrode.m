@@ -34,7 +34,7 @@ classdef electrode < NEURON.loggable
     %   4) Add ability to change # of electrodes
     
     properties (Hidden)
-       parent  %Class: NEURON.simulation.extracellular_stim
+        parent  %Class: NEURON.simulation.extracellular_stim
     end
     
     properties (SetAccess = private)
@@ -102,13 +102,13 @@ classdef electrode < NEURON.loggable
             %   Made private due to bug in Matlab.
             %   ----------------------------------
             %
-            %   Need to call: 
+            %   Need to call:
             %   NEURON.simulation.extracellular_stim.electrode.create instead :/
             %
             %   obj = electrode(xyz,xstim_obj)
             %
             %   See Also:
-            %   NEURON.simulation.extracellular_stim.electrode.create 
+            %   NEURON.simulation.extracellular_stim.electrode.create
             %
             %   FULL PATH:
             %   NEURON.simulation.extracellular_stim.electrode
@@ -117,15 +117,17 @@ classdef electrode < NEURON.loggable
             obj.parent = xstim_obj;
         end
     end
-
+    
     %FOR OTHERS    %=======================================================
     
     methods
-        function logger = getLogger(obj)
-            if(isempty(obj.logger))                
-                obj.logger = NEURON.simulation.extracellular_stim.electrode.elec_logger(obj);
-            end
-            logger = obj.logger;
+        function logger = getLogger(objs)
+            %NOTE: With this we might decide to switch to singleton pattern
+            %Note use of indexing
+            
+            objs(1).logger = NEURON.simulation.extracellular_stim.electrode.elec_logger.getLogger(objs);
+            
+            logger = objs(1).logger;
         end
     end
     
@@ -191,71 +193,75 @@ classdef electrode < NEURON.loggable
     methods
         %Not yet implemented
         %function addElectrodesToData(objs,dim_string)
-        %   
+        %
         %   - the goal is to provide a method which
         %   will mark up current plots with the locations of the electrodes
         %end
         function plot(objs)
-           %plot(objs)
-           %
-           %    
-           %    TO SHOW:
-           %    -------------------------------------------
-           %    1) location of electrodes
-           %        - how to do this ?????
-           %        - 2d? 3d?
-           %    2) amplitude data 
-           %        -> offsets ????
-           
-           
-        end 
-        function [stim_amps,time] = getPlotData(objs,amp_scalar)
-           %getPlotData
-           %    
-           %    [stim_amps,time] = getPlotData(objs,*amp_scalar)
-           %
-           %    This function provides the data necessary for plotting the
-           %    stimulation amplitudes of each electrode.
-           %
-           %    OUTPUTS
-           %    ===========================================================
-           %    stim_amps : [samples x electrodes]
-           %    time      : [1 x samples], time of transitions of stimulus,
-           %            plus beginning and end times.
-           %
-           %    OPTIONAL INPUTS
-           %    ===========================================================
-           %    amp_scalar : 
-           %
-           %    OUTPUTP
-           
-           %Currently this algorithm just needs to:
-           %1) add on a final time
-           %value and set the stimulus amplitude to zero at that time.
-           %2) Multiply the data by a scalar if 
-           %
-           %
-           
-           if ~exist('amp_scalar','var')
-               amp_scalar = 1;
-           end
+            %plot(objs)
+            %
+            %
+            %    TO SHOW:
+            %    -------------------------------------------
+            %    1) location of electrodes
+            %        - how to do this ?????
+            %        - 2d? 3d?
+            %    2) amplitude data
+            %        -> offsets ????
             
-           [time,stim_amps] = getMergedStimTimes(objs);
-           
-           sim_obj = objs(1).parent;
-           
-           final_time = sim_obj.props.getSimDuration;
-           
-           time(end+1)        = final_time;
-           stim_amps(end+1,:) = 0;
-           stim_amps          = stim_amps*amp_scalar;
+            
+        end
+        function [stim_amps,time] = getPlotData(objs,amp_scalar)
+            %getPlotData
+            %
+            %    [stim_amps,time] = getPlotData(objs,*amp_scalar)
+            %
+            %    This function provides the data necessary for plotting the
+            %    stimulation amplitudes of each electrode.
+            %
+            %    OUTPUTS
+            %    ===========================================================
+            %    stim_amps : [samples x electrodes]
+            %    time      : [1 x samples], time of transitions of stimulus,
+            %            plus beginning and end times.
+            %
+            %    OPTIONAL INPUTS
+            %    ===========================================================
+            %    amp_scalar :
+            %
+            %    OUTPUTP
+            
+            %Currently this algorithm just needs to:
+            %1) add on a final time
+            %value and set the stimulus amplitude to zero at that time.
+            %2) Multiply the data by a scalar if
+            %
+            %
+            
+            if ~exist('amp_scalar','var')
+                amp_scalar = 1;
+            end
+            
+            [time,stim_amps] = getMergedStimTimes(objs);
+            
+            sim_obj = objs(1).parent;
+            
+            final_time = sim_obj.props.getSimDuration;
+            
+            time(end+1)        = final_time;
+            stim_amps(end+1,:) = 0;
+            stim_amps          = stim_amps*amp_scalar;
         end
     end
     
     %PUBLIC MANIPULATON METHODS   %========================================
     methods
         function moveElectrode(obj,xyz)
-            obj.xyz = xyz;
+            [len, ~] = size(xyz);
+            for i = 1:len
+                obj(i).xyz = xyz(i,:);
+            end
+            %obj.xyz = xyz;
             objectChanged(obj)
         end
     end
