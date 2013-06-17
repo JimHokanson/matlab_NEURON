@@ -121,11 +121,13 @@ classdef electrode < NEURON.loggable
     %FOR OTHERS    %=======================================================
     
     methods
-        function logger = getLogger(obj)
-            if(isempty(obj.logger))                
-                obj.logger = NEURON.simulation.extracellular_stim.electrode.elec_logger(obj);
+        function logger = getLogger(objs)
+            %NOTE: With this we might decide to switch to singleton pattern
+            %Note use of indexing
+            if(isempty(objs(1).logger))                
+                objs(1).logger = NEURON.simulation.extracellular_stim.electrode.elec_logger(objs);
             end
-            logger = obj.logger;
+            logger = objs(1).logger;
         end
     end
     

@@ -1,4 +1,8 @@
 classdef elec_logger < logger
+    %
+    %
+    %
+    %           OLD CLASS - SHOULD BE DELETED ...
     
     properties
         current_data_instance

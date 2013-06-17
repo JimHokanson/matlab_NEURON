@@ -1,0 +1,1 @@
+This class is meant to hold classes that mimic classes in NEURON.

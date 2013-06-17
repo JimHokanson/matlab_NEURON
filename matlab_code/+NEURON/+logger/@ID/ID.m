@@ -2,12 +2,12 @@ classdef ID < handle_light
     %
     %
     %   Class:
-    %   NEURON.loggable.ID
+    %   NEURON.logger.ID
     
-    properties(SetAccess = private)
-        class_type
-        type
-        trial_row
+    properties (SetAccess = private)
+        class_type  %(char) string to uniquely identify class
+        type        %(numeric), used for comparing subclass types
+        trial_row   %(numeric)
     end
     
     properties (Constant)
@@ -15,10 +15,22 @@ classdef ID < handle_light
     end
     
     methods
-        function obj = ID(class, type, row)
-            obj.type = type;
-            obj.class_type = class;
-            obj.trial_row = row;
+        function obj = ID(class_type, type, trial_row)
+            %
+            %   obj = ID(class_type, type, trial_row)
+            %
+            %   INPUTS: See properties
+            %
+            %   NOTE: An empty trial_row will be used to indicate
+            %   a NULL ID
+            
+            if isempty(trial_row)
+                trial_row = NaN;
+            end
+            
+            obj.type       = type;
+            obj.class_type = class_type;
+            obj.trial_row  = trial_row;
         end
         
         function setType(obj, type)
@@ -33,12 +45,8 @@ classdef ID < handle_light
             obj.trial_row = row;
         end
         
-        function flag = validID(obj)
-            if isnan(obj.trial_row)
-                flag = 0;
-                return
-            end
-            flag = 1;            
+        function flag = isValid(obj)
+            flag = ~isnan(obj.trial_row);         
         end
                 
         %takes in two IDs.. this mught be superfluous but...
