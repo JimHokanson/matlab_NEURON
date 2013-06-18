@@ -5,6 +5,9 @@ classdef homogeneous_isotropic < NEURON.tissue
     properties
         resistivity
     end
+    properties
+        logger
+    end
     
     %SET METHODS    =================================================
     methods
@@ -45,7 +48,7 @@ classdef homogeneous_isotropic < NEURON.tissue
             v_ext = bsxfun(@rdivide,I_stim.*scale_factor,r);
         end
         function logger = getLogger(obj)
-            obj.logger = NEURON.tissue.homoIso_logger(obj);
+            obj.logger = NEURON.tissue.homogeneous_isotropic.homoIso_logger.getLogger(obj);
             logger = obj.logger;
         end
     end

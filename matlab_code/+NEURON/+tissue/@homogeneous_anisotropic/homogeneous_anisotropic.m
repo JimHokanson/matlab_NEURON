@@ -9,6 +9,9 @@ classdef homogeneous_anisotropic < NEURON.tissue
     properties
         resistivity  %Ensure on setting that it is a 3 element row vector
     end
+    properties
+        logger
+    end
     
     methods
         function obj = homogeneous_anisotropic(resistivity)
@@ -62,9 +65,10 @@ classdef homogeneous_anisotropic < NEURON.tissue
             
         end
         function logger = getLogger(obj)
-            obj.logger = NEURON.tissue.homoAniso_logger(obj);
+            obj.logger = NEURON.tissue.homogeneous_anisotropic.homoAniso_logger.getLogger(obj);
             logger = obj.logger;
         end
         
     end
+end
     
