@@ -123,8 +123,7 @@ classdef electrode < NEURON.loggable
     methods
         function logger = getLogger(objs)
             %NOTE: With this we might decide to switch to singleton pattern
-            %Note use of indexing
-            
+            %Note use of indexing            
             objs(1).logger = NEURON.simulation.extracellular_stim.electrode.elec_logger.getLogger(objs);
             
             logger = objs(1).logger;
