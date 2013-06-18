@@ -11,9 +11,7 @@ classdef auto_logger < NEURON.logger
         AUTO_LOGGER__INFO %Get's passed into processor
     end
     
-    properties
-        AUTO_PROPS
-    end
+    
     
 %     properties  
 %         AUTO_LOGGER__processor NYI
@@ -65,7 +63,7 @@ classdef auto_logger < NEURON.logger
             
             %Reload objects
             %--------------------------------------------------------------
-            obj.loadHelper();
+            obj.loadLog();
         end
     end
 
@@ -194,6 +192,8 @@ classdef auto_logger < NEURON.logger
     methods
        %find -> see separate file
     end
-    
+    %Save and Load Functionality===========================================
+    methods
+    end
 end
 

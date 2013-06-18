@@ -91,5 +91,5 @@ function ID = helper__addEntry(obj,all_values)
         obj.AUTO_PROPS = s;
     end
     
-    ID = obj.updateIDandSave(@obj.saveHelper);
+    ID = obj.updateIDandSave(@obj.saveLog);
 end
