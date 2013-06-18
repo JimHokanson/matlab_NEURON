@@ -3,13 +3,18 @@ classdef props_logger < NEURON.logger.auto_logger
     %
     %   Class:
     %   NEURON.simulation.props.props_logger
+    properties(Constant)
+        LOGGER__VERSION = 1;
+        LOGGER__CLASS_NAME = 'NEURON.simulation.props.props_logger';
+        LOGGER__TYPE  = 1;
+    end
     
-    properties
+    properties(Constant) 
         AUTO_LOGGER__IS_SINGULAR_OBJECT = true;
         AUTO_LOGGER__INFO = {...
-            'celsius'       'scalarFP'      'numeric'
-            'tstop'         'scalarFP'      'numeric'
-            'dt'            'scalarFP'      'numeric'}
+            'celsius'       'vectorFP'      ''
+            'tstop'         'vectorFP'      ''
+            'dt'            'vectorFP'      ''}
     end
     methods(Access = private)
         function obj = props_logger(varargin)
