@@ -14,6 +14,10 @@ classdef props < handle_light
        parent   %Class: NEURON.simulation
     end
     
+    properties
+        logger
+    end
+    
     properties (Access = private)
         %.changeProps()
         %Use .changeProps to change these properties
@@ -113,6 +117,14 @@ classdef props < handle_light
             props  = {'celsius'     'tstop'    'dt'};
             obj.cmd_obj.writeNumericProps(props,values);
         end   
+    end
+    
+    %LOGGING FUNCTION  %===================================================
+    methods
+        function logger = getLogger(obj)
+            obj.logger = NEURON.simulation.props.props_logger.getLogger(obj);
+            logger = obj.logger;
+        end
     end
   
 end
