@@ -125,6 +125,10 @@ classdef props < handle_light
             obj.logger = NEURON.simulation.props.props_logger.getLogger(obj);
             logger = obj.logger;
         end
+        
+        function p = getProps(obj, propname)
+            p = obj.(propname);
+        end
     end
   
 end
