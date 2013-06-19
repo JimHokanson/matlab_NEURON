@@ -23,6 +23,7 @@ classdef ID_logger < NEURON.logger
        ID_LOGGER__multi_id_manager %Class: NEURON.logger.multi_id_manager
     end
     
+    %CONSTRUCTOR   %=======================================================
     methods
         function obj = ID_logger(parent)
            obj@NEURON.logger(parent);
@@ -32,9 +33,21 @@ classdef ID_logger < NEURON.logger
            obj.ID_LOGGER__multi_id_manager = ...
                     NEURON.logger.multi_id_manager(save_base_path);
         end
+    end
+    
+    %SAVE AND LOAD  %======================================================
+    methods
         function saveObject(obj)
            obj.ID_LOGGER__multi_id_manager.saveObject();
         end
+        
+        function loadObject(obj)
+            obj.ID_LOGGER__multi_id_manager.loadObject();
+        end
+    end
+    
+    %PROCESSING   %========================================================
+    methods
         function ID = find(obj,varargin)
            %
            %
