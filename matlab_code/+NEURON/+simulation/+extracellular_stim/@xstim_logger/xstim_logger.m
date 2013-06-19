@@ -4,6 +4,13 @@ classdef xstim_logger < NEURON.logger.ID_logger
     %   Class:
     %   NEURON.simulation.extracellular_stim.xstim_logger
     
+    properties(Constant)
+        LOGGER__VERSION     = 1
+        LOGGER__CLASS_NAME  = 'NEURON.simulation.extracellular_stim.xstim_logger'
+        LOGGER__TYPE        = 1
+    end
+    
+    
     properties (Constant)
        ID_LOGGER__PROPS = {'elec_objs' 'cell_obj' 'props' 'tissue_obj'};
     end
