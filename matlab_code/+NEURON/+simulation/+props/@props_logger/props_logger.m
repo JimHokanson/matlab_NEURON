@@ -6,15 +6,15 @@ classdef props_logger < NEURON.logger.auto_logger
     properties(Constant)
         LOGGER__VERSION = 1;
         LOGGER__CLASS_NAME = 'NEURON.simulation.props.props_logger';
-        LOGGER__TYPE  = 1;
+        LOGGER__TYPE  = 1; 
     end
     
     properties(Constant) 
         AUTO_LOGGER__IS_SINGULAR_OBJECT = true;
         AUTO_LOGGER__INFO = {...
-            'celsius'       'vectorFP'      ''
-            'tstop'         'vectorFP'      ''
-            'dt'            'vectorFP'      ''}
+            'celsius'       'vectorFP'      @getProps
+            'tstop'         'vectorFP'      @getProps
+            'dt'            'vectorFP'      @getProps}
     end
     methods(Access = private)
         function obj = props_logger(varargin)
