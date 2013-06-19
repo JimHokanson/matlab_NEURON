@@ -97,7 +97,9 @@ classdef ID_logger < NEURON.logger
                cur_prop = props_local{iProp};
                %NOTE: cur_prop is a loggable class
                
-               obj_cell_array{iProp} = p.(cur_prop); 
+               obj_cell_array{iProp} = p.getProps(cur_prop); %is this ok? 
+               %We might want to later declare that all classes like xstim
+               %have a getProps class... anyway these props are private :P
             end
             
         end
