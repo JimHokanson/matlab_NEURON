@@ -74,8 +74,11 @@ classdef extracellular_stim < NEURON.simulation
        electrode_configuration = []
        cell_configuration      = []
     end
+    properties
+        logger
+    end
     
-    %INITIALIZATION METHODS ==============================================
+    %INITIALIZATION METHODS %=============================================
     methods (Access = private)
         function obj = extracellular_stim(xstim_options)
             %
@@ -156,7 +159,7 @@ classdef extracellular_stim < NEURON.simulation
         end
     end
     
-    %SIMULATION METHODS ===================================================
+    %SIMULATION METHODS %==================================================
     methods
         function sim_logger = sim__getLogInfo(obj)
             %sim__getLogInfo
@@ -232,7 +235,7 @@ classdef extracellular_stim < NEURON.simulation
         end
     end
     
-    %INITIALIZATION  =====================================================
+    %INITIALIZATION  %====================================================
     methods (Access = private)
         function init__setupThresholdInfo(obj)
             %init__setupThresholdInfo
@@ -260,8 +263,25 @@ classdef extracellular_stim < NEURON.simulation
         end
     end
     
-    %PLOTTING  ============================================================
+    %PLOTTING  %===========================================================
     methods
         %NEURON.simulation.extracellular_stim.plot__AppliedStimulus
+    end
+    
+    %LOGGING  %============================================================
+    methods
+        function logger = getLogger(obj)
+            %Note: There isn't exactly a reason for the xstim logger to be
+            %a singleton.. only mims. which is why this call is different
+            %from the rest
+            if isempty(obj.logger)
+                obj.logger = NEURON.simulation.extracellular_stim.xstim_logger(obj);
+            end
+            logger = obj.logger;
+        end
+        
+        function p = getProps(obj, propname)
+            p = obj.(propname);
+        end
     end
 end
