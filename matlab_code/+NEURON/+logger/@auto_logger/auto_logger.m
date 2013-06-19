@@ -3,7 +3,7 @@ classdef auto_logger < NEURON.logger
     %
     %   Class:
     %   NEURON.logger.auto_logger
-
+    
     properties (Abstract,Constant)
         AUTO_LOGGER__IS_SINGULAR_OBJECT  %Specify whether or not this class is singular,
         %or whether or not it will ever have multiple instances.
@@ -13,9 +13,9 @@ classdef auto_logger < NEURON.logger
     
     
     
-%     properties  
-%         AUTO_LOGGER__processor NYI
-%     end
+    %     properties
+    %         AUTO_LOGGER__processor NYI
+    %     end
     
     %AUTO_INFO Processing Methods =========================================
     %NOTE: These might eventually get moved into their own class ...
@@ -30,7 +30,7 @@ classdef auto_logger < NEURON.logger
         end
         function output = getRetrievalMethods(obj)
             %returns functionHandles for retieving.
-            output = obj.AUTO_LOGGER__INFO(:,3); 
+            output = obj.AUTO_LOGGER__INFO(:,3);
         end
     end
     
@@ -39,13 +39,13 @@ classdef auto_logger < NEURON.logger
         function obj = auto_logger(parent)
             %
             %
-            %   obj = auto_logger(parent)    
+            %   obj = auto_logger(parent)
             
             obj@NEURON.logger(parent);
             
             %Dynamically create props to reference previous values
             %-------------------------------------------------------------
-            prop_names = obj.getPropNames;            
+            prop_names = obj.getPropNames;
             s = struct;
             for iProp = 1:length(prop_names)
                 s.(prop_names{iProp}) = [];
@@ -53,65 +53,66 @@ classdef auto_logger < NEURON.logger
             obj.AUTO_PROPS = s;
             
             %This implementation is delayed for now ...
-% %             %Create processor
-% %             %--------------------------------------------------------------
-% %             obj.AUTO_LOGGER__processor = ...
-% %                     NEURON.logger.auto_logger.processor(...
-% %                                 parent, ...
-% %                                 obj.AUTO_LOGGER__IS_SINGULAR_OBJECT, ...
-% %                                 obj.AUTO_LOGGER__INFO);
+            % %             %Create processor
+            % %             %--------------------------------------------------------------
+            % %             obj.AUTO_LOGGER__processor = ...
+            % %                     NEURON.logger.auto_logger.processor(...
+            % %                                 parent, ...
+            % %                                 obj.AUTO_LOGGER__IS_SINGULAR_OBJECT, ...
+            % %                                 obj.AUTO_LOGGER__INFO);
             
             %Reload objects
             %--------------------------------------------------------------
             obj.loadLog();
         end
     end
-
+    
     %Property Processing Methods ==========================================
-    methods 
+    methods
         %PROPERTY RETRIEVAL   =============================================
         function new_value = getNewValue(obj,prop_name,retrieval_method)
-           %
-           %    new_value = getNewValue(obj,prop_name,retrieval_method)
-           %
-           %    INPUTS
-           %    ===========================================================
-           %    prop_name : (char) name of the property to retrieve from 
-           %            the parent
-           %    retrieval_method : One of 3 types
-           %            See definition of AUTO_INFO
-           %
-           %    FULL PATH
-           %    ===================================================
-           %    NEURON.logger.auto_logger.getNewValue
-           
-           parent      = obj.LOGGER__parent;
-           is_singular = obj.AUTO_LOGGER__IS_SINGULAR_OBJECT;
-                      
-           if isempty(retrieval_method)
-              %Retrieve directly ...
-              new_value = parent.(prop_name); 
-           elseif ischar(retrieval_method)
-               switch retrieval_method
-                   case 'numeric'
-                       if ~is_singular
-                          new_value = [parent.(prop_name)];
-                       else
-                          error('Implementation not yet defined')
-                       end
-                   case 'string'
-                       if ~is_singular
-                          new_value = {parent.(prop_name)};
-                       else
-                          error('Implementation not yet defined')
-                       end 
-                   otherwise
-                       error('Case not yet handled')
-               end
-           else
-               %function handle
-               new_value = feval(retrieval_method,obj,p,prop_name);
-           end           
+            %
+            %    new_value = getNewValue(obj,prop_name,retrieval_method)
+            %
+            %    INPUTS
+            %    ===========================================================
+            %    prop_name : (char) name of the property to retrieve from
+            %            the parent
+            %    retrieval_method : One of 3 types
+            %            See definition of AUTO_INFO
+            %
+            %    FULL PATH
+            %    ===================================================
+            %    NEURON.logger.auto_logger.getNewValue
+            
+            parent      = obj.LOGGER__parent;
+            is_singular = obj.AUTO_LOGGER__IS_SINGULAR_OBJECT;
+            
+            if isempty(retrieval_method)
+                %Retrieve directly ...
+                new_value = parent.(prop_name);
+            elseif ischar(retrieval_method)
+                switch retrieval_method
+                    case 'numeric'
+                        if ~is_singular
+                            new_value = [parent.(prop_name)];
+                        else
+                            error('Implementation not yet defined')
+                        end
+                    case 'string'
+                        if ~is_singular
+                            new_value = {parent.(prop_name)};
+                        else
+                            error('Implementation not yet defined')
+                        end
+                    otherwise
+                        error('Case not yet handled')
+                end
+            else
+                %function handle
+                new_value = feval(retrieval_method,parent,prop_name);
+                %new_value = retrieval_method(parent, prop_name);
+            end
         end
         
         function output_indices = compare(obj, new, old, type, input_indices)
@@ -134,7 +135,7 @@ classdef auto_logger < NEURON.logger
             
             switch type
                 case 'simple_numeric'
-                   temp_indices = find(new == old(input_indices));
+                    temp_indices = find(new == old(input_indices));
                 case 'cellFP'
                     %- each old element is an entry in a cell array
                     %- the entries themselves are arrays
@@ -167,7 +168,7 @@ classdef auto_logger < NEURON.logger
                     %TODO: Add reasoning for this in design decision
                     %
                     %i.e. for now we want to compare equal to within
-                    %computation error, not roughly equal where we might 
+                    %computation error, not roughly equal where we might
                     %decide 3.001 is close enough to 3 that we don't care
                     %
                     %The latter is very difficult to do, especially with
@@ -190,7 +191,7 @@ classdef auto_logger < NEURON.logger
     
     %Implementation of Abstract Methods ===================================
     methods
-       %find -> see separate file
+        %find -> see separate file
     end
     %Save and Load Functionality===========================================
     methods
