@@ -29,24 +29,24 @@ p1 = sim1.props;
 log1 = p1.getLogger;
 ID1 = log1.find(true);
 
-changeProps(sim1,'dt', d2);                 %c1 d2 t1
+changeProps(sim1.props,'dt', d2);                 %c1 d2 t1
 log2 = p1.getLogger;
 ID2 = log2.find(true);
 
-changeProps(sim1,'celsius', c2);            %c2 d2 t1
+changeProps(sim1.props,'celsius', c2);            %c2 d2 t1
 log3 = p1.getLogger;
 ID3 = log3.find(true);
 
-changeProps(sim1,'tstop', t2);              %c2 d2 t2
+changeProps(sim1.props,'tstop', t2);              %c2 d2 t2
 log4 = p1.getLogger;
 ID4 = log4.find(true);
 
 %revert back to orginal cases----------------------------------------------
-changeProps(sim1,'tstop', t1);              %c2 d2 t1
+changeProps(sim1.props,'tstop', t1);              %c2 d2 t1
 log5 = p1.getLogger;
 ID5 = log5.find(true);
 
-changeProps(sim1,'celsius', c1);            %c1 d2 t1
+changeProps(sim1.props,'celsius', c1);            %c1 d2 t1
 log6 = p1.getLogger;
 ID6 = log6.find(true);
 
@@ -56,29 +56,29 @@ p2 = sim2.props;
 log7 = p2.getLogger;
 ID7 = log7.find(true);                      %should match ID1
 
-changeProps(sim2,'tstop', t2);              %c1 d1 t2
+changeProps(sim2.props,'tstop', t2);              %c1 d1 t2
 log8 = p2.getLogger;
 ID8 = log8.find(true);
 
-changeProps(sim2,'dt', d2);                 %c1 d2 t2
+changeProps(sim2.props,'dt', d2);                 %c1 d2 t2
 log9 = p2.getLogger;
 ID9 = log9.find(true);
 
-changeProps(sim1,'celsius', c2)             %c2 d2 t2
+changeProps(sim2.props,'celsius', c2)             %c2 d2 t2
 log10 = p2.getLogger;
 ID10 = log10.find(true);                    %should match ID4
 
 %Go back to the first simulation-------------------------------------------
-changeProps(sim1,'dt', d2);                 %c1 d2 t1
-log11 = p2.getLogger;
+changeProps(sim1.props,'dt', d2);                 %c1 d2 t1
+log11 = p1.getLogger;
 ID11 = log11.find(true);                    %should match ID2
 
-changeProps(sim1,'tstop', t2);              %c1 d2 t2
-log12 = p2.getLogger;
+changeProps(sim1.props,'tstop', t2);              %c1 d2 t2
+log12 = p1.getLogger;
 ID12 = log12.find(true);                    %should match ID9
 
-changeProps(sim2,'celsius', c3);            %c3 d2 t2
-log13 = p2.getLogger;
+changeProps(sim1.props,'celsius', c3);            %c3 d2 t2
+log13 = p1.getLogger;
 ID13 = log13.find(true);
 
 %Print our values----------------------------------------------------------
