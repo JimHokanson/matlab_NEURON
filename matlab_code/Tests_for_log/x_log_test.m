@@ -16,11 +16,11 @@ sim2 = NEURON.simulation.extracellular_stim.create_standard_sim('electrode_locat
 log = sim2.getLogger;
 log.find
 
-sim1.elec_objs.movesElectrode(xyz2);
+sim.elec_objs.moveElectrode(xyz2);
 log = sim.getLogger;
 log.find
 
-sim1.elec_objs.moveElectrode(xyz3);
+sim.elec_objs.moveElectrode(xyz3);
 log = sim.getLogger;
 log.find
 
@@ -39,6 +39,10 @@ log.find
 
 sim5 = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resistivity', t1_h);
 log = sim5.getLogger;
+log.find
+
+sim6 = NEURON.simulation.extracellular_stim.create_standard_sim('tissue_resistivity', 700);
+log = sim6.getLogger;
 log.find
 
 %==========================================================================
