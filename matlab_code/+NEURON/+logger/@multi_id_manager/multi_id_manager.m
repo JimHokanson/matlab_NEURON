@@ -46,7 +46,7 @@ classdef multi_id_manager < sl.obj.handle_light
             value = size(obj.id_matrix,1);
         end
     end
-    
+    %Constructor and SAVE/LOAD  %==========================================
     methods
         function obj = multi_id_manager(save_base_path)
             obj.save_path = fullfile(save_base_path,'MIM.mat');
@@ -58,14 +58,32 @@ classdef multi_id_manager < sl.obj.handle_light
         %   class_types
         %
         function saveObject(obj)
-            %TODO: Implement saving
-            error('Function not yet written')
+            w = warning('off','MATLAB:structOnObject');
+            s = struct(obj);
+            warning(w);
+            
+            if exist('properties_remove','var')
+                s = rmfield(s,properties_remove);%#ok<NASGU>
+            end
+            
+            save(obj.save_path,'s');
         end
         function loadObject(obj)
-            %TODO: Implement loading
-            error('Function not yet written')
+            if exist(obj.save_path,'file')
+                h = load(obj.save_path);
+                s = h.s;
+                
+                if obj.VERSION ~= s.VERSION
+                    s = obj.update(s);
+                end
+                
+                result = sl.struct.toObject(obj,s); %#ok<NASGU>
+            end
+            
         end
     end
+    
+    %PROCESSING   %========================================================
     methods
         function [matching_row,is_new] = find(obj,loggable_classes_cell_array,varargin)
             %find
@@ -145,15 +163,16 @@ classdef multi_id_manager < sl.obj.handle_light
             if obj.n_rows == 0
                 matching_row = [];
             else
-                matching_row = find(bsxfun(@minus,obj.id_matrix,row_entry));
+                matching_row = find(~sum(abs(bsxfun(@minus,row_entry,obj.id_matrix)),2));
             end
             
             %Addition of the entry if necessary
             %--------------------------------------------------------------
             if create_new && isempty(matching_row)
-                is_new = true; 
+                is_new = true;
                 
-                class_types_local = obj.getClassTypes(id_obj_cell_array);
+                %class_types_local = obj.getClassTypes(id_obj_cell_array); %What is this s'posed to be?
+                class_types_local = obj.getClassTypes(all_ids);
                 if obj.n_rows == 0
                     obj.class_types = class_types_local;
                 else
@@ -188,7 +207,7 @@ classdef multi_id_manager < sl.obj.handle_light
             %   row_entry : a linearized version of the ids as a vector
             %
             %   TODO: It might be desirable to move this to
-            %   the ID class 
+            %   the ID class
             %
             %   id_array = [id_obj_cell_arrray{:}]
             %   row_entry = id_array.linearize; %Function NYI
@@ -197,7 +216,7 @@ classdef multi_id_manager < sl.obj.handle_light
             
             nInputs = length(id_obj_cell_array);
             row_entry = zeros(1,nInputs*2);
-            for iInput = 1:nargin
+            for iInput = 1:nInputs
                 cur_id = id_obj_cell_array{iInput};
                 
                 cur_index = cur_index + 1;
