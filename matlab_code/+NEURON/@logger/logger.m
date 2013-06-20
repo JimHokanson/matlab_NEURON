@@ -49,7 +49,6 @@ classdef logger < dynamicprops
         LOGGER__n_trials = 0 %This should be internally maintained via add and remove
         %methods.
         LOGGER__parent %Reference to loggable parent
-        AUTO_PROPS
     end
     
     %Shared Methods         ===============================================
@@ -176,27 +175,6 @@ classdef logger < dynamicprops
         %                 %result.raiseError - not yet implented ...
         %             end
         %         end
-        function saveLog(obj)
-            s = struct; 
-            s.AUTO_PROPS        = obj.AUTO_PROPS;
-            s.LOGGER__VERSION   = obj.LOGGER__VERSION;
-            s.LOGGER__n_trials  = obj.LOGGER__n_trials; %#ok
-            save_path = obj.getSaveDataPath;
-            save(save_path,'s');
-        end
-        function loadLog(obj)
-            save_path = obj.getSaveDataPath;
-            if exist(save_path,'file')
-                h = load(save_path);
-                s = h.s;
-
-                if obj.LOGGER__VERSION ~= s.LOGGER__VERSION
-                    s = obj.update(s);
-                end
-                obj.AUTO_PROPS       = s.AUTO_PROPS;
-                obj.LOGGER__n_trials = s.LOGGER__n_trials;
-            end
-        end
         function save_base_path = getClassPath(obj)
             %getClassPath
             %
