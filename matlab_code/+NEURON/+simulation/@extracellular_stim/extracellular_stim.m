@@ -275,7 +275,7 @@ classdef extracellular_stim < NEURON.simulation
             %a singleton.. only mims. which is why this call is different
             %from the rest
             if isempty(obj.logger)
-                obj.logger = NEURON.simulation.extracellular_stim.xstim_logger(obj);
+                obj.logger = NEURON.simulation.extracellular_stim.xstim_logger.getLogger(obj);
             end
             logger = obj.logger;
         end
