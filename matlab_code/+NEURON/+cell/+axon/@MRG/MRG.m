@@ -172,12 +172,12 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     %Logging functionality  %==============================================
     methods
         function logger = getLogger(obj)
-            obj.logger = NEURON.cell.axon.MRG.MRG_logger(obj);
+            obj.logger = NEURON.cell.axon.MRG.MRG_logger.getLogger(obj);
             logger = obj.logger;
         end
         
         function p = getPropName(obj, propname)
-            p = obj.props.getProps(propname);
+            p = obj.props_obj.getProps(propname);
         end
     end
     
