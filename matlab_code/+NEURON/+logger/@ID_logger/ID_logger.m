@@ -70,7 +70,7 @@ classdef ID_logger < NEURON.logger
             in.create_if_not_found = true;
             in = sl.in.processVarargin(in,varargin);
             
-            loggable_classes_cell_array = obj.getLoggableClasses;
+            loggable_classes_cell_array = obj.getLoggableClasses();
             
             %Call method of ID manager
             [matching_row,is_new] = obj.ID_LOGGER__multi_id_manager.find(...
