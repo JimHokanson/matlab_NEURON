@@ -118,8 +118,8 @@ classdef electrode < NEURON.loggable
         end
     end
     
-    %FOR OTHERS    %=======================================================
     
+    %LOGGING   %===========================================================
     methods
         function logger = getLogger(objs)
             %NOTE: With this we might decide to switch to singleton pattern
@@ -130,6 +130,7 @@ classdef electrode < NEURON.loggable
         end
     end
     
+    %FOR OTHERS    %=======================================================
     methods (Hidden)
         function [log_data,zero_scales] = getLogData(objs)
             %getLogData
