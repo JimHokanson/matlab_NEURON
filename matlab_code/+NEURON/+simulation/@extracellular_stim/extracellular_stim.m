@@ -75,7 +75,7 @@ classdef extracellular_stim < NEURON.simulation
        cell_configuration      = []
     end
     properties
-        logger
+        logger  %NEURON.simulation.extracellular_stim.xstim_logger
     end
     
     %INITIALIZATION METHODS %=============================================
@@ -274,10 +274,9 @@ classdef extracellular_stim < NEURON.simulation
             %Note: There isn't exactly a reason for the xstim logger to be
             %a singleton.. only mims. which is why this call is different
             %from the rest
-            if isempty(obj.logger)
-                obj.logger = NEURON.simulation.extracellular_stim.xstim_logger.getLogger(obj);
-            end
+            obj.logger = NEURON.simulation.extracellular_stim.xstim_logger.getLogger(obj);
             logger = obj.logger;
+            
         end
         
         function p = getProps(obj, propname)
