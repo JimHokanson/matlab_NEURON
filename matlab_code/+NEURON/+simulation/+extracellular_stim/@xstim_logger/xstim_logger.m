@@ -12,8 +12,8 @@ classdef xstim_logger < NEURON.logger.ID_logger
     
     
     properties (Constant)
-        %ID_LOGGER__PROPS = {'elec_objs' 'cell_obj' 'props' 'tissue_obj'};
-        ID_LOGGER__PROPS = {'elec_objs' 'props' 'tissue_obj'};
+        ID_LOGGER__PROPS = {'elec_objs' 'cell_obj' 'props' 'tissue_obj'};
+        %ID_LOGGER__PROPS = {'elec_objs' 'props' 'tissue_obj'};
     end
     
     methods(Access = private)
