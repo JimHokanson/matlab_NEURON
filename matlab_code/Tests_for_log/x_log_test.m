@@ -47,13 +47,32 @@ log.find
 
 %==========================================================================
 %CHANGING THE PROPS  %=====================================================
+d1 = .005;  %original value
+d2 = .076;
 
+sim7 = NEURON.simulation.extracellular_stim.create_standard_sim();
+log = sim7.getLogger;
+log.find
+
+changeProps(sim7.props,'dt', d2);                 
+log = sim7.getLogger;
+log.find
+
+changeProps(sim7.props,'dt', d1);                 
+log = sim7.getLogger;
+log.find
 %==========================================================================
 %CHANGING THE CELL  %======================================================
+cell = sim7.cell_obj;
+cell.props_obj.changeFiberDiameter(8.7);
+log = sim7.getLogger;
+log.find
+
 
 %==========================================================================
 %CHANGING COMBOS  %========================================================
 
 %==========================================================================
 %YAY! IT WORKS! \(^-^)/
+
 
