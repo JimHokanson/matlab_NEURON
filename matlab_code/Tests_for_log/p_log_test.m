@@ -1,24 +1,17 @@
-% function changeSimulationVariables(obj)
-% %changeSimulationVariables
-% %
-% %   changeSimulationVariables(obj)
 % 
 % values = {obj.celsius   obj.tstop  obj.dt};
 % props  = {'celsius'     'tstop'    'dt'};
-% obj.cmd_obj.writeNumericProps(props,values);
-% end
-
-%Does that function work???------------------------------------------------
-
+%
+%Call: changeProps(obj,varargin)
+%
+%--------------------------------------------------------------------------
 clc
 clear_classes
-
-%JK! call: changeProps(obj,varargin)
 
 c1 = 37;    %original value
 c2 = 76;
 c3 = 4;
-d1 = .005;  %origiinal value
+d1 = .005;  %original value
 d2 = .076;
 t1 = 1.2;   %original value
 t2 = 4.3;
@@ -91,7 +84,7 @@ ID6                 %#ok
 ID7                 %#ok
 ID8                 %#ok
 ID9                 %#ok
-ID10                 %#ok
-ID11                 %#ok
-ID12                 %#ok
-ID13                 %#ok
+ID10                %#ok
+ID11                %#ok
+ID12                %#ok
+ID13                %#ok
