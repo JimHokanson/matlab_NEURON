@@ -82,6 +82,8 @@ function ID = helper__addEntry(obj,all_values)
                 s.(cur_prop) = [s.(cur_prop) cur_value]; 
             case 'cellFP'
                 s.(cur_prop) = [s.(cur_prop) {cur_value}]; 
+            case 'matrixFP'
+                s.(cur_prop) = cat(3, s.(cur_prop), cur_value);
             case 'vectorFP'
                 %Form matrix, all rows the same size
                 s.(cur_prop) = [s.(cur_prop); cur_value]; 

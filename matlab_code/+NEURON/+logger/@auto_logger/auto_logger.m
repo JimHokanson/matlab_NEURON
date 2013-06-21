@@ -162,6 +162,13 @@ classdef auto_logger < NEURON.logger
                     %-----------------------------------------------------
                     same_size_indices = find(same_size);
                     temp_indices      = same_size_indices(I);
+                case 'matrixFP'
+                    temp        = old(:,:,input_indices);
+                    difference  = sum(sum(abs(bsxfun(@minus, new, temp))));
+                    fp_is_different = difference > 10*eps;
+                    
+                    temp_indices = find(~any(fp_is_different,2));
+                    
                 case 'vectorFP'
                     %STATUS: DONE
                     temp         = old(input_indices,:);
