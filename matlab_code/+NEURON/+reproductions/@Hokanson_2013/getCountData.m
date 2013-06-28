@@ -30,10 +30,11 @@ function [dual_counts,single_counts,stim_amplitudes,extras] = getCountData(obj,.
 %   fiber_diameters     : (units um) vector
 %
 %
-%
 %   OPTIONAL INPUTS
 %   =======================================================================
-%   stim_resolution : (default 0.5) 
+%   stim_resolution : (default 0.1) 
+%
+%
 %
 %   OUTPUTS
 %   =======================================================================
@@ -44,6 +45,7 @@ function [dual_counts,single_counts,stim_amplitudes,extras] = getCountData(obj,.
 %                       electrode location in dual_counts.
 %   stim_amplitudes : Stimulus amplitudes used for outputs given
 %                       max_stim_level input.
+%
 %   extras : This became a bit of a catch all for things that I needed ...
 %       Example ------
 %       dual_slice_thresholds: {1x5 cell}
@@ -60,6 +62,7 @@ function [dual_counts,single_counts,stim_amplitudes,extras] = getCountData(obj,.
 extras = struct;
 
 in.stim_resolution = 0.1;
+in.custom_setup    = '';  %Not yet implemented 
 in = processVarargin(in,varargin);
 
 in.stim_resolution = abs(in.stim_resolution);
@@ -116,6 +119,7 @@ end
 %--------------------------------------------------------------------------
 %TODO: Should be static method of activaton object ...
 n_stim        = length(1:in.stim_resolution:max_stim_level);
+
 
 single_counts           = zeros(n_stim,n_conditions);
 single_slice_thresholds = cell(1,n_conditions);

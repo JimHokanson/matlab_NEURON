@@ -26,17 +26,23 @@ function [new_data,xyz_new_data] = replicate3dData(data,xyz_data,replication_poi
 %   =======================================================================
 %   data_center : (default [0 0 0]), [x y z], center of the data. This
 %           center is moved to each replication point.
-%   
+%   z_bounds    : (default []), [min max], if specified uses the bounds
+%           specified instead of basing it on the data ...
+%
+%
+%
 %   IMPROVEMENTS
 %   =======================================================================
 %   1) Allow step size to be 1 element or 3 elements for specifying
 %   different steps for x,y,and z
 %   2) Bring out interp options to the user
+%   3) Allow 3d interpolation on singleton dimensions
 %
 %   FULL PATH:
 %       arrayfcns.replicate3dData
 
 in.data_center = [0 0 0];
+in.z_bounds    = [];
 in = processVarargin(in,varargin);
 
 %1) Get New Bounds
@@ -55,7 +61,12 @@ new_max_extents = max_bounds + max_replication_points;
 
 x = new_min_extents(1):step_size:new_max_extents(1);
 y = new_min_extents(2):step_size:new_max_extents(2);
-z = new_min_extents(3):step_size:new_max_extents(3);
+
+if isempty(in.z_bounds)
+    z = new_min_extents(3):step_size:new_max_extents(3);
+else
+    z = in.z_bounds(1):step_size:in.z_bounds(2);
+end
 
 xyz_new_data = {x y z};
 

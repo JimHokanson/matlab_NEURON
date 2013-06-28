@@ -1,16 +1,14 @@
 classdef Hokanson_2013
     %
-    %
     %   Work on my unpublished stimulus interaction paper.
     %
-    
-    properties
+    %   See Also:
+    %   NEURON.reproductions.Hokanson_2013.activation_volume_requestor
+    %   NEURON.reproductions.Hokanson_2013.activation_volume_results
         
-    end
-    
     properties (Constant)
-        %MRG Diameters ...
-        %ALL_DIAMETERS = [5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;];
+        %MRG Diameters:
+        %[5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;];
         ALL_DIAMETERS = [5.7, 7.3 8.7, 10, 12.8, 15];
         ALL_ELECTRODE_PAIRINGS = {
             [0 0 0]                          %Centered Electrode
@@ -21,12 +19,18 @@ classdef Hokanson_2013
             [-300   0   0;  300  0   0]      %6
             [-200   0   0;  200  0   0]      %7 x - standard width (400 um)
             [-100   0   0;  100  0   0]      %8
-            [0    -100 -400; 0   100 400]    %Longitudinal pairing
-            [0    -50  -200; 0   50  200]    %
-            [0    -25  -100; 0   25  100]    %
+            [0    -175 -700; 0   175 700]    %9  Longitudinal pairing
+            [0    -150 -600; 0   150 600]    %10
+            [0    -125 -500; 0   125 500]    %11
+            [0    -100 -400; 0   100 400]    %12
+            [0    -75  -300; 0   75  300]    %13
+            [0    -50  -200; 0   50  200]    %14
+            [0    -25  -100; 0   25  100]    %15
             [-200 -50  -200; 200 50 200]     %Diagonal pairing
             }
-        
+        STANDARD_ELECTRODES_X = {[-200   0   0;  200  0   0]}
+        STANDARD_ELECTRDOES_Z = {[0    -50  -200; 0   50  200]}
+        %TODO:
         %NOTE: Ideally this would be self generated ...
         ELECTRODE_PAIRING_DESCRIPTIONS = {
             'Centered Electrode'
@@ -47,16 +51,47 @@ classdef Hokanson_2013
     methods (Static)
         run()
         figure0()
-        figure1()
-        figure2()
-        figure3()
+        figure1(use_long)
+        figure2(use_long)
+        figure3(use_long)
         respondsAtHighStimulusTest()
         accuracyTest()
         refractoryPeriodTest()
     end
     
     methods
-         function example_figure(obj)
+        function example_figure_2(obj)
+           %Show recruitment redundancy ...
+           
+           %TODO: Might want to reduce resolution
+           %file is really large ...
+           X_VECTOR = -200:5:200;
+           Z_VECTOR = -2000:5:2000;
+           Y_VECTOR = 0;
+           
+           XYZ = {X_VECTOR Y_VECTOR Z_VECTOR};
+           
+           xstim = obj.instantiateXstim([0 0 0]);
+           
+           r = xstim.sim__getThresholdsMulipleLocations(XYZ);
+           
+           %Plotting results
+           %-------------------------------------------------
+           imagesc(X_VECTOR,Z_VECTOR,squeeze(r)');
+           colorbar;
+           axis equal
+           hold on
+           scatter(0,0,100,'w','filled')
+           hold off
+           
+           temp = sl.plot.postp.imageToPatch(gcf,'ignore_colorbars',false);
+           %print -depsc -painters wtf
+           %MATLAB:hg:patch:RGBColorDataNotSupported
+           
+           keyboard
+           
+        end
+         function example_figure_1(obj)
             
             %Create NEURON model, show applied stimuli
             %and show stimulus results ...
@@ -66,7 +101,7 @@ classdef Hokanson_2013
             E1       = [-200 0 0];
             E2       = [200  0 0];
             MAX_Z    = 2000;
-            MIN_Z    = 2000;
+            MIN_Z    = -2000;
             
             %Threshold 4.91
             %Use 5 uA as an example ...
@@ -78,10 +113,7 @@ classdef Hokanson_2013
             %1) the left electrode
             %2) the right electrode
             %3) both electrodes together
-            
-            %REDO with nodes of Ranvier and dots for discrete locations of
-            %the cable
-            
+                        
             for iElec = 1:3
                 if iElec == 1
                     loc = E1;
@@ -116,6 +148,7 @@ classdef Hokanson_2013
             end
             
             figure
+            hold on
             %TODO: Make this a method (for plotting spatial layout of cell)
             %--------------------------------------------------------------
             %- expose "up to date" methods for each object for syncing
@@ -126,8 +159,8 @@ classdef Hokanson_2013
             
             
             scatter([-200 200],[0 0],100,'filled')
-            node_z = CELL_XYZ(3)-1150*2*1150*cell_XYZ(3)+1150*2;
-            node_z(node_z < MIN_Z & node_z < MAX_Z) = [];
+            node_z = (CELL_XYZ(3)-1150*2):1150:(CELL_XYZ(3)+1150*2);
+            node_z(node_z < MIN_Z | node_z > MAX_Z) = [];
             scatter(CELL_XYZ(1)*ones(1,length(node_z)),node_z,100,'filled')
             line([CELL_XYZ(1) CELL_XYZ(1)],[MIN_Z MAX_Z],'Linewidth',3)
 %             line([100 100],[2 1150],'Linewidth',3)
@@ -137,18 +170,25 @@ classdef Hokanson_2013
             xlabel('X')
             ylabel('Z')
             axis equal
+            hold off
             
             %TODO: Add stimulus timing plots ...
                         
         end 
     end
-    methods (Access = private,Hidden)
+    methods (Hidden)
         function xstim = instantiateXstim(obj,electrode_locations)
+            %
+            %
+            %
             options = {...
                 'electrode_locations',electrode_locations,...
                 'tissue_resistivity',obj.TISSUE_RESISTIVITY};
             xstim = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
-        end
+        end 
+    end
+    methods (Access = private,Hidden)
+
         function plotLimits(obj,x_points,y_points)
             chars    = 'xzXZ';
             colors   = 'rgbc';

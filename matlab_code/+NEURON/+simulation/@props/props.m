@@ -70,6 +70,22 @@ classdef props < handle_light
         end
     end
     
+    methods (Hidden)
+        function autoChangeTStop(obj,new_value)
+           %This method should be used to automatically 
+           %change the stopping time when it is desirable
+           %not to disengage the auto update
+           %
+           %    Manually setting it (via changeProps)
+           %    
+           %
+           %    Written for NEURON.simulation.adjustSimTimeIfNeeded
+           
+           obj.tstop = new_value;
+           obj.changeSimulationVariables();
+        end
+    end
+    
     methods
         function obj = props(parent_obj,varargin)
             obj.parent  = parent_obj;

@@ -39,6 +39,7 @@ if ~exist('auto_expand','var')
 end
 
 %Important call to make sure everything is synced
+%NEURON.simulation.extracellular_stim.init__simulation
 obj.init__simulation();
 
 %NEURON.simulation.extracellular_stim.threshold_analysis

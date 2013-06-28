@@ -222,7 +222,9 @@ classdef simulation < handle_light
                 end
             end
             
-            changeProps(obj.props,'tstop',new_tstop)
+            obj.props.autoChangeTStop(new_tstop)
+            
+            %changeProps(obj.props,'tstop',new_tstop)
         end
     end
     
