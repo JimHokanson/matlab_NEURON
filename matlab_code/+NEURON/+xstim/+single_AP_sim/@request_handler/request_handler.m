@@ -26,11 +26,7 @@ classdef request_handler
             % call: logged_data function to get old data
             % from the values its got and the requested locations, it
             % determines which indices into the requested_locations have
-            % already been solved. This will have to called from some
-            % outside function and just return an empty matrix if it has
-            % all the locations known already...
-            % also populates the current_unknown_indices??? jk this is
-            % handled here (this class) too            
+            % already been solved.           
             if isempty(obj.logged_data.cell_locations_old)
                 obj.logged_data.load_data();
             end
