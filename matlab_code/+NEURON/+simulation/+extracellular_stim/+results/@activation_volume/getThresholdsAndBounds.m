@@ -168,7 +168,7 @@ new_points(1,1:2) = replication_points(1,1:2);
 %These are the new z-values for the first set of points. The second set of
 %points will equal this value, +/- an INL, unless the point is at z = 0,
 %then we won't replicate.
-first_z_values = mod(dz,INL) - INL/2;
+first_z_values = mod(dz,INL);
 
 %To keep track of which solution goes to which electrode. Each electrode
 %gets a maximum of 2 points. The first electrode only gets 1.
@@ -196,13 +196,13 @@ for iPoint = 2:n_points
         new_points(cur_point,1:2) = replication_points(iPoint,1:2);
         electrode_ids(cur_point) = iPoint;
         
-        %This ensures that our solution will now cover:
-        %z from -INL/2 to INL/2
-        if cur_z < 0
-            new_points(cur_point,3) = cur_z + INL;
-        else
+%         %This ensures that our solution will now cover:
+%         %z from -INL/2 to INL/2
+%         if cur_z > INL/2
+%             new_points(cur_point,3) = cur_z - INL;
+%         else
             new_points(cur_point,3) = cur_z - INL;
-        end
+%         end
     end
 end
 

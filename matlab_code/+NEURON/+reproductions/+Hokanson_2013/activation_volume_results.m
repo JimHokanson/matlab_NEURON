@@ -23,6 +23,7 @@ classdef activation_volume_results < sl.obj.handle_light
         
         slice_thresholds
         slice_xyz
+        slice_labels
         slice_dim
         slice_value
     end
@@ -52,6 +53,8 @@ classdef activation_volume_results < sl.obj.handle_light
         % end
     end
     
+    methods
+    end
     
     %PLOTTING METHODS
     %----------------------------------------------------------------------

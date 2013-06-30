@@ -51,7 +51,7 @@ classdef Hokanson_2013
     methods (Static)
         run()
         figure0()
-        figure1(use_long)
+        figure1()
         figure2(use_long)
         figure3(use_long)
         respondsAtHighStimulusTest()
@@ -188,8 +188,82 @@ classdef Hokanson_2013
         end 
     end
     methods (Access = private,Hidden)
+        function final_strings = getElectrodeSeparationStrings(obj,electrode_locations)
+           %If the dimension to use is empty, use all, if not 
+           
+           if ~iscell(electrode_locations)
+               electrode_locations = cell(electrode_locations);
+           end
+           
+           if any(cellfun(@(x) size(x,1) ~= 2,electrode_locations))
+              error('Code only supports two electrodes') 
+           end
+           
+           %The goal is to from from an element like:
+           %[0 100 200; 0 -100 200] to
+           %'200 y, 400 z'
+           
+           dx = cellfun(@(x) abs(x(1,1) - x(2,1)),electrode_locations);
+           dy = cellfun(@(y) abs(y(1,2) - y(2,2)),electrode_locations);
+           dz = cellfun(@(z) abs(z(1,3) - z(2,3)),electrode_locations);
+           
+           sx = arrayfun(@(x) sprintf('%d x',x),dx,'un',0);
+           sy = arrayfun(@(y) sprintf('%d y',y),dy,'un',0);
+           sz = arrayfun(@(z) sprintf('%d z',z),dz,'un',0);
+           
+           sx(dx == 0) = {''};
+           sy(dy == 0) = {''};
+           sz(dz == 0) = {''};
+           
+           final_strings = cellfun(@(x,y,z) sl.cellstr.join({x y z},'d',', ','remove_empty',true),sx,sy,sz,'un',0);
+           
+           
+        end
+        function plotVolumeRatio(obj,rs,rd,with_markup)
+           %
+           %    INPUTS
+           %    ==========================================
+           %    rs : cell array of objects
+           %    rd : cell array of objects ...
+           %
+           %    Crap, how to determine overlap for 2 electrodes ...
+           
+                      FONT_SIZE = 18;
+           keyboard 
+            
+           n_sets = length(rs);
+           
+           hold all
+           for iSet = 1:n_sets
+              cur_rs = rs{iSet};
+              cur_rd = rd{iSet};
+              
+              stim_rs = cur_rs.stimulus_amplitudes;
+              stim_rd = cur_rd.stimulus_amplitudes;
+              
+              if ~isequal(stim_rs,stim_rd)
+                  error('Stimulus amplitude mismatch found')
+              end
+              
+              vol_ratio = cur_rd.counts./cur_rs.counts;
+              plot(stim_rs,vol_ratio,'Linewidth',3)
+              if with_markup
+                  
+              end
+           end
+            
 
-        function plotLimits(obj,x_points,y_points)
+           
+           set(gca,'FontSize',FONT_SIZE)
+           xlabel('Stimulus Amplitude (uA)','FontSize',FONT_SIZE)
+           ylabel('Volume Ratio','FontSize',FONT_SIZE)
+        end
+        function [xz_amp,xz_value] = getLimitAmplitudes(rs,rd,y_values)
+           
+            keyboard
+            
+        end
+        function plotLimits(obj,xz_amp,xz_value)
             chars    = 'xzXZ';
             colors   = 'rgbc';
             symbol   = 'ospd';
@@ -203,40 +277,6 @@ classdef Hokanson_2013
                 set(s,'FontSize',18)
                 
             end
-        end
-        function [x_lim__amp,z_lim__amp,x_lim__y_val,z_lim__y_val] = ...
-                getLimitInfo(obj,stim_amps,y_values,threshold_matrix,xyz,internode_length)
-            %
-            %    [x_lim__amp,z_lim__amp,x_lim__y_val,z_lim__y_val] = ...
-            %            getLimitInfo(obj,stim_amps,y_values,threshold_matrix,xyz,internode_length)
-            %
-            
-            %NOTE: We need to get the threshold values at the internode
-            %spacing, not at the bounds of the inputs ...
-            
-            %TODO: Clean this up
-            %The inputs should really be 3d unless y = 0 is the value
-            %passed in
-            %In the current code it is, but this is very sloppy
-            
-            %Assume y = 0 ...
-            %Squeeze results ...
-            
-            %TODO: Run
-            z_max   = floor(internode_length/2);
-            z_range = -z_max:z_max;
-            
-            %Get minimum at x = 0
-            %i.e. what is the lowest threshold where the x-limit comes into
-            %play
-            x_lim__amp = min(interpn(xyz{1},xyz{3},squeeze(threshold_matrix),0,z_range));
-            
-            %Get minimum at z = z_max
-            z_lim__amp = min(interpn(xyz{1},xyz{3},squeeze(threshold_matrix),xyz{1},z_max));
-            
-            x_lim__y_val = interp1(stim_amps,y_values,x_lim__amp);
-            z_lim__y_val = interp1(stim_amps,y_values,z_lim__amp);
-            
         end
     end
     
