@@ -516,5 +516,12 @@ classdef props < handle_light
         end
     end
     
+    %Logging methods   %===================================================
+    methods
+        function p = getProps(obj, propname)
+            p = obj.(propname);
+        end
+    end
+    
 end
 

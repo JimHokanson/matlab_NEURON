@@ -14,15 +14,24 @@ classdef props < handle_light
        parent   %Class: NEURON.simulation
     end
     
-    properties (Access = private)
+    properties (SetAccess = private)
         %.changeProps()
         %Use .changeProps to change these properties
         celsius = 37
+    end
+    
+    %Time Properties   ====================================================
+    properties
+        %METHODS
+        %   getTimeVector
+        %   getExpectedSimDuration
+        %   getSimDuration
+        
         tstop   = 1.2       %(units - ms) Stopping time for the simulation
     end
     
     %Fixed Time Step Properties  %=========================================
-    properties (Access = private)
+    properties (SetAccess = private)
         dt      = 0.005     %(units - ms) dt for fixed time solvers
         
         %NOT YET SUPPORTED
@@ -129,6 +138,13 @@ classdef props < handle_light
             props  = {'celsius'     'tstop'    'dt'};
             obj.cmd_obj.writeNumericProps(props,values);
         end   
+    end
+    
+    %LOGGING FUNCTION  %===================================================
+    methods
+        function logger = getLogger(obj)
+            logger = NEURON.simulation.props.logger.getInstance(obj);
+        end
     end
   
 end

@@ -1,4 +1,4 @@
-classdef electrode < NEURON.super
+classdef electrode < NEURON.loggable
     %
     %   Class:
     %       NEURON.simulation.extracellular_stim.electrode
@@ -75,7 +75,7 @@ classdef electrode < NEURON.super
         %to be recalculated since changing parameters here would change the
         %applied stimulus.
     end
-    
+
     %INITIALIZATION METHODS ===============================================
     methods (Static)
         function objs = create(xyz,xstim_obj)
@@ -114,13 +114,13 @@ classdef electrode < NEURON.super
             %   Made private due to bug in Matlab.
             %   ----------------------------------
             %
-            %   Need to call: 
+            %   Need to call:
             %   NEURON.simulation.extracellular_stim.electrode.create instead :/
             %
             %   obj = electrode(xyz,xstim_obj)
             %
             %   See Also:
-            %   NEURON.simulation.extracellular_stim.electrode.create 
+            %   NEURON.simulation.extracellular_stim.electrode.create
             %
             %   FULL PATH:
             %   NEURON.simulation.extracellular_stim.electrode
@@ -129,7 +129,17 @@ classdef electrode < NEURON.super
             obj.parent = xstim_obj;
         end
     end
-
+    
+    
+    %LOGGING   %===========================================================
+    methods
+        function logger = getLogger(objs)
+            %NOTE: With this we might decide to switch to singleton pattern
+            %Note use of indexing            
+            logger = NEURON.simulation.extracellular_stim.electrode.logger.getInstance(objs);
+        end
+    end
+    
     %FOR OTHERS    %=======================================================
     methods (Hidden)
         function [log_data,zero_scales] = getLogData(objs)
@@ -193,7 +203,7 @@ classdef electrode < NEURON.super
     methods
         %Not yet implemented
         %function addElectrodesToData(objs,dim_string)
-        %   
+        %
         %   - the goal is to provide a method which
         %   will mark up current plots with the locations of the electrodes
         %end
@@ -250,22 +260,37 @@ classdef electrode < NEURON.super
                amp_scalar = 1;
            end
             
-           [time,stim_amps] = getMergedStimTimes(objs);
-           
-           sim_obj = objs(1).parent;
-           
-           final_time = sim_obj.props.getSimDuration;
-           
-           time(end+1)        = final_time;
-           stim_amps(end+1,:) = 0;
-           stim_amps          = stim_amps*amp_scalar;
+            %Currently this algorithm just needs to:
+            %1) add on a final time
+            %value and set the stimulus amplitude to zero at that time.
+            %2) Multiply the data by a scalar if
+            %
+            %
+            
+            if ~exist('amp_scalar','var')
+                amp_scalar = 1;
+            end
+            
+            [time,stim_amps] = getMergedStimTimes(objs);
+            
+            sim_obj = objs(1).parent;
+            
+            final_time = sim_obj.props.getSimDuration;
+            
+            time(end+1)        = final_time;
+            stim_amps(end+1,:) = 0;
+            stim_amps          = stim_amps*amp_scalar;
         end
     end
     
     %PUBLIC MANIPULATON METHODS   %========================================
     methods
         function moveElectrode(obj,xyz)
-            obj.xyz = xyz;
+            [len, ~] = size(xyz);
+            for i = 1:len
+                obj(i).xyz = xyz(i,:);
+            end
+            %obj.xyz = xyz;
             objectChanged(obj)
         end
     end

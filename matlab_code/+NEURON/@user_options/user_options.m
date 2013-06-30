@@ -37,6 +37,13 @@ classdef user_options < handle_light
     properties
         sim_logger_root_path  %(dir)  See class: 
         %NEURON.simulation.extracellular_stim.sim_logger
+        %
+        %   This will soon be obsolete ...
+        %
+        xstim_results_base_path %(dir)
+        %NEURON.xstim.single_AP_sim.logged_data
+        %
+        %   This is where data from simulations is saved ...
     end
     
     %======================================================================
@@ -175,6 +182,9 @@ classdef user_options < handle_light
             %checkPropsDefined
             %
             %   defined_flags = checkPropsDefined(obj,props_to_check)
+            %
+            %   TODO: Expand to optionally throw errors if not defined ...
+            %   
             
             if ischar(props_to_check) || length(props_to_check) == 1
                 defined_flags = strcmp(obj.defined_properties,props_to_check);

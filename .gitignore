@@ -6,6 +6,7 @@ HOC_CODE/models/axon_models/mod_files/i386/*
 HOC_CODE/models/MRG_Axon/mod_files/i386/*
 
 /options*
+/data/*
 
 #Copied from:
 #https://help.github.com/articles/ignoring-files

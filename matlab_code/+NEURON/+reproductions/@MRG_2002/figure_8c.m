@@ -25,12 +25,18 @@ function figure_8c
 %3) Do plotting
 
 N_FIBERS           = 50;
-TISSUE_RESISTIVITY = [1200 1200 300]; %See Stimulation Procedure Section
+
 STIM_START_TIME    = 0.1;
 STIM_DURATION      = 0.1;   %100 us duration
 STIM_AMP           = -1;    %Let's work with + numbers on the scales
 DEFAULT_GUESS      = 80;
 MAX_THRESHOLD      = 500;   %outside this range will throw an error
+
+obj = NEURON.reproductions.MRG_2002;
+
+options = {...
+    'tissue_resistivity',obj.TISSUE_RESISTIVITY};
+xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
 
 obj = NEURON.simulation.extracellular_stim;
 

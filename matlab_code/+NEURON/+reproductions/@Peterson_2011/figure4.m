@@ -27,15 +27,15 @@ thresh_active = squeeze(thresh_active);
 
 % predictions
 thresh_mdf1 = obj.computeThresholdMultipleLocations(xstim,cell_locations,1);
-thresh_mdf2 = obj.computeThresholdMultipleLocations(xstim,cell_locations,2);
+%thresh_mdf2 = obj.computeThresholdMultipleLocations(xstim,cell_locations,2);
 
 % threshold error
 mdf1_error = obj.thresholdError(thresh_mdf1,thresh_active);
-mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
+%mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
 
 % plot
 figure
-%plot(EAS,mdf1_error,'s--',EAS,mdf2_error,'-')
+%plot(EAS,mdf1_error,'s--',EAS,mdf2_error,'-','linewidth',3,'markersize',10)
 plot(EAS,mdf1_error,'s--','linewidth',3,'markersize',10)
 fontsize = 18;
 xlabel('Electrode-Axon-Spacing [\mum]','fontsize',fontsize)
@@ -62,19 +62,21 @@ thresh_active = squeeze(thresh_active);
 
 % predictions
 thresh_mdf1 = obj.computeThresholdMultipleLocations(xstim,cell_locations,1);
-thresh_mdf2 = obj.computeThresholdMultipleLocations(xstim,cell_locations,2);
+%thresh_mdf2 = obj.computeThresholdMultipleLocations(xstim,cell_locations,2);
 
 % threshold error
 mdf1_error = obj.thresholdError(thresh_mdf1,thresh_active);
-mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
+%mdf2_error = obj.thresholdError(thresh_mdf2,thresh_active);
 
 % plot
 figure
-plot(perc_offset,mdf1_error,'s--',perc_offset,mdf2_error,'-')
+%plot(perc_offset,mdf1_error,'s--',perc_offset,mdf2_error,'-','linewidth',3,'markersize',10)
+plot(perc_offset,mdf1_error,'s--','linewidth',3,'markersize',10)
 xlabel('Alignment Offset [% Internodal Length]','fontsize',fontsize)
 ylabel('Threshold Error [%]','fontsize',fontsize)
-%ylim([-10 25])
-legend('Single Node Method','Weighted Sum Method')
+ylim([-10 25])
+%legend('Single Node Method','Weighted Sum Method')
+legend('Single Node Method')
 set(gca,'fontsize',fontsize - 2)
 
 %% c (vary diameter)
@@ -109,15 +111,18 @@ end
 % normalize
 thresh_active = thresh_active./max(thresh_active);
 thresh_mdf1 = thresh_mdf1./max(thresh_mdf1);
-thresh_mdf2 = thresh_mdf2./max(thresh_mdf2);
+%thresh_mdf2 = thresh_mdf2./max(thresh_mdf2);
 
 % plot
 figure
-plot(fiber_diams,thresh_active,'o',fiber_diams,thresh_mdf1,'s--',fiber_diams,thresh_mdf2,'-','markersize',6)
+%plot(fiber_diams,thresh_active,'o',fiber_diams,thresh_mdf1,'s--',fiber_diams,thresh_mdf2,'-','markersize',6,'linewidth',3)
+plot(fiber_diams,thresh_active,'o',fiber_diams,thresh_mdf1,'s--','markersize',10,'linewidth',3)
 xlabel('Axon Diameter [\mum]','fontsize',fontsize)
 ylabel('Normalized Activation Threshold','fontsize',fontsize)
-legend('Active Axon Model','Single Node Method','Weighted Sum Method')
+%legend('Active Axon Model','Single Node Method','Weighted Sum Method')
+legend('Active Axon Model','Single Node Method')
 ylim([0 1])
+xlim([6 20])
 set(gca,'fontsize',fontsize - 2)
 
 end
