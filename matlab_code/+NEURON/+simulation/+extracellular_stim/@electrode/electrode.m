@@ -59,11 +59,7 @@ classdef electrode < NEURON.loggable
         %or not it had changed since last asked. This is primarily for
         %recomputing the applied stimulus to a cell.
     end
-    
-    properties
-        logger
-    end
-    
+
     %INITIALIZATION METHODS ===============================================
     methods (Static)
         function objs = create(xyz,xstim_obj)
@@ -124,9 +120,7 @@ classdef electrode < NEURON.loggable
         function logger = getLogger(objs)
             %NOTE: With this we might decide to switch to singleton pattern
             %Note use of indexing            
-            objs(1).logger = NEURON.simulation.extracellular_stim.electrode.elec_logger.getLogger(objs);
-            
-            logger = objs(1).logger;
+            logger = NEURON.simulation.extracellular_stim.electrode.logger.getInstance(objs);
         end
     end
     

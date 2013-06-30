@@ -7,8 +7,18 @@ classdef tissue < NEURON.loggable
     %
     %
     %   KNOWN IMPLEMENTATIONS
-    %   NEURON.tissue.homogeneous_anisotropic
+    %   ===================================================================
+    %   NEURON.tissue.homogeneous_anisotropic  
     %   NEURON.tissue.homogeneous_isotropic
+    %
+    %
+    %   IMPROVEMENTS:
+    %   =======================================================
+    %   1) Change the input to this function to allow
+    %   explicity specification of the type
+    %   2) Include half solutions (requires introduction and handling
+    %   of a boundary)
+    %   3) Add FEM class
     
     properties
         configuration = 1;
@@ -18,6 +28,9 @@ classdef tissue < NEURON.loggable
     %======================================================================
     methods (Static)
         function obj = createHomogenousTissueObject(resistivity)
+            
+            
+            
             if length(resistivity) == 1
                 obj = NEURON.tissue.homogeneous_isotropic(resistivity);
                 return

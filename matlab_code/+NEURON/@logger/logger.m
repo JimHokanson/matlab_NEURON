@@ -1,5 +1,4 @@
-classdef logger < dynamicprops
-    %
+classdef logger < sl.obj.handle_light
     %
     %   Class:
     %   NEURON.logger
@@ -7,30 +6,39 @@ classdef logger < dynamicprops
     %   Known Helper Subclasses
     %   --------------------------------------------------------
     %   NEURON.logger.auto_logger
-    %
+    %   NEURON.logger.ID_logger
     %
     %   Known implementations (for quick browsing)
     %   -------------------------------------------------------------------
     %   NEURON.simulation.extracellular_stim.electrode.elec_logger
+    %
+    %   IMPROVEMENTS:
+    %   ===================================================================
+    %   1) Needs significant documentation updates
+    %   2) Remove long names ...
+    %   3) Change name of find to be more appropriate
+    %   4) Remove dynamicprops => sl.obj.handle_light
+    %
+    %   See Also:
+    %   NEURON.logger.auto_logger
+    %   NEURON.logger.ID_logger
+    %   NEURON.logger.ID
     
-    %{
-    This class will be extended by tissue, xstim, and cell
-    It provides the methods save, load, compare, and update.
+    properties (Hidden)
+       MAIN_LOGGER_VERSION = 1 
+    end
     
-    1) Lets find out how info is currently being serialized/saved/loaded.
-        a) Disect findMatch
-    %}
-    
-    %TODO: We might need to prefix these
     properties (Abstract, Constant)
-        LOGGER__VERSION     %Each logger should change the version if the data
+        VERSION  %Each logger should change the version if the data
         %they are logging changes. This will require creation of an update
-        %method, called updateObj
+        %method, called update.
         %
         %
-        LOGGER__CLASS_NAME  %If a subclass of a class, then this should be the
+        CLASS_NAME  %If a subclass of a class, then this should be the
         %fully resolved name of the super class. When not subclassed, then
-        %this should just be the name of the class itself.
+        %this should just be the name of the class itself. This should
+        %refer to the class being logged (the loggable class), not the
+        %logger class.
         %
         %   Examples:
         %   ---------------------------------------------------------------
@@ -39,59 +47,104 @@ classdef logger < dynamicprops
         %
         %   class: NEURON.simulation.extracellular_stim.electrode
         %   CLASS_NAME => NEURON.simulation.extracellular_stim.electrode
-        LOGGER__TYPE  %(numeric), this can be used to distinguish between different
+        %
+        TYPE  %(numeric), this can be used to distinguish between different
         %subclass types. See definiton in ID object
     end
     
-    properties
-        %         log
-        %.logger()
-        LOGGER__n_trials = 0 %This should be internally maintained via add and remove
-        %methods.
-        LOGGER__parent %Reference to loggable parent
+    properties (Dependent)
+        n_trials  %Depends on id_creation_dates
     end
     
-    %Shared Methods         ===============================================
-    methods (Hidden)
-        function next_match_id = updateIdCount(obj)
-            %
-            %   next_match_id = updateIdCount(obj)
-            %
-            %   Updates internal ID and returns the new value ...
-            %
-            %   Updates property: LOGGER__n_trials
-            %
-            
-            next_match_id        = obj.LOGGER__n_trials + 1;
-            obj.LOGGER__n_trials = next_match_id;
+    methods
+        function value = get.n_trials(obj)
+            value = length(obj.id_creation_dates);
         end
     end
+    
+    properties
+        id_creation_dates %Matlab time for when id was created
+        parent %Reference to loggable parent
+    end
+    
+    %Constructor methods ==================================================
     methods
         function obj = logger(parent)
-            obj.LOGGER__parent = parent;
+            obj.parent = parent;
         end
-        
         function editParent(obj,parent)
-            obj.LOGGER__parent = parent;
+            obj.parent = parent;
         end
-        
-        %Adding a new entry outline:
-        %--------------------------------------------------------
-        
-        %3) obj.saveHelper();
-        %
-        %   This next step is optional but typical ...
-        %
-        %4) ID = obj.getID(next_match_id);
-        %
-        %NOTE: It would be nice to wrap this into a function that takes a
-        %save handle and evaluates it ...
-        %TODO: Implement this ...
-        
+    end
+    
+    methods (Static)
+        function [obj,p_logger] = getInstanceHelper(c_handle,p_logger,varg_input)
+            %
+            %
+            %   [obj,p_logger] = getInstanceHelper(c_handle,p_logger,varg_input)
+            %
+            %   This method was written to facilitate singleton
+            %   object construction ...
+            %
+            %   INPUTS
+            %   ===========================================================
+            %   c_handle : Constructor function handle
+            %   p_logger : Reference to persistent variable ...
+            
+            %Generic function
+            if isempty(p_logger)
+                obj = c_handle(varg_input{:});
+                p_logger = obj;
+            else
+                p_logger.editParent(varg_input{:});
+            end
+            obj = p_logger;
+        end
+    end
+    
+    %Data access methods
+    %======================================================================
+    methods
+        function ID = getInstanceID(obj,varargin)
+            %
+            %   This is meant to be the public facing method ...
+            %
+            %   See Also:
+            %   NEURON.logger.auto_logger.find
+            %   NEURON.logger.ID_logger.find
+            
+            in.new_ok = true;
+            in = sl.in.processVarargin(in,varargin);
+
+            ID = obj.find(in.new_ok);
+        end
+    end
+    
+    
+    %Saving ===============================================================
+    methods (Access = protected)
         function ID = updateIDandSave(obj,save_fh)
-            next_match_id = obj.updateIdCount;
+            %
+            %   ID = updateIDandSave(obj,save_fh)
+            %
+            %   OUTPUTS
+            %   ===========================================================
+            %   ID      : NEURON.logger.ID
+            %
+            %   INPUTS
+            %   ===========================================================
+            %   save_fh : function handle to save function
+            %
+            %   See Also:
+            %       #OBJ.getID
+            %       #OBJ.updateIdCount
+            %
+            %   FULL PATH:
+            %   NEURON.logger.updateIDandSave
+            
+            obj.id_creation_dates = [obj.id_creation_dates now];
             feval(save_fh);
-            ID = obj.getID(next_match_id);
+            ID = obj.getID(obj.n_trials);
         end
         function ID = getID(obj,match_index)
             %getID
@@ -103,8 +156,12 @@ classdef logger < dynamicprops
             %    INPUTS
             %    ===========================================================
             %    match_index : (default []), typically the row of the
-            %                matching entry, if no match is found an empty
-            %                represents a null id
+            %                matching entry,
+            %
+            %                [] => NULL ID (i.e. match not found)
+            %
+            %   See Also:
+            %   #OBJ.updateIDandSave
             %
             %    FULL PATH:
             %    NEURON.logger.getID
@@ -113,42 +170,18 @@ classdef logger < dynamicprops
                 match_index = [];
             end
             
-            ID = NEURON.logger.ID(obj.LOGGER__CLASS_NAME, obj.LOGGER__TYPE, match_index);
+            if isempty(match_index)
+                creation_date = [];
+            else
+                creation_date = obj.id_creation_dates(match_index);
+            end
+            
+            ID = NEURON.logger.ID(obj.CLASS_NAME, obj.TYPE, match_index,creation_date);
         end
     end
     
     %Saving/Loading/Pathing ===============================================
-    methods
-        %NOTE: Instead of being helpers, they could be the main
-        %implenentation as long as we specify properties that chould change
-        %their behavior, like properties not to save ...
-        %
-        %For example, when saving the auto_logger, we don't need to save
-        %the AUTO_INFO property
-        %         function saveHelper(obj,properties_remove)
-        %             %
-        %             %
-        %             %   This function converts the object to a structure and saves it.
-        %             %   By saving the object as a structure we ensure that we can load
-        %             %   it on any computer, regardless of whether the class definition
-        %             %   code exists or not.
-        %
-        %             w = warning('off','MATLAB:structOnObject');
-        %             s = struct(obj);
-        %             warning(w);
-        %
-        %             %Very important line ...
-        %             if isfield(s,'LOGGER__parent')
-        %                 s = rmfield(s,'LOGGER__parent');
-        %             end
-        %
-        %             if exist('properties_remove','var')
-        %                 s = rmfield(s,properties_remove);%#ok<NASGU>
-        %             end
-        %
-        %             save_path = obj.getSaveDataPath;
-        %             save(save_path,'s');
-        %         end
+    methods (Access = protected)
         %         function loadHelper(obj)
         %             %
         %             %
@@ -162,7 +195,7 @@ classdef logger < dynamicprops
         %                 h = load(save_path);
         %                 s = h.s;
         %
-        %                 if obj.LOGGER__VERSION ~= s.LOGGER__VERSION
+        %                 if obj.VERSION ~= s.VERSION
         %                     s = obj.update(s);
         %                 end
         %
@@ -175,6 +208,38 @@ classdef logger < dynamicprops
         %                 %result.raiseError - not yet implented ...
         %             end
         %         end
+        function addPropsAndSave(obj,s)
+            %
+            %    INPUTS
+            %    ===========================================================
+            %    s : (structure), should only have logger properties in its
+            %    top level, not loggable class properties
+            
+            s.VERSION             = obj.VERSION;
+            s.MAIN_LOGGER_VERSION = obj.MAIN_LOGGER_VERSION;
+            s.id_creation_dates   = obj.id_creation_dates;
+            save_path = obj.getSaveDataPath;
+            save(save_path,'s');
+        end
+        function s = getStructure(obj)
+            save_path = obj.getSaveDataPath;
+            if ~exist(save_path,'file')
+                s = struct([]);
+            else
+                h = load(save_path);
+                s = h.s;
+                
+                if obj.MAIN_LOGGER_VERSION ~= s.MAIN_LOGGER_VERSION
+                   error('Not yet implemented') 
+                end
+                
+                obj.id_creation_dates = s.id_creation_dates;
+                
+                if obj.VERSION ~= s.VERSION
+                    s = obj.update(s);
+                end
+            end
+        end
         function save_base_path = getClassPath(obj)
             %getClassPath
             %
@@ -185,6 +250,8 @@ classdef logger < dynamicprops
             
             %NOTE: We may eventually change this to point to a user
             %specified data logging base path ...
+            %
+            %   i.e. see NEURON.user_options
             base_path        = sl.dir.getMyBasePath('',3);
             
             class_name_parts = regexp(class(obj),'\.','split');
@@ -207,30 +274,9 @@ classdef logger < dynamicprops
         end
     end
     
+    %Abstract methods =====================================================
     methods (Abstract)
-        id = find(obj,create_if_not_found)
-        
-        %NOTE: Create new abstract methods as they are needed
-        
-        
-        
-        
-        %deleteIndices(obj, indices)
-        
-        %while developing... See:
-        % NEURON.simulation.extracellular_stim.sim_logger.matcher.stim
-        % NEURON.simulation.extracellular_stim.sim_logger.matcher.cell_props.getMatchingEntries
-        
-        %The RNEL function that allows for comparison within a certain
-        %epsilon may or maynot be useful... :P I would like for this
-        %function to maintain some way of determining some margin for
-        %the values to be considered not just the same but similar so
-        %we can add code later to handle non-exact matches
-        
-        
-        
-        
-        % This function will update the loaded obj to the newer version
-        % specifications...
+        %TODO: Change this name, it is not good ...
+        id = find(obj)
     end
 end

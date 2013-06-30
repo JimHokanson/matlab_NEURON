@@ -1,11 +1,18 @@
 classdef request_handler
-    % This is responsbile for keeping track of what we know and don't
+    %
+    %   Class:
+    %   NEURON.xstim.single_AP_sim.request_handler
+    %
+    %   This is responsbile for keeping track of what we know and don't
     %   know.
+    
     properties
-        parent          %NEURON.xstim
-        logged_data % I'm not exactly sure if we want this to
-        % instaiante and handle this or not...
+        parent  %Class: NEURON.xstim
+        sim_id  %
+        
+        logged_data %Class: NEURON.xstim.single_AP_sim.logged_data
     end
+    
     properties
         requested_locations
         current_unknown_indices
@@ -13,13 +20,25 @@ classdef request_handler
         final_thresholds
         options
     end
+    
     methods
-        function obj = request_handler(parent, sign)
+        function obj = request_handler(parent,sign,cell_locations)
             % get previously logged data
             % we may or may not want to repopulate our known locations just
             % yet...
-            obj.parent = parent;
-            obj.logged_data = NEURON.single_AP_sim.logged_data(parent, sign); 
+            obj.parent   = parent;
+            
+            xstim_logger = parent.getLogger;
+            
+            %
+            ID = xstim_logger.getInstanceID();
+            
+            keyboard
+            
+            %obj.logged_data = NEURON.xstim.single_AP_sim.logged_data(parent,sign);
+            
+            %NEURON.xstim.single_AP_sim.logged_data
+            %obj.logged_data = NEURON.single_AP_sim.logged_data(parent, sign); 
             
         end        
         function [unknown, index] = determine_unknown_indices(obj, cell_locations)

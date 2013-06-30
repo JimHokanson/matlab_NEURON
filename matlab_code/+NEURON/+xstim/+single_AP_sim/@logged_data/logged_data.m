@@ -1,30 +1,47 @@
-classdef logged_data < handle
-% This class is in charge of saving/loading each data instance and
-% maintaining which predictor is being used to generate this information
-% especially useful for testing, we are going to want to insure that the
-% different predictor methods do not generate different outcomes.
-    
+classdef logged_data < sl.obj.handle_light
+    %
+    %   Class:
+    %   NEURON.xstim.single_AP_sim.logged_data
+    %
+    %
+    % This class is in charge of saving/loading each data instance and
+    % maintaining which predictor is being used to generate this information
+    % especially useful for testing, we are going to want to insure that the
+    % different predictor methods do not generate different outcomes.
+    %
+    %
+    %   Questions:
+    %   ======================================================
+    %   1) 
+
     properties
-        pos_threshold
-        neg_threshold
         sign
-    end    
+        
+        %Old values
+        %----------------------------------------------
+        cell_locations
+        pos_thresholds
+        neg_thresholds
+    end 
+    
     properties
         predictor
         parent
     end
+    
     properties
         stim_base
         stim_old
         thresholds_old
         cell_locations_old
     end
+    
     properties(Constant)
         VERSION = 1;
     end
     
     methods
-        function obj = logged_data(xstim, sign)
+        function obj = logged_data(xstim,sign,xstim_id)
             % populates properties 
             obj.parent = xstim;
             % log = xstim.getLogger();

@@ -40,12 +40,7 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         %to cd to this directory, as well as to manage files written
         %back and forth between NEURON and Matlab
     end
-    
-    %logging
-    properties
-        logger
-    end
-    
+
     properties
         %%(SetAccess = private)
         %For right now we'll go with just don't do anything stupid ...
@@ -172,13 +167,11 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     %Logging functionality  %==============================================
     methods
         function logger = getLogger(obj)
-            obj.logger = NEURON.cell.axon.MRG.MRG_logger.getLogger(obj);
-            logger = obj.logger;
+            logger = NEURON.cell.axon.MRG.logger.getInstance(obj.props_obj,obj);
         end
-        
-        function p = getPropName(obj, propname)
-            p = obj.props_obj.getProps(propname);
-        end
+%         function p = getPropName(obj, propname)
+%             p = obj.props_obj.getProps(propname);
+%         end
     end
     
 end

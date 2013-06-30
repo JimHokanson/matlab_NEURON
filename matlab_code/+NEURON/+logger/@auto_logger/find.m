@@ -1,6 +1,18 @@
 function ID = find(obj,create_if_not_found)
+%
+%   ID = find(obj,create_if_not_found)
+%
+%
+%   See Also:
+%   
+%
+%   FULL PATH:
+%   NEURON.logger.auto_logger.find
+%   NEURON.logger.auto_logger.getNewValue
 
-if ~create_if_not_found && obj.LOGGER__n_trials == 0
+n_trials_local = obj.n_trials;
+
+if ~create_if_not_found && n_trials_local == 0
     ID = obj.getID();
     return
 end
@@ -24,21 +36,21 @@ end
 
 %If no previous values exist, quit early 
 %--------------------------------------------------------------------------
-if obj.LOGGER__n_trials == 0 && create_if_not_found
+if n_trials_local == 0 && create_if_not_found
     ID = helper__addEntry(obj,all_new_values);
     return
 end
 
 %Comparison to previous values
 %--------------------------------------------------------------------------
-matching_indices = 1:obj.LOGGER__n_trials;
+matching_indices = 1:n_trials_local;
 for iProp = 1:n_props
     cur_prop   = props_local{iProp};
     cur_type   = types_local{iProp};
     
     
     %NOTE: We might want to move this to a structure ...
-    old_value = obj.AUTO_PROPS.(cur_prop);
+    old_value = obj.old_values.(cur_prop);
     
     temp_indices = obj.compare(all_new_values{iProp},old_value,cur_type,matching_indices);
     
@@ -67,8 +79,6 @@ function ID = helper__addEntry(obj,all_values)
     types_local = obj.getTypeNames();
     props_local = obj.getPropNames();
     
-    next_row = obj.LOGGER__n_trials + 1;
-
     %TODO: INSERT PROPERTIES HERE
     n_values = length(all_values);
     
@@ -76,21 +86,23 @@ function ID = helper__addEntry(obj,all_values)
         cur_value = all_values{iValue};
         cur_prop  = props_local{iValue};
         cur_Type  = types_local{iValue};
-        s = obj.AUTO_PROPS;
+        s = obj.old_values;
         switch cur_Type
             case 'simple_numeric'
                 s.(cur_prop) = [s.(cur_prop) cur_value]; 
             case 'cellFP'
                 s.(cur_prop) = [s.(cur_prop) {cur_value}]; 
-            case 'matrixFP'
-                s.(cur_prop) = cat(3, s.(cur_prop), cur_value);
+                                
+%We don't have cases where this is appropriate ....
+% % %             case 'matrixFP'
+% % %                 s.(cur_prop) = cat(3, s.(cur_prop), cur_value);
             case 'vectorFP'
                 %Form matrix, all rows the same size
                 s.(cur_prop) = [s.(cur_prop); cur_value]; 
             otherwise
                 error('Unhandled case')
         end
-        obj.AUTO_PROPS = s;
+        obj.old_values = s;
     end
     
     ID = obj.updateIDandSave(@obj.saveLog);

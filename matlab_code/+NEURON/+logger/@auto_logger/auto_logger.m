@@ -3,22 +3,28 @@ classdef auto_logger < NEURON.logger
     %
     %   Class:
     %   NEURON.logger.auto_logger
+    %
+    %   See Also:
+    %   NEURON.simulation.extracellular_stim.electrode.logger
+    %   NEURON.simulation.props.logger
+    
     
     properties (Abstract,Constant)
-        AUTO_LOGGER__IS_SINGULAR_OBJECT  %Specify whether or not this class is singular,
+        IS_SINGULAR_OBJECT  %Specify whether or not this class is singular,
         %or whether or not it will ever have multiple instances.
         
-        AUTO_LOGGER__INFO %Get's passed into processor
+        PROCESSING_INFO %Get's passed into processor
+        %STRUCTURE
+        %------------------------------------------------------------------
+        %Column 1:
+        %
     end
     
     properties
-        AUTO_PROPS 
+        old_values %(structure) contains previous class values. The names
+        %match the properties of the loggable class, but their values
+        %are the results of concatenating previous values.
     end
-    
-    
-    %     properties
-    %         AUTO_LOGGER__processor NYI
-    %     end
     
     %AUTO_INFO Processing Methods =========================================
     %NOTE: These might eventually get moved into their own class ...
@@ -26,14 +32,14 @@ classdef auto_logger < NEURON.logger
         %These methods should be called instead of accessing the AUTO_INFO
         %cell array directly ...
         function propNames = getPropNames(obj)
-            propNames = obj.AUTO_LOGGER__INFO(:,1);
+            propNames = obj.PROCESSING_INFO(:,1);
         end
         function typeNames = getTypeNames(obj)
-            typeNames = obj.AUTO_LOGGER__INFO(:,2);
+            typeNames = obj.PROCESSING_INFO(:,2);
         end
         function output = getRetrievalMethods(obj)
             %returns functionHandles for retieving.
-            output = obj.AUTO_LOGGER__INFO(:,3);
+            output = obj.PROCESSING_INFO(:,3);
         end
     end
     
@@ -45,24 +51,6 @@ classdef auto_logger < NEURON.logger
             %   obj = auto_logger(parent)
             
             obj@NEURON.logger(parent);
-            
-            %Dynamically create props to reference previous values
-            %-------------------------------------------------------------
-            prop_names = obj.getPropNames;
-            s = struct;
-            for iProp = 1:length(prop_names)
-                s.(prop_names{iProp}) = [];
-            end
-            obj.AUTO_PROPS = s;
-            
-            %This implementation is delayed for now ...
-            % %             %Create processor
-            % %             %--------------------------------------------------------------
-            % %             obj.AUTO_LOGGER__processor = ...
-            % %                     NEURON.logger.auto_logger.processor(...
-            % %                                 parent, ...
-            % %                                 obj.AUTO_LOGGER__IS_SINGULAR_OBJECT, ...
-            % %                                 obj.AUTO_LOGGER__INFO);
             
             %Reload objects
             %--------------------------------------------------------------
@@ -84,12 +72,16 @@ classdef auto_logger < NEURON.logger
             %    retrieval_method : One of 3 types
             %            See definition of AUTO_INFO
             %
+            %
+            %    See Also:
+            %    
+            %   
             %    FULL PATH
             %    ===================================================
             %    NEURON.logger.auto_logger.getNewValue
             
-            parent      = obj.LOGGER__parent;
-            is_singular = obj.AUTO_LOGGER__IS_SINGULAR_OBJECT;
+            parent      = obj.parent;
+            is_singular = obj.IS_SINGULAR_OBJECT;
             
             if isempty(retrieval_method)
                 %Retrieve directly ...
@@ -113,117 +105,32 @@ classdef auto_logger < NEURON.logger
                 end
             else
                 %function handle
-                new_value = feval(retrieval_method,parent,prop_name);
-                %new_value = retrieval_method(parent, prop_name);
+                new_value = feval(retrieval_method,obj,parent,prop_name);
+                %new_value = obj.retrieval_method(parent, prop_name);
             end
         end
-        
-        function output_indices = compare(obj, new, old, type, input_indices)
-            %
-            %
-            %   output_indices = compare(obj, new, old, type, input_indices)
-            %
-            %depending on the type find the appropriate comparison method
-            %return indices of the same prop...
-            %
-            %   FULL PATH:
-            %   ===========================================================
-            %   NEURON.logger.auto_logger
-            
-            %NOTE: This shouldn't be needed ...
-            if isempty(input_indices)
-                output_indices = [];
-                return;
-            end
-            
-            switch type
-                case 'simple_numeric'
-                    temp_indices = find(new == old(input_indices));
-                case 'cellFP'
-                    %- each old element is an entry in a cell array
-                    %- the entries themselves are arrays
-                    %- the values inside should be considered floating point
-                    %   so we need to do a floating point comparison
-                    
-                    %old = {[1 2 3] [1 2 3 4 5 6] [0 100 0] };
-                    
-                    truncated_values = old(input_indices);
-                    
-                    %Remove dimensions that are not the same length
-                    %------------------------------------------------------
-                    same_size   = cellfun('length',truncated_values) == length(new);
-                    temp_matrix = vertcat(truncated_values{same_size});
-                    
-                    %Use matrix comparision function for final comparison
-                    %------------------------------------------------------
-                    I = obj.compare(new,temp_matrix,'vectorFP',1:size(temp_matrix,1));
-                    
-                    %Adjust indices to match input scale ...
-                    %-----------------------------------------------------
-                    same_size_indices = find(same_size);
-                    temp_indices      = same_size_indices(I);
-                case 'matrixFP'
-                    temp        = old(:,:,input_indices);
-                    difference  = sum(sum(abs(bsxfun(@minus, new, temp))));
-                    fp_is_different = difference > 10*eps;
-                    
-                    temp_indices = find(~any(fp_is_different,2));
-                    
-                case 'vectorFP'
-                    %STATUS: DONE
-                    temp         = old(input_indices,:);
-                    difference   = bsxfun(@minus, new, temp);
-                    
-                    %NOTE: somewhat arbitrary comparison
-                    %TODO: Add reasoning for this in design decision
-                    %
-                    %i.e. for now we want to compare equal to within
-                    %computation error, not roughly equal where we might
-                    %decide 3.001 is close enough to 3 that we don't care
-                    %
-                    %The latter is very difficult to do, especially with
-                    %a wide range of numbers ...
-                    fp_is_different = abs(difference) > 10*eps;
-                    
-                    temp_indices = find(~any(fp_is_different,2));
-                otherwise
-                    error('Type %s not recognized',type)
-            end
-            
-            output_indices = input_indices(temp_indices);
-            
-            %method = getCompar
-            %ind = find(~cellfun(method, new, old));
-        end
-        
     end
-    
     
     %Implementation of Abstract Methods ===================================
     methods
         %find -> see separate file
     end
+    
     %Save and Load Functionality===========================================
     methods
-        function saveLog(obj) %auto fucntionality might need to be moved
-            s = struct; 
-            s.AUTO_PROPS        = obj.AUTO_PROPS;
-            s.LOGGER__VERSION   = obj.LOGGER__VERSION;
-            s.LOGGER__n_trials  = obj.LOGGER__n_trials; %#ok
-            save_path = obj.getSaveDataPath;
-            save(save_path,'s');
+        function saveLog(obj)
+            s = struct;
+            s.old_values = obj.old_values;
+            obj.addPropsAndSave(s);
         end
         function loadLog(obj)
-            save_path = obj.getSaveDataPath;
-            if exist(save_path,'file')
-                h = load(save_path);
-                s = h.s;
-
-                if obj.LOGGER__VERSION ~= s.LOGGER__VERSION
-                    s = obj.update(s);
-                end
-                obj.AUTO_PROPS       = s.AUTO_PROPS;
-                obj.LOGGER__n_trials = s.LOGGER__n_trials;
+            s = obj.getStructure();
+            if isempty(s)
+               %Initialization of old values
+               propNames = obj.getPropNames();
+               obj.old_values = cell2struct(repmat({[]},[length(propNames) 1]),propNames);
+            else
+               obj.old_values = s.old_values;
             end
         end
     end

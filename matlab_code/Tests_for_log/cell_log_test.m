@@ -1,38 +1,62 @@
-clear_classes
-clc
+function cell_log_test()
+%
+%
+%   IMPROVEMENTS
+%   =====================================================
+%   1) Pass in testing directory
+%   2) Get all properties and toggle all
+%   3) create novel and test for invalid ID with create_new = false
+
+ids = cell(1,6);
+
+rules = [1 2 0;
+         2 3 0;
+         1 4 1;
+         1 5 0;
+         1 6 0];
 
 %First sim ================================================================
 sim1 =  NEURON.simulation.extracellular_stim.create_standard_sim();
-cell = sim1.cell_obj;
-log = cell.getLogger;
-ID1 = log.find(true);
+cell_obj = sim1.cell_obj;
+ids{1} = getID(cell_obj);
 
 %Change FiberDiameter =====================================================
-cell.props_obj.changeFiberDiameter(8.7);
-log = cell.getLogger;
-ID2 = log.find(true);
+cell_obj.props_obj.changeFiberDiameter(8.7);
+ids{2} = getID(cell_obj);
 
 %Back to original =========================================================
-cell.props_obj.changeFiberDiameter(10);
-log = cell.getLogger;
-ID3 = log.find(true);
+cell_obj.props_obj.changeFiberDiameter(10);
+ids{3} = getID(cell_obj);
 
 %Second Sim ===============================================================
 sim2 =  NEURON.simulation.extracellular_stim.create_standard_sim();
-cell = sim2.cell_obj;
-log = cell.getLogger;
-ID4 = log.find(true);
+cell_obj = sim2.cell_obj;
+ids{4} = getID(cell_obj);
 
 %Random prop change =======================================================
-cell.props_obj.changeProperty('xc_node', 7);
-log = cell.getLogger;
-ID5 = log.find(true);
+cell_obj.props_obj.changeProperty('xc_node', 7);
+ids{5} = getID(cell_obj);
 
-cell = sim1.cell_obj;
-cell.props_obj.changeProperty('xc_node', 17);
-log = cell.getLogger;
-ID6 = log.find(true);
+cell_obj = sim1.cell_obj;
+cell_obj.props_obj.changeProperty('xc_node', 17);
+ids{6} = getID(cell_obj);
 
+n_rules = size(rules,1);
+for iRule = 1:n_rules
+   cur_row = rules(iRule,:);
+   flag = ids{cur_row(1)} == ids{cur_row(2)};
+   if flag ~= logical(cur_row(3))
+       error('Mismatch for ID #%d',iRule)
+   end
+end
+
+
+end
+
+function ID = getID(cell_obj)
+    log = cell_obj.getLogger;
+    ID = log.find(true);
+end
 
 %
 % FIBER_DEPENDENT_PROPERTIES = {'node_diameter' 'paranode_diameter_1' ...

@@ -9,10 +9,7 @@ classdef homogeneous_anisotropic < NEURON.tissue
     properties
         resistivity  %Ensure on setting that it is a 3 element row vector
     end
-    properties
-        logger
-    end
-    
+
     methods
         function obj = homogeneous_anisotropic(resistivity)
             if length(resistivity) ~= 3
@@ -30,8 +27,12 @@ classdef homogeneous_anisotropic < NEURON.tissue
             %
             %   INPUTS
             %   ====================================================================
-            %   cell_xyz_all : (size n x 3)
-            %   elec_xyz     : 1 x 3
+            %   cell_xyz_all : [n x 3]
+            %   elec_xyz     : [1 x 3]
+            %
+            %
+            %   Callers:
+            %   ??????
             %
             %   See Also:
             %       NEURON.simulation.extracellular_stim
@@ -65,8 +66,7 @@ classdef homogeneous_anisotropic < NEURON.tissue
             
         end
         function logger = getLogger(obj)
-            obj.logger = NEURON.tissue.homogeneous_anisotropic.homoAniso_logger.getLogger(obj);
-            logger = obj.logger;
+            logger = NEURON.tissue.homogeneous_anisotropic.logger.getInstance(obj);
         end
         
     end

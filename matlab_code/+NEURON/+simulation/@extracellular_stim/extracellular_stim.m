@@ -74,9 +74,6 @@ classdef extracellular_stim < NEURON.simulation
        electrode_configuration = []
        cell_configuration      = []
     end
-    properties
-        logger  %NEURON.simulation.extracellular_stim.xstim_logger
-    end
     
     %INITIALIZATION METHODS %=============================================
     methods (Access = private)
@@ -182,6 +179,54 @@ classdef extracellular_stim < NEURON.simulation
             %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
             sim_logger.initializeLogging(obj); 
         end
+        function thresholds = sim__getThresholdsMulipleLocations2(obj,cell_locations,varargin)
+            
+            thresholds = [];
+            
+            in.threshold_sign     = 1;
+            in.reshape_output     = true;
+            in = sl.in.processVarargin(in,varargin);
+            
+            r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,cell_locations);
+            
+            % basic steps: 
+            % 1 - initialize the request_handler 
+            % Which then goes and inits the logged_Data (pass in the sign)
+            % call: request_handler.getThresholds
+            % 2 - has request_handler return indices of unknown
+            %     cell_locations
+            % 3 - sends these reduced (potentially) cell_locations to the 
+            %     predictor_obj. Along with the sign. predictor_obj
+            % 4 - predictor_obj sees if the matrix is emmpty and returns
+            %     early.
+            % 4 - OR predictor interacts w/ request_handler to manage data?
+            
+            % Step 2-4 not done here directly, but thru request_handler_obj
+            
+            
+            
+            
+            
+% % % % % %             if isempty(in.initialized_logger)
+% % % % % %                 sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
+% % % % % % 
+% % % % % %                 %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
+% % % % % %                 sim_logger.initializeLogging(obj);
+% % % % % %             else
+% % % % % %                 sim_logger = in.initialized_logger; 
+% % % % % %             end
+% % % % % %             
+% % % % % %             %NEURON.simulation.extracellular_stim.sim_logger.getThresholds
+% % % % % %             thresholds = sim_logger.getThresholds(cell_locations,in.threshold_sign);
+% % % % % %             
+% % % % % %             if in.reshape_output && iscell(cell_locations)
+% % % % % %                sz = cellfun('length',cell_locations);
+% % % % % %                %Silly meshgrid :/
+% % % % % %                t = reshape(thresholds,[sz(2) sz(1) sz(3)]);
+% % % % % %                thresholds = permute(t,[2 1 3]);
+% % % % % %             end
+            
+        end
         function thresholds = sim__getThresholdsMulipleLocations(obj,cell_locations,varargin)
             %sim__getThresholdsMulipleLocations
             %
@@ -274,13 +319,7 @@ classdef extracellular_stim < NEURON.simulation
             %Note: There isn't exactly a reason for the xstim logger to be
             %a singleton.. only mims. which is why this call is different
             %from the rest
-            obj.logger = NEURON.simulation.extracellular_stim.xstim_logger.getLogger(obj);
-            logger = obj.logger;
-            
-        end
-        
-        function p = getProps(obj, propname)
-            p = obj.(propname);
+            logger = NEURON.simulation.extracellular_stim.logger.getInstance(obj);
         end
     end
 end

@@ -1,22 +1,25 @@
-classdef MRG_logger < NEURON.logger.auto_logger
+classdef logger < NEURON.logger.auto_logger
     %
     %
     %   Class:
-    %   NEURON.cell.axon.MRG.MRG_logger
+    %   NEURON.cell.axon.MRG.logger
     %
     %   This is one way of implementing it... I don't like it though. Way
     %   too many variables, but this will work...
     
     properties(Constant)
-        LOGGER__VERSION = 1;
-        LOGGER__CLASS_NAME = 'NEURON.cell.axon.MRG.MRG_logger';
-        LOGGER__TYPE  = 1;
+        VERSION = 1;
+        CLASS_NAME = 'NEURON.cell.axon.MRG';
+        TYPE  = 1;
+    end
+    
+    properties
+       props 
     end
     
     properties(Constant)
-        AUTO_LOGGER__IS_SINGULAR_OBJECT = true;
-        AUTO_LOGGER__INFO = {...
-            'xyz_all'               'matrixFP'       ''
+        IS_SINGULAR_OBJECT = true;
+        PROCESSING_INFO = {...
             'xyz_center'            'vectorFP'       ''
             %-----------------------------------------------------------
             'fiber_diameter'        'vectorFP'      @getPropName
@@ -69,20 +72,23 @@ classdef MRG_logger < NEURON.logger.auto_logger
     end
     
     methods(Access = private)
-        function obj = MRG_logger(varargin)
+        function obj = logger(varargin)
             obj@NEURON.logger.auto_logger(varargin{:});
         end
     end
+    
+    methods
+        function value = getPropName(obj,~,prop_name)
+           value = obj.props.(prop_name);
+        end
+    end
+    
     methods(Static)
-        function obj = getLogger(varargin)
-            persistent m_logger
-            if isempty(m_logger)
-                obj = NEURON.cell.axon.MRG.MRG_logger(varargin{:});
-                m_logger = obj;
-            else
-                m_logger.editParent(varargin{:});
-            end
-            obj = m_logger;
+        function obj = getInstance(props_obj,varargin)
+            persistent p_logger
+            c_handle = @NEURON.cell.axon.MRG.logger;
+            [obj,p_logger] = NEURON.logger.getInstanceHelper(c_handle,p_logger,varargin);
+            obj.props = props_obj;
         end
     end
 end
