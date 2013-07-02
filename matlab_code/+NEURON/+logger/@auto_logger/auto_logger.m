@@ -92,6 +92,21 @@ classdef auto_logger < NEURON.logger
                         if ~is_singular
                             new_value = [parent.(prop_name)];
                         else
+                             error('Implementation not yet defined')
+                        end
+                    case 'varying'
+                        if ~is_singular
+                            n_objs = length(parent);
+                            new_value   = n_objs;
+                            temp_val    = [];
+                            sizes       = [];
+                            for i_obj = 1:n_objs
+                                temp = parent(i_obj).(prop_name);
+                                sizes = [sizes, length(temp)];      %#ok
+                                temp_val = [temp_val, temp];        %#ok
+                            end
+                            new_value = [new_value, sizes, temp_val];
+                        else
                             error('Implementation not yet defined')
                         end
                     case 'string'
