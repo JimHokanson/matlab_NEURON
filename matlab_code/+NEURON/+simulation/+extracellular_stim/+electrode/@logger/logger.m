@@ -14,7 +14,7 @@ classdef logger < NEURON.logger.auto_logger
         IS_SINGULAR_OBJECT = false;
         PROCESSING_INFO = {...
             'xyz'                       'cellFP'    'numeric'
-            'stimulus_transition_times' 'cellFP'    'numeric'
+            'stimulus_transition_times' 'cellFP'    'varying'
             'base_amplitudes'           'cellFP'    'numeric'}   
     end
     
