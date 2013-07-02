@@ -20,35 +20,29 @@ classdef logged_data < sl.obj.handle_light
     %   1) 
     %
     %   IMPROVEMENTS
-    %   ======================================================
-    %   1) Store ID with data for hash comparison ...
-
+    %   ===================================================================
+    %   1) Store xstim_ID with data for hash comparison ...
+    %           This involves creating a save method for the ID
+    %   
+    %
+    %   See Also:
+    %   NEURON.xstim.single_AP_sim.new_solution
+    
     properties(Constant)
        VERSION = 1;
     end
     
     properties
-       file_path %Path to mat file ... 
+       file_path %Path to mat file ...
+       stim_sign
     end
     
     %Old values
     %----------------------------------------------
     properties        
-       solution
+       solution %Class: 
     end 
-    
-%     properties
-%         predictor
-%         parent
-%     end
-%     
-%     properties
-%         stim_base
-%         stim_old
-%         thresholds_old
-%         cell_locations_old
-%     end
-    
+
     methods
         function obj = logged_data(stim_sign,xstim_ID)
             %
@@ -69,13 +63,11 @@ classdef logged_data < sl.obj.handle_light
             else
                 sign_folder = 'neg';
             end
-            
             obj.file_path = sl.dir.createFolderIfNoExist(base_path,sign_folder,file_name);
-
-            %We'll get to load data AFTER we generate data to load
-            %obj.loadData();
+            obj.stim_sign = stim_sign;
+            obj.loadData(xstim_ID);
         end
-        function loadData(obj)            
+        function loadData(obj,xstim_ID)            
             if exist(obj.file_path,'file')
                 h = load(obj.file_path);
                 s = h.s;
@@ -86,8 +78,10 @@ classdef logged_data < sl.obj.handle_light
             else
                 sol_s = struct([]); 
             end
-            obj.solution = xstim.single_AP_sim.solution(sol_s);
-
+            obj.solution = NEURON.xstim.single_AP_sim.solution(sol_s);
+            
+            %f the new solution object has anything logged on disk
+            NEURON.xstim.single_AP_sim.new_solution.getNewSolutionData(obj.stim_sign,obj,xstim_ID);
         end
         function saveData(obj)
            s.VERSION  = obj.VERSION;

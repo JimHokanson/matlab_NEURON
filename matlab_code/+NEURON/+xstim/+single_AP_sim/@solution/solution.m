@@ -42,19 +42,17 @@ classdef  solution < sl.obj.handle_light
             
         end
         function new_obj = getPartialObject(obj,I)
-            %new_obj
+            %
+            %
+            %   new_obj = getPartialObject(obj,I)
+            %
             
             new_obj = xstim.single_AP_sim.solution([]);
-            
-            %TODO: Implement this function!
-            
             new_obj.cell_locations   = obj.stim_sign(I,:);
-            new_obj.thresholds       = obj.
-            new_obj.solve_dates       = obj.
-            new_obj.predictor_types  %[1 x n]
-            new_obj.ranges           %[n x 2]
-            
-            
+            new_obj.thresholds       = obj.thresholds(I);
+            new_obj.solve_dates      = obj.solve_data(I);
+            new_obj.predictor_types  = obj.predictor_types(I);
+            new_obj.ranges           = obj.ranges(I,:);
             new_obj.hash = now;
             
         end
@@ -69,7 +67,7 @@ classdef  solution < sl.obj.handle_light
             %   and then just replicate inside this function ...
             %
             %   See Also:
-            %   
+            %
             
             obj.solve_dates     = [obj.solve_dates      solve_dates];
             obj.cell_locations  = [obj.cell_locations;  new_locations];
@@ -84,24 +82,18 @@ classdef  solution < sl.obj.handle_light
             %   match_result = findLocationMatches(obj,new_cell_locations)
             %
             %   OUTPUTS
-            %   ===================================================
-            %   match_result : Class : NEURON.xstim.single_AP_sim.solution.match_result 
+            %   ===========================================================
+            %   match_result : Class : NEURON.xstim.single_AP_sim.solution.match_result
             %
             %   INPUTS
             %   ===================================================
             %
             %
             %   See Also:
-            %   
-           
-            
-            
+            %
             
             [mask,loc] = ismember(new_cell_locations,obj.cell_locations);
-            
             match_result = NEURON.xstim.single_AP_sim.solution.match_result(obj,mask,loc,new_cell_locations(~mask));
-            
-            
         end
     end
     

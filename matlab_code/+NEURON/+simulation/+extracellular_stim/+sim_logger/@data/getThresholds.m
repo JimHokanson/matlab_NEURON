@@ -55,6 +55,7 @@ obj.setNewAppliedStimulus();
 %Step 2 - create predictor object
 %--------------------------------------------------------------------------
 obj.initPredictorObj();
+%NEURON.simulation.extracellular_stim.threshold_predictor
 
 %Step 3 - Find Previous matches & redundant old stimuli ...
 %--------------------------------------------------------------------------

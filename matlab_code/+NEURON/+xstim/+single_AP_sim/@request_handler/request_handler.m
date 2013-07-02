@@ -5,6 +5,13 @@ classdef request_handler
     %
     %   This is responsbile for carrying out determination of the
     %   thresholds.
+    %
+    %   See Also:
+    %   NEURON.xstim.single_AP_sim.logged_data
+    %   NEURON.xstim.single_AP_sim.solution
+    %   NEURON.xstim.single_AP_sim.applied_stimuli
+    %   NEURON.xstim.single_AP_sim.predictor
+    %   NEURON.xstim.single_AP_sim.solution.match_resul
     
     properties
         parent      %Class: NEURON.xstim
@@ -15,27 +22,32 @@ classdef request_handler
     properties
         cell_locations
         stim_sign
-        solution
-        solution_found = false;
     end
     
-% %     properties
-% %         options
-% %     end
-% % 
-% %     properties
-% %         stim_sign
-% %         requested_locations
-% %         unknown_mask
-% %         
-% %         final_thresholds
-% %     end
+    %OUTPUT ===============================================================
+    properties
+        solution    %Class: NEURON.xstim.single_AP_sim.solution
+        solution_found = false
+    end
+    
+    properties
+        predictor  %Subclass of: NEURON.xstim.single_AP_sim.predictor
+    end
     
     methods
         function obj = request_handler(parent,stim_sign,cell_locations)
-            % get previously logged data
-            % we may or may not want to repopulate our known locations just
-            % yet...
+            %
+            %
+            %   obj = request_handler(parent,stim_sign,cell_locations)
+            %
+            
+            %Do we want to use this approach where we allow passing
+            %in of the predictor to use ?????
+            %
+            %   I think so ...
+            %             in.predictor = 'default'
+            %             in = sl.in.processVarargin(in,varargin);
+            
             obj.parent   = parent;
             obj.cell_locations = cell_locations;
             obj.stim_sign = stim_sign;
@@ -53,75 +65,80 @@ classdef request_handler
                 xyz = sl.xyz.cellToMatrix(cell_locations);
             else
                 %TODO: Check for n x 3
-                xyz = cell_locations; 
+                xyz = cell_locations;
             end
             
             match_result = checkIfSolved(obj,xyz);
             %NEURON.xstim.single_AP_sim.solution.match_result
             
             if match_result.is_complete_match
-               obj.solution = match_result.getFullSolution();
-               obj.solution_found = true;
-               return
+                obj.solution = match_result.getFullSolution();
+                obj.solution_found = true;
+                return
             end
             
             %If not, create objects for possible user manipulation
             %--------------------------------------------------------------
-            %TODO: Flush this out ...
             %
-            %1) Prediction mechanism (solver)
-            %2) Algorithm for determining next things to solve (make a
-            %class)
-            %3) Full solution solver
+            %   NOTE: We only do object construction here. We later will
+            %   make a call to solve the objects. Between these calls the
+            %   user can change options ..., they could even change
+            %   the predictor object itself ...
+            
+            %??? switch on in.predictor????
             %
-            %   Other classes:
-            %   -----------------------------------
-            %   1) Results class
-            %
-            %
+            %   i.e. switch in.predictor
+            %           case 'default'
+            %           case ...
+            %        end
             
-            %IMPORTANT: The goal here is to instantiate basic options
-            %and then to allow the user to manipulate them by returning
-            %the object before calling getSolution()
+            p = NEURON.xstim.single_AP_sim.predictor.default;
             
-            keyboard            
-        end        
-        function solution = getSolution(obj)
-           
-            %1) Check if solution is found, if so return
-            %NOTE: We will allow the user to do this too
+            %JAH CURRENT STATUS:
+            %I'm working on the initialization ...
+            keyboard
             
-            %2) If not found, ask solver to get it
+            p.initializeSuperProps();     %TODO: Finish this method ...
+            p.initializeSubclassProps();
             
-            
+            obj.predictor = p;
         end
-        
-% % % %         function [unknown, index] = determine_unknown_indices(obj, cell_locations)
-% % % %             % call: logged_data function to get old data
-% % % %             % from the values its got and the requested locations, it
-% % % %             % determines which indices into the requested_locations have
-% % % %             % already been solved.           
-% % % %             if isempty(obj.logged_data.cell_locations_old)
-% % % %                 obj.logged_data.load_data();
-% % % %             end
-% % % %             old_locations = obj.logged_data.cell_locations_old;
-% % % %             [match, index] = ismember(cell_locations, old_locations, 'rows');
-% % % %             unknown = find(~match);
-% % % %         end        
-% % % %         function thresholds = getThresholds(obj, cell_locations, predictor)            
-% % % %             %cell_locations passed in as a cell array needs reformatting...
-% % % %             [unknown, known_indices] = obj.determine_unknown_indices(obj, cell_locations);
-% % % %             if isempty(unknown)
-% % % %                 thresholds = sign.*obj.logged_data.old_thresolds(known_indices);
-% % % %                 return
-% % % %             end
-% % % %             solver(predictor, obj); %I don't want this to be created 
-% % % %             % until we know we need it. might have to pass in predictor 
-% % % %             % type from xstim, and then actully generate the predictor 
-% % % %             % object here
-% % % %             thresholds = solver.predictThresholds(known_indices, sign, ...
-% % % %                                                   cell_locations);
-% % % %         end     
+        function [solution,predictor_info] = getSolution(obj)
+            %
+            %
+            %    [solution,predictor_info] = getSolution(obj)
+            %
+            %    OUTPUTS
+            %    ===========================================================
+            %    solution: NEURON.xstim.single_AP_sim.solution
+            %    predictor_info: Output depends on the predictor ...
+            %
+            
+            %Check if solution is found - if so, return early
+            %--------------------------------------------------------------
+            %The solution would be found if we have already requested the
+            %same values as before. This would be done in the constructor.
+            %
+            %NOTE: The user could check this too by looking at the
+            %properties after the constructor call, but this method call
+            %is fine too.
+            if obj.solution_found
+                solution = obj.solution;
+                predictor_info = [];
+                return
+            end
+            
+            %Things are missing, call predictor ...
+            %--------------------------------------------------------------
+            [solution,predictor_info] = obj.predictor.getThresholdSolutions();
+            
+            %At the end we will call this method
+            %which takes temporary files, merges everything
+            %and sorts the results for later lookup
+            %
+            %We'll also run this on startup in case we quit early ...
+            obj.logged_data.mergeResults();
+        end
     end
 end
 
