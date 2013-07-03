@@ -15,7 +15,7 @@ classdef logger < NEURON.logger.auto_logger
         PROCESSING_INFO = {...
             'xyz'                       'cellFP'    'numeric'
             'stimulus_transition_times' 'cellFP'    'varying'
-            'base_amplitudes'           'cellFP'    'numeric'}   
+            'base_amplitudes'           'cellFP'    'varying'}   
     end
     
     methods(Access = private)
