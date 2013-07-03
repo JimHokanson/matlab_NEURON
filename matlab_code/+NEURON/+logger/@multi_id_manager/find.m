@@ -1,4 +1,4 @@
-function [matching_row,is_new] = find(obj,loggable_classes_cell_array,create_new)
+function [matching_row,is_new] = find(obj,loggable_classes_cell_array,create_new, varargin)
 %find
 %
 %   [matching_row,is_new] = find(loggable_classes_cell_array,create_new)
@@ -33,6 +33,11 @@ if ~create_new && obj.n_rows == 0
     return
 end
 
+ignore = [];
+if nargin > 3
+    ignore = varargin{1};
+end
+
 %STEP 1: Acquire previous IDS (or new ones)
 %--------------------------------------------------------------
 n_classes   = length(loggable_classes_cell_array);
@@ -41,6 +46,7 @@ abort_match = false;
 
 for iClass = 1:n_classes
     cur_class       = loggable_classes_cell_array{iClass};
+    
     temp_logger     = cur_class.getLogger();
     temp_id         = temp_logger.find(create_new);
     
@@ -72,6 +78,13 @@ row_entry = getRowEntry(obj,all_ids);
 
 if obj.n_rows == 0
     matching_row = [];
+elseif ~isempty(ignore)
+    row_entry_temp = row_entry;
+    row_entry_temp(ignore.*2) = inf;
+    row_entry_temp(ignore.*2 +1) = inf;
+    usable = length(row_entry) - length(ignore);
+    temp_sum = sum(~bsxfun(@minus,row_entry_temp,obj.id_matrix),2);
+    matching_row = find(temp_sum,usable);
 else
     matching_row = find(~sum(abs(bsxfun(@minus,row_entry,obj.id_matrix)),2));
 end
