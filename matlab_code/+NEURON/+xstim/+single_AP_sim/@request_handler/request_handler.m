@@ -4,7 +4,8 @@ classdef request_handler
     %   NEURON.xstim.single_AP_sim.request_handler
     %
     %   This is responsbile for carrying out determination of the
-    %   thresholds.
+    %   thresholds. It is meant as the top level interface object with the
+    %   user when determining multiple thresholds ...
     %
     %   See Also:
     %   NEURON.xstim.single_AP_sim.logged_data
@@ -20,7 +21,10 @@ classdef request_handler
     end
     
     properties
-        cell_locations
+        cell_locations_input   %[n x 3] or {1 x 3}, we need to save this
+        %value in case we want to reshape the output back to a 3d matrix
+        xyz_of_cell_locations  %[n x 3] these are the locations we will
+        %solve for ...
         stim_sign
     end
     
@@ -35,11 +39,14 @@ classdef request_handler
     end
     
     methods
-        function obj = request_handler(parent,stim_sign,cell_locations)
+        function obj = request_handler(parent,stim_sign,cell_locations,varargin)
             %
             %
             %   obj = request_handler(parent,stim_sign,cell_locations)
             %
+            
+            in.predictor = 'default'; %Name of the predictor to use
+            in = sl.in.processVarargin(in,varargin);
             
             %Do we want to use this approach where we allow passing
             %in of the predictor to use ?????
@@ -49,7 +56,7 @@ classdef request_handler
             %             in = sl.in.processVarargin(in,varargin);
             
             obj.parent   = parent;
-            obj.cell_locations = cell_locations;
+            obj.cell_locations_input = cell_locations;
             obj.stim_sign = stim_sign;
             
             xstim_logger = parent.getLogger;
@@ -68,11 +75,13 @@ classdef request_handler
                 xyz = cell_locations;
             end
             
-            match_result = checkIfSolved(obj,xyz);
+            obj.xyz_of_cell_locations = xyz;
+            
+            match_result = obj.logged_data.checkIfSolved(xyz);
             %NEURON.xstim.single_AP_sim.solution.match_result
             
             if match_result.is_complete_match
-                obj.solution = match_result.getFullSolution();
+                obj.solution       = match_result.getFullSolution();
                 obj.solution_found = true;
                 return
             end
@@ -92,13 +101,15 @@ classdef request_handler
             %           case ...
             %        end
             
-            p = NEURON.xstim.single_AP_sim.predictor.default;
+            new_cell_locations = match_result.getUnmatchedLocations();
             
-            %JAH CURRENT STATUS:
-            %I'm working on the initialization ...
-            keyboard
+            p = NEURON.xstim.single_AP_sim.predictor.create(in.predictor);
             
-            p.initializeSuperProps();     %TODO: Finish this method ...
+            
+            new_data = NEURON.xstim.single_AP_sim.new_solution(stim_sign,obj.xstim_ID,new_cell_locations);
+            
+            %NEURON.xstim.single_AP_sim.predictor.initializeSuperProps
+            p.initializeSuperProps(obj.logged_data,new_data,parent);
             p.initializeSubclassProps();
             
             obj.predictor = p;
@@ -130,14 +141,21 @@ classdef request_handler
             
             %Things are missing, call predictor ...
             %--------------------------------------------------------------
-            [solution,predictor_info] = obj.predictor.getThresholdSolutions();
+            predictor_info = obj.predictor.getThresholdSolutions();
             
-            %At the end we will call this method
-            %which takes temporary files, merges everything
-            %and sorts the results for later lookup
-            %
-            %We'll also run this on startup in case we quit early ...
-            obj.logged_data.mergeResults();
+            match_result = obj.logged_data.checkIfSolved(xyz);
+            %NEURON.xstim.single_AP_sim.solution.match_result
+            
+            if match_result.is_complete_match
+                obj.solution       = match_result.getFullSolution();
+                obj.solution_found = true;
+                solution = obj.solution;
+                return
+            else
+                error('The predictor failed to populate all solutions')
+            end
+            
+            
         end
     end
 end

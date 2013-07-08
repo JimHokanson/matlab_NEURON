@@ -24,25 +24,32 @@ classdef default < NEURON.xstim.single_AP_sim.predictor
     end
     
     methods
-        function [solution,predictor_info] = getThresholdSolutions(obj)
-           %OUTPUTS?????
-           %1) Solutions
-           %2) Predictor specific info ...
-           
-           
-           %1) Get applied potential for known and unknown values ...
-           %
-           %    Will be done via lazy loading ...
-           %
-           %2) Initialize all objects
-           %    - these objects will have references to this object
-           %    - ideally they will reference the parent type
-           %    and thus be able to know the data that is available to them
-           %
-           %
-           
+        function predictor_info = getThresholds(obj)
             
-            
+           %PIPELINE
+           %---------------------------------------------------------------
+           %1) Match based on applied stimulus 
+           
+           %Our current approach will use the low d stimulus for redundancy
+           %testing ...
+           obj.initializeLowDStimulus();
+           
+           %This will allow us to run less simulations if the stimuli match
+           %NOTE: Eventually we might want to be able to expand this to
+           %allow a roughly-equivalent method
+           %This could go in the same method with a switch flag
+           %to determine which method is used ...
+           obj.applied_stimulus_matcher.getStimulusMatches();
+           
+           keyboard
+           
+           
+           %possible early return
+           if obj.all_done
+              return 
+           end
+           
+           
         end
     end
     

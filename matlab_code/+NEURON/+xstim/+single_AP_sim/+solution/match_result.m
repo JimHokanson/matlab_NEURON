@@ -7,10 +7,14 @@ classdef match_result < sl.obj.handle_light
     %   xstim.single_AP_sim.solution
     
     properties
-       unmatched_locations
+       unmatched_locations %[n x 3]
        solution %xstim.single_AP_sim.solution
+    end
+    
+    properties
        mask
-       loc
+       loc      % 
+       
        is_complete_match
     end
     
@@ -20,6 +24,18 @@ classdef match_result < sl.obj.handle_light
     
     methods
         function obj = match_result(sol_obj,mask,loc,unmatched_locations)
+           %
+           %
+           %    obj = match_result(sol_obj,mask,loc,unmatched_locations)
+           %
+           %    This constructor is called from:
+           %    NEURON.xstim.single_AP_sim.solution.findLocationMatches
+           %
+           %
+           %
+           %    See Also:
+           %    NEURON.xstim.single_AP_sim.solution.findLocationMatches
+           
            obj.solution = sol_obj;
            obj.mask     = mask;
            obj.is_complete_match = all(mask);
@@ -30,16 +46,25 @@ classdef match_result < sl.obj.handle_light
         function new_solution = getFullSolution(obj)
         %
         %
-        %   NOTE: Only allow this for a full match
+        %   new_solution = getFullSolution(obj)
+        %   
+        %   OUTPUTS
+        %   ===============================================================
+        %   new_solution : Class: NEURON.xstim.single_AP_sim.solution
             
-            %1) Check that hash is the same
-            %2) 
+            if ~obj.is_complete_match
+               error('Operation not allowed for partial matches') 
+            end
+            
             if obj.hash ~= obj.solution.hash
                 error('Solution object has changed')
             end
             
-            new_solution = obj.solution.getPartialObject(obj.loc);
-            
+            indices_retrieve = obj.loc;
+            new_solution     = obj.solution.getPartialObject(indices_retrieve);
+        end
+        function unmatched_locations = getUnmatchedLocations(obj)
+           unmatched_locations = obj.unmatched_locations; 
         end
     end
     

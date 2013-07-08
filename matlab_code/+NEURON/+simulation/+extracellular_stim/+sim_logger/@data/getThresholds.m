@@ -49,7 +49,7 @@ thresholds = NaN(1,n_new_inputs_total);
 
 %Step 1 - retrieve applied potential
 %--------------------------------------------------------------------------
-%NEURON.simulation.extracellular_stim.sim_logger.data.getAppliedStimulus
+%NEURON.simulation.extracellular_stim.sim_logger.data.setNewAppliedStimulus
 obj.setNewAppliedStimulus();
 
 %Step 2 - create predictor object
