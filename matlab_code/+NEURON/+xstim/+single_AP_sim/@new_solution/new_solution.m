@@ -40,21 +40,22 @@ classdef new_solution < sl.obj.handle_light
         stim_sign
     end
     
+    %??? Make some of these access private?????
     properties
         solved %[1 x n], This should be set if values are learned or
         %predicted. In this case threshold values should be available.
         
+
+        will_solve_later %(logical, [1 x n]) 
         %The idea with these properties is to allow handling
-        %of thresholds that will be dependent on other thresholds
-        %I have yet to determine how we will call this code at the end
-        %to finally apply the solutions ...
-        will_solve_later %(logical, [1 x n]) These should be set
-        %by stimulus matchers or other classes which will know 
-        %the solution once other values have been solved. In general
-        %we will not worry too much about updating these values during the
-        %prediction phase as they should contribute little to helping with
-        %the prediction step. The predictor will call a method to finalize 
-        %these values 
+        %of thresholds that will be dependent on other thresholds.
+        %
+        %These should be set by stimulus matchers or other classes which
+        %will know the solution once other values have been solved. In
+        %general we will not worry too much about updating these values
+        %during the prediction phase as they should contribute little to
+        %helping with the prediction step. The predictor will call a method
+        %to finalize these values.
         will_solve_later_fh = {}
         %   Hold callback functions, nothing will be passed, the redundant
         %   data will be held by the object implementing the callback ...
@@ -72,9 +73,12 @@ classdef new_solution < sl.obj.handle_light
         ranges           %(numeric, [n x 2])
     end
     
+    %Public Properties ====================================================
     properties (Dependent)
-        solution_available  %(logical, [1 x n])
-        all_done %
+        solution_available  %(logical, [1 x n]), a combination of whether 
+        %or not points have solutions directly solved for or inferred based
+        %on other points (i.e. same applied stimulus)
+        all_done %Whether or not we have soluations for all points
     end
     
     methods
@@ -135,6 +139,17 @@ classdef new_solution < sl.obj.handle_light
     
     %Interface Methods ====================================================
     methods
+        %Will solve later methods explained:
+        %
+        %   1) A class calls addWillSolveLaterIndices() to register
+        %   a callback
+        %   2) On finishing, the predictor will call:
+        %   applyWillSolveLaterMethods
+        %   3) That method calls each callback, which adds its data
+        %   to this class ...
+        %
+        %
+        
         function addWillSolveLaterIndices(obj,indices,fh)
             %
             %
@@ -152,12 +167,19 @@ classdef new_solution < sl.obj.handle_light
                feval(fh_cell_array{iMethod}) 
             end
         end
+    end
     
+    methods
         function copySolutions(obj,source_indices,redundant_indices)
             %
             %
             %   NOTE: This method will generally be called from methods
-            %   which applyWillSolveLaterMethods() calls
+            %   which the method .applyWillSolveLaterMethods() calls
+            %   using registered callbacks given to the method
+            %   .addWillSolveLaterIndices()
+            %
+            %   
+            %
             %
             %   See Also:
             %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.applyStimulusMatches

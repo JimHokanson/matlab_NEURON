@@ -28,10 +28,11 @@ classdef default < NEURON.xstim.single_AP_sim.predictor
             
            %PIPELINE
            %---------------------------------------------------------------
-           %1) Match based on applied stimulus 
            
-           %Our current approach will use the low d stimulus for redundancy
-           %testing ...
+           
+           %1) Match based on applied stimulus 
+           %---------------------------------------------------------------
+           %Our current approach will use the low d stimulus for redundancy testing ...
            obj.initializeLowDStimulus();
            
            %This will allow us to run less simulations if the stimuli match
@@ -43,6 +44,8 @@ classdef default < NEURON.xstim.single_AP_sim.predictor
            
            keyboard
            
+           %2) Initialize groupings
+           %---------------------------------------------------------------
            
            %possible early return
            if obj.all_done

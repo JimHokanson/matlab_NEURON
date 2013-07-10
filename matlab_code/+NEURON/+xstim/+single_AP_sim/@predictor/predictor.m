@@ -31,6 +31,7 @@ classdef predictor < sl.obj.handle_light
         new_stimuli  %"      "
         dim_reduction_options    %NEURON.xstim.single_AP_sim.dim_reduction_options
         applied_stimulus_matcher %NEURON.xstim.single_AP_sim.applied_stimulus_matcher
+        grouper %NEURON.xstim.single_AP_sim.grouper.initialize
     end
     
     properties (Dependent)
@@ -79,9 +80,23 @@ classdef predictor < sl.obj.handle_light
             obj.old_stimuli = obj.old_data.getAppliedStimulusObject(xstim_obj);
             obj.new_stimuli = obj.new_data.getAppliedStimulusObject(xstim_obj);
             obj.dim_reduction_options    = NEURON.xstim.single_AP_sim.dim_reduction_options;
-            obj.applied_stimulus_matcher = NEURON.xstim.single_AP_sim.applied_stimulus_matcher(obj);
+            obj.applied_stimulus_matcher = NEURON.xstim.single_AP_sim.applied_stimulus_matcher;
+            obj.grouper     = NEURON.xstim.single_AP_sim.grouper(obj);
         end
         function predictor_info = getThresholdSolutions(obj)
+            %
+            %   
+            %   predictor_info = getThresholdSolutions(obj)
+            %
+            %   MAIN SOLVING METHOD
+            %   This method wraps calls to the predictor subclasses taking
+            %   care of things that I think every subclass will need.
+            %
+            %   Abstract subclass method: .getThresholds()
+            %   
+            %   FULL PATH:
+            %   NEURON.xstim.single_AP_sim.predictor.getThresholdSolutions
+            
            [predictor_info] = obj.getThresholds();
            
            %TODO: Make call to update new based on applied_stimulus_matchers
@@ -143,6 +158,9 @@ classdef predictor < sl.obj.handle_light
             %
             %    This only needs to be called if the predictor is going to use it
             
+            
+            %TODO: Verify that there is a check that this has been done
+            %already ...
             obj.old_stimuli.initializeReducedDimStimulus(obj.new_stimuli,obj.dim_reduction_options);
         end
         function addSolutionResults(obj)

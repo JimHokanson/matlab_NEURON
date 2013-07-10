@@ -3,6 +3,8 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
     %   Class:
     %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher
     %
+    %   This class is responsible for determining solutions that are
+    %   identifical based on having the same applied stimulus.
     %
     %   IMPROVEMENTS
     %   ===================================================================
@@ -10,8 +12,9 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
     %   on some distance metric ...
     %
     %
-    
-    
+    %   MAIN METHOD 
+    %   ===================================================================
+    %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.getStimulusMatches
     
     properties
        p %Reference to predictor object
