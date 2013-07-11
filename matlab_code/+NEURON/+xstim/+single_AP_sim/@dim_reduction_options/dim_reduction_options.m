@@ -1,21 +1,23 @@
 classdef dim_reduction_options < sl.obj.handle_light
     %
-    %
     %   Class:
     %   NEURON.xstim.single_AP_sim.dim_reduction_options
     %
     %   See Also:
+    %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher
+    %   NEURON.xstim.single_AP_sim.applied_stimulus_manager
     %   
     %   IMPROVEMENTS
     %   ===================================================================
-    %   1) Allow for dimension normalization
-    %   2) Allow for variance explained after the first dimension
+    %   1) Have method for finalizing object when the low dimensional
+    %   stimuli have already been computed ....
     
     
     %PCA properties =======================================================
     properties
-       %Could allow for dimension normalization ...
-       %
+       VARIANCE_KEEP_METHOD = 'normal'
+       %    - 'normal'      - the typical normalization method
+       %    - 'after_first' - after keeping the first dimension ...
         
        VARIANCE_TO_KEEP  = 0.99
        MIN_PCA_DIMS_KEEP = 2 %This is the # of dimensions to keep
@@ -32,6 +34,16 @@ classdef dim_reduction_options < sl.obj.handle_light
     end
     
     methods
+        function set.VARIANCE_KEEP_METHOD(obj,value)
+           switch lower(value)
+               case 'normal'
+                   obj.VARIANCE_KEEP_METHOD = 'normal';
+               case 'after_first'
+                   obj.VARIANCE_KEEP_METHOD = 'after_first';
+               otherwise
+                   error('Unrecognized method: %s',value)
+           end
+        end
     end
     
 end

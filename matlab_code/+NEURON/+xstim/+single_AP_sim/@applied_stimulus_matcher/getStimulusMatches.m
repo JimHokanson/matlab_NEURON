@@ -16,10 +16,10 @@ function getStimulusMatches(obj)
 %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.getStimulusMatches
 
 
-p = obj.p;
+s = obj.p;
 
-old_stim = p.old_stimuli.low_d_stimulus;
-new_stim = p.new_stimuli.low_d_stimulus;
+old_stim = s.old_stimuli.low_d_stimulus;
+new_stim = s.new_stimuli.low_d_stimulus;
 n_old    = size(old_stim,1);
 n_new    = size(new_stim,1);
 n_total  = n_old + n_new;
@@ -37,8 +37,9 @@ ref_I = u.o_first_group_I; %Index of the first unique value with the same
 %value as the given index
 %
 %i.e. for values 3 6 3 7 6
-%ref_I =>        1 2 1 4 2  <= The 3 & 6 are repeats
 %indices         1 2 3 4 5
+%ref_I =>        1 2 1 4 2  <= The 3 & 6 are repeats, the 2nd '3' points
+%   to the index in which 3 first occurs ...
 
 is_redundant   = ref_I ~= 1:length(ref_I); %The first unique entry will
 %have a value equal to its index
@@ -47,23 +48,20 @@ has_old_source = ref_I <= n_old;
 new_and_old_source = is_new_mask & has_old_source;
 new_and_new_source = is_new_mask & is_redundant & ~has_old_source;
 
+obj.unique_old_indices = find(~is_redundant && ~is_new_mask);
+
 %If any of our old points have the same applied stimulus as an "old" point
 %then we apply the solution that the old point used.
 if any(new_and_old_source)
-    new_indices = find(new_and_old_source) - n_old;
-    p.setSameAsOld(new_indices,ref_I(new_and_old_source));
+    obj.redundant_new_indices__with_old_source = find(new_and_old_source) - n_old;
+    obj.old_index_sources                      = ref_I(new_and_old_source);
 end
 
 if any(new_and_new_source)
-   new_indices        = find(new_and_new_source)  - n_old;
-   new_source_indices = ref_I(new_and_new_source) - n_old;
-   
-   %Save properties locally, register callback ...
-   obj.redundant_indices = new_indices;
-   obj.source_indices    = new_source_indices;
-   
-   new_solution = p.new_data;
-   new_solution.addWillSolveLaterIndices(new_indices,@obj.applyStimulusMatches);
+   obj.redundant_new_indices__with_new_source        = find(new_and_new_source)  - n_old;
+   obj.new_index_sources   = ref_I(new_and_new_source) - n_old;
 end
+
+obj.match_info_computed = true;
 
 end

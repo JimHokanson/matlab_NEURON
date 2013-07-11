@@ -1,6 +1,8 @@
 function threshold_simulation_results = getThresholdsFromSimulation(obj,new_indices,predicted_thresholds)
 %
 %
+%   This method runs the actual NEURON simulations to compute thresholds.
+%
 %   INPUTS
 %   =======================================================================
 %   new_indices : indices from obj.new_data to solve thresholds for

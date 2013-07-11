@@ -1,17 +1,18 @@
 function predictor_info = getThresholds(obj)
+%
+%
+%   predictor_info = getThresholds(obj)
+%
+%   This is a specific implementation for getting thershold data.
+%
+%   This implementation:
+%   1) Reduces the # of points to solve by 
+%
+%   FULL PATH:
+%   =======================================================================
+%   NEURON.xstim.single_AP_sim.predictor.default.getThreshold
 
-
-%1) Match based on applied stimulus
-%---------------------------------------------------------------
-%Our current approach will use the low d stimulus for redundancy testing ...
-obj.initializeLowDStimulus();
-
-%This will allow us to run less simulations if the stimuli match
-%NOTE: Eventually we might want to be able to expand this to
-%allow a roughly-equivalent method
-%This could go in the same method with a switch flag
-%to determine which method is used ...
-obj.applied_stimulus_matcher.getStimulusMatches();
+obj.stimulus_manager.reducePointsToSolveByMatchingStimuli();
 
 %2) Initialize groupings
 %---------------------------------------------------------------

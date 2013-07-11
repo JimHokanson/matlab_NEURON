@@ -18,21 +18,12 @@ function initializeReducedDimStimulus(obj1,obj2,options)
 %   NEURON.xstim.single_AP_sim.applied_stimuli.initializeReducedDimStimulus
 %
 %   See Also:
+%   NEURON.xstim.single_AP_sim.dim_reduction_options
 %   NEURON.xstim.single_AP_sim.predictor.initializeLowDStimulus
-
-
-% % % in.throw_error_on_multiple_calls = true;
-% % % in = sl.in.processVarargin(in,varargin);
-% % % 
-% % % if ~isempty(obj1.low_d_stimulus)
-% % %     %NOTE: We might not want to even allow this to run twice ...
-% % %     %Might want to pass this in as an error, which can be overwritten
-% % %     %TODO: Throw warning indicating this function is being called twice
-% % % end
-
+%   NEURON.xstim.single_AP_sim.applied_stimulus_manager.getLowDStimulusInfo
 
 if obj2.n == 0
-    [~,scores1,latent] = princomp(obj1.stimulus,'econ');
+    [~,scores1,latent] = pca(obj1.stimulus,'Algorithm','svd','econ');
 elseif isempty(obj1)
     error('Only object 2 should be empty')
 else
@@ -40,7 +31,7 @@ else
     temp_data  = [obj1.stimulus; obj2.stimulus];
     data_mean  = mean(temp_data,1);
     
-    [coeff,~,latent] = princomp(temp_data,'econ');
+    [coeff,~,latent] = pca(temp_data,'Algorithm','svd','econ');
     
     %PCA uses svd which uses an iterative solver meaning that some points
     %which are exactly the same in a high dimensional space will not be
@@ -56,11 +47,17 @@ end
 
 %How much should we keep
 %--------------------------------------------------------------
-if length(latent) < options.MIN_PCA_DIMS_KEEP
+if length(latent) <= options.MIN_PCA_DIMS_KEEP
     n_dims_keep = length(latent);
 else
     
     total_variance = cumsum(latent);
+    
+    if strcmp(options.VARIANCE_KEEP_METHOD,'after_first')
+       total_variance = total_variance - total_variance(1);
+       total_variance = total_variance/total_variance(end);
+    end
+
     n_dims_keep = find(total_variance > options.VARIANCE_TO_KEEP,1);
     
     if isempty(n_dims_keep)
@@ -70,18 +67,7 @@ else
            n_dims_keep = length(latent); 
         end
     end
-    
-    %This a possible future improvement
-    %
-    %   TODO: Wrap PCA with object ...
-    %
-% % %     %NOTE: With this code if length(latent) == 1
-% % %     %then I will be empty ...
-% % %     csl = cumsum(latent) - latent(1);
-% % %     I = find(csl./csl(end) > obj.opt__PCA_THRESHOLD,1);
 end
-
-
 
 %Reducing the dimensions
 %--------------------------------------------------------------

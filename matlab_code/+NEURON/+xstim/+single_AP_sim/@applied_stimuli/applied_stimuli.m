@@ -4,13 +4,19 @@ classdef applied_stimuli < sl.obj.handle_light
     %   Class:
     %   NEURON.xstim.single_AP_sim.applied_stimuli
     %
+    %   MAIN METHODS
+    %   ===================================================================
+    %   initializeReducedDimStimulus
+    %   getLowDStimulus
     
     properties
         xstim %Reference to simulation object to compute applied stimulus ...
     end
     
+    
+    %Public Properties ====================================================
     properties
-        n  
+        n
         cell_locations
         stimulus         %[n x nodes interleaved]
     end
@@ -24,10 +30,10 @@ classdef applied_stimuli < sl.obj.handle_light
     %Retrieval methods ====================================================
     methods
         function value = get.low_d_stimulus(obj)
-           if isempty(obj.low_d_stimulus) && obj.n ~= 0
-              error('The low dimensional representation must first be initialized with initializeReduceDimStimulus') 
-           end
-           value = obj.low_d_stimulus;
+            if isempty(obj.low_d_stimulus) && obj.n ~= 0
+                error('The low dimensional representation must first be initialized with initializeReduceDimStimulus')
+            end
+            value = obj.low_d_stimulus;
         end
         function value = get.stimulus(obj)
             if isempty(obj.stimulus) && obj.n ~= 0
@@ -45,9 +51,20 @@ classdef applied_stimuli < sl.obj.handle_light
             obj.cell_locations = cell_locations;
             obj.n              = size(cell_locations,1);
             
-            %NOTE: We might not actually use this class for prediction so 
+            %NOTE: We might not actually use this class for prediction so
             %we won't compute the stimulus until we have a request for it ...
+        end
+    end
+    
+    %Public Methods  ======================================================
+    methods
+        %initializeReducedDimStimulus
+        function value = getLowDStimulus(obj)
+            %
+            %   See comment on method by property on why I have a silly
+            %   method for accessing this property ...
             
+            value = obj.low_d_stimulus;
         end
     end
     
@@ -55,6 +72,9 @@ classdef applied_stimuli < sl.obj.handle_light
         function populateStimulusValues(obj)
             %
             %   populateStimulusValues(obj)
+            %
+            %   This method is called lazily by the get method of the
+            %   property 'stimulus'
             %
             %   This is a bit messier than I would like due the to
             %   dimensionality shifting ...
@@ -78,7 +98,6 @@ classdef applied_stimuli < sl.obj.handle_light
             %
             %   n x (space,time)
             
-            
             sz = size(xyz_out);
             
             %NEURON.simulation.extracellular_stim.computeStimulus
@@ -90,15 +109,9 @@ classdef applied_stimuli < sl.obj.handle_light
             
             obj.stimulus = reshape(v_all,[sz(1) sz(2)*size(v_all,2)]);
         end
-        function value = getLowDStimulus(obj)
-            %
-            %   See comment on method by property ...
-            
-            value = obj.low_d_stimulus;
-        end
     end
     
-
+    
     
 end
 

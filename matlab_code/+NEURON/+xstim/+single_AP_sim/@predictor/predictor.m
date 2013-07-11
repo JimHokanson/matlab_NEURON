@@ -13,6 +13,13 @@ classdef predictor < sl.obj.handle_light
     %   See Also:
     %   NEURON.xstim.single_AP_sim.request_handler
     %   NEURON.xstim.single_AP_sim.predictor.default
+    %   NEURON.xstim.single_AP_sim.predictor_info
+    %   NEURON.xstim.single_AP_sim.applied_stimuli
+    %   NEURON.xstim.single_AP_sim.dim_reduction_options
+    %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher
+    %   NEURON.xstim.single_AP_sim.grouper.initialize
+    %   NEURON.xstim.single_AP_sim.binary_search_adjuster
+    %   NEURON.xstim.single_AP_sim.threshold_simulation_results
     %
     %   IMPROVEMENTS
     %   ===================================================================
@@ -31,22 +38,24 @@ classdef predictor < sl.obj.handle_light
     end
     
     properties
-        xstim        %Class: NEURON.simulation.extracellular_stim
-        old_stimuli  %Class: NEURON.xstim.single_AP_sim.applied_stimuli
-        new_stimuli  %"      "
-        dim_reduction_options    %NEURON.xstim.single_AP_sim.dim_reduction_options
-        applied_stimulus_matcher %NEURON.xstim.single_AP_sim.applied_stimulus_matcher
+        xstim        %NEURON.simulation.extracellular_stim
+        stimulus_manager %NEURON.xstim.single_AP_sim.applied_stimulus_manager
+        
         grouper %NEURON.xstim.single_AP_sim.grouper.initialize
         binary_search_adjuster   %NEURON.xstim.single_AP_sim.binary_search_adjuster
     end
     
     properties (Dependent)
         all_done %References the new_data object ...
+        dim_reduction_options    %NEURON.xstim.single_AP_sim.dim_reduction_options
     end
     
     methods
         function value = get.all_done(obj)
             value = obj.new_data.all_done;
+        end
+        function value = get.dim_reduction_options(obj)
+            value = obj.stimulus_manager.dim_reduction_options;
         end
     end
     
@@ -68,7 +77,8 @@ classdef predictor < sl.obj.handle_light
             %the properties that this class holds ...
             %
             %    NOTE: We might add a hook to allow initialization of the
-            %    subclasses after this ...
+            %    subclasses after this. Currently the request handler
+            %   makes that call ...
             %
             %   INPUTS
             %   ===========================================================
@@ -85,10 +95,10 @@ classdef predictor < sl.obj.handle_light
             obj.old_data    = obj.logged_data.solution;
             obj.new_data    = new_data;
             
-            obj.old_stimuli              = obj.old_data.getAppliedStimulusObject(xstim_obj);
-            obj.new_stimuli              = obj.new_data.getAppliedStimulusObject(xstim_obj);
-            obj.dim_reduction_options    = NEURON.xstim.single_AP_sim.dim_reduction_options;
-            obj.applied_stimulus_matcher = NEURON.xstim.single_AP_sim.applied_stimulus_matcher(obj);
+            obj.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(xstim_obj,new_data,obj.old_data);
+            
+            obj.dim_reduction_options    
+            
             obj.grouper                  = NEURON.xstim.single_AP_sim.grouper(obj);
             obj.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(obj);
         end
@@ -97,7 +107,8 @@ classdef predictor < sl.obj.handle_light
             %
             %   predictor_info = getThresholdSolutions(obj)
             %
-            %   MAIN SOLVING METHOD
+            %      **********   MAIN SOLVING METHOD   *************
+            %   
             %   This method wraps calls to the predictor subclasses taking
             %   care of things that I think every subclass will need.
             %
@@ -137,6 +148,8 @@ classdef predictor < sl.obj.handle_light
             %   This method should be used when we decide that new indices
             %   will have the same solution as old (logged data) values.
             %
+            %
+            %
             %   See Also:
             %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.getStimulusMatches
             %
@@ -169,7 +182,7 @@ classdef predictor < sl.obj.handle_light
             
             %TODO: Verify that there is a check that this has been done
             %already ...
-            obj.old_stimuli.initializeReducedDimStimulus(obj.new_stimuli,obj.dim_reduction_options);
+            
         end
         function addSolutionResults(obj)
             %I want this method to be what predictors can call when they
