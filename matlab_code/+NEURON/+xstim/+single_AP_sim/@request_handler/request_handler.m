@@ -44,39 +44,43 @@ classdef request_handler
             %
             %   obj = request_handler(parent,stim_sign,cell_locations)
             %
+            %   See Also:
+            %   NEURON.simulation.extracellular_stim.get...???
             
-            in.predictor = 'default'; %Name of the predictor to use
+            in.predictor = 'default'; %Name of the predictor to use, only
+            %the default option is currently supported ...
             in = sl.in.processVarargin(in,varargin);
             
-            %Do we want to use this approach where we allow passing
-            %in of the predictor to use ?????
-            %
-            %   I think so ...
-            %             in.predictor = 'default'
-            %             in = sl.in.processVarargin(in,varargin);
-            
-            obj.parent   = parent;
-            obj.cell_locations_input = cell_locations;
+            obj.parent    = parent;
             obj.stim_sign = stim_sign;
+            obj.cell_locations_input = cell_locations;
+            
+            %TODO: We might need to set the current location
+            %of the cell to 0 to ensure that we aren't filtering based
+            %on the location of the cell. Ideally we could filter on this
+            %parameter ...
             
             xstim_logger = parent.getLogger;
-            
-            obj.xstim_ID = xstim_logger.getInstanceID();
+            obj.xstim_ID = xstim_logger.getInstanceID(); %This is a critical
+            %line that associates the data we will create with the current
+            %simulation
             
             obj.logged_data = NEURON.xstim.single_AP_sim.logged_data(stim_sign,obj.xstim_ID);
             %NEURON.xstim.single_AP_sim.logged_data
             
-            %Check if we're done
+            %XYZ Handling ...
             %--------------------------------------------------------------
             if iscell(cell_locations)
                 xyz = sl.xyz.cellToMatrix(cell_locations);
             else
-                %TODO: Check for n x 3
+                assert(size(cell_locations,2) == 3,'# of columns for cell locations must be 3')
                 xyz = cell_locations;
             end
-            
             obj.xyz_of_cell_locations = xyz;
             
+            
+            %This line checks to see if the requested locations were
+            %previously request and solved ...
             match_result = obj.logged_data.checkIfSolved(xyz);
             %NEURON.xstim.single_AP_sim.solution.match_result
             
@@ -94,22 +98,12 @@ classdef request_handler
             %   user can change options ..., they could even change
             %   the predictor object itself ...
             
-            %??? switch on in.predictor????
-            %
-            %   i.e. switch in.predictor
-            %           case 'default'
-            %           case ...
-            %        end
-            
-            new_cell_locations = match_result.getUnmatchedLocations();
-            
+            new_cell_locations = match_result.getUnmatchedLocations();            
             p = NEURON.xstim.single_AP_sim.predictor.create(in.predictor);
-            
-            
             new_data = NEURON.xstim.single_AP_sim.new_solution(stim_sign,obj.xstim_ID,new_cell_locations);
             
             %NEURON.xstim.single_AP_sim.predictor.initializeSuperProps
-            p.initializeSuperProps(obj.logged_data,new_data,parent);
+            p.initializeSuperProps(obj.logged_data,new_data,parent,stim_sign);
             p.initializeSubclassProps();
             
             obj.predictor = p;

@@ -11,36 +11,42 @@ classdef predictor < sl.obj.handle_light
     %   1) ??? What's the main call that will return the thresholds ???
     %
     %   See Also:
+    %   NEURON.xstim.single_AP_sim.request_handler
     %   NEURON.xstim.single_AP_sim.predictor.default
+    %
+    %   IMPROVEMENTS
+    %   ===================================================================
+    %   1) Make sure that we never assign an invalidly signed stimulus ...
     
     %Predictor Options
     %-----------------------------------------------------
     
-    properties
-    end
-    
     %Properties for subclass to use =======================================
     properties
+        stim_sign    %Sign to solve for, we need to ensure that we never
+        %predict values that are not the correct sign
         logged_data  %NEURON.xstim.single_AP_sim.logged_data
         old_data     %NEURON.xstim.single_AP_sim.solution
         new_data     %NEURON.xstim.single_AP_sim.new_solution
     end
     
     properties
+        xstim        %Class: NEURON.simulation.extracellular_stim
         old_stimuli  %Class: NEURON.xstim.single_AP_sim.applied_stimuli
         new_stimuli  %"      "
         dim_reduction_options    %NEURON.xstim.single_AP_sim.dim_reduction_options
         applied_stimulus_matcher %NEURON.xstim.single_AP_sim.applied_stimulus_matcher
         grouper %NEURON.xstim.single_AP_sim.grouper.initialize
+        binary_search_adjuster   %NEURON.xstim.single_AP_sim.binary_search_adjuster
     end
     
     properties (Dependent)
-       all_done %References the new_data object ...
+        all_done %References the new_data object ...
     end
     
-    methods 
+    methods
         function value = get.all_done(obj)
-           value = obj.new_data.all_done;
+            value = obj.new_data.all_done;
         end
     end
     
@@ -57,7 +63,7 @@ classdef predictor < sl.obj.handle_light
     end
     
     methods
-        function initializeSuperProps(obj,logged_data,new_data,xstim_obj)
+        function initializeSuperProps(obj,logged_data,new_data,xstim_obj,stim_sign)
             %This method should be called by request handler to initialize
             %the properties that this class holds ...
             %
@@ -73,19 +79,22 @@ classdef predictor < sl.obj.handle_light
             %    See Also:
             %    NEURON.xstim.single_AP_sim.request_handler
             
+            obj.xstim       = xstim_obj;
+            obj.stim_sign   = stim_sign;
             obj.logged_data = logged_data;
-            obj.old_data = obj.logged_data.solution;
-            obj.new_data = new_data;
+            obj.old_data    = obj.logged_data.solution;
+            obj.new_data    = new_data;
             
-            obj.old_stimuli = obj.old_data.getAppliedStimulusObject(xstim_obj);
-            obj.new_stimuli = obj.new_data.getAppliedStimulusObject(xstim_obj);
+            obj.old_stimuli              = obj.old_data.getAppliedStimulusObject(xstim_obj);
+            obj.new_stimuli              = obj.new_data.getAppliedStimulusObject(xstim_obj);
             obj.dim_reduction_options    = NEURON.xstim.single_AP_sim.dim_reduction_options;
-            obj.applied_stimulus_matcher = NEURON.xstim.single_AP_sim.applied_stimulus_matcher;
-            obj.grouper     = NEURON.xstim.single_AP_sim.grouper(obj);
+            obj.applied_stimulus_matcher = NEURON.xstim.single_AP_sim.applied_stimulus_matcher(obj);
+            obj.grouper                  = NEURON.xstim.single_AP_sim.grouper(obj);
+            obj.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(obj);
         end
         function predictor_info = getThresholdSolutions(obj)
             %
-            %   
+            %
             %   predictor_info = getThresholdSolutions(obj)
             %
             %   MAIN SOLVING METHOD
@@ -93,17 +102,16 @@ classdef predictor < sl.obj.handle_light
             %   care of things that I think every subclass will need.
             %
             %   Abstract subclass method: .getThresholds()
-            %   
+            %
             %   FULL PATH:
             %   NEURON.xstim.single_AP_sim.predictor.getThresholdSolutions
             
-           [predictor_info] = obj.getThresholds();
-           
-           %TODO: Make call to update new based on applied_stimulus_matchers
-           obj.new_data.applyWillSolveLaterMethods();
-           
-           %This combines new data with old data ...
-           obj.new_data.mergeResultsWithOld(obj.logged_data);
+            [predictor_info] = obj.getThresholds();
+            
+            obj.new_data.applyWillSolveLaterMethods();
+            
+            %This combines new data with old data ...
+            obj.new_data.mergeResultsWithOld(obj.logged_data);
         end
     end
     
@@ -142,7 +150,7 @@ classdef predictor < sl.obj.handle_light
             ranges     = old.ranges(old_indices,:);
             
             %NOTE: We use the same type as the old. We lose a bit of info
-            %that specifies that the true source, but we maintain the 
+            %that specifies that the true source, but we maintain the
             %source of the accuracy of the threshold.
             %
             %   :/  - Ideally we could track both ...
