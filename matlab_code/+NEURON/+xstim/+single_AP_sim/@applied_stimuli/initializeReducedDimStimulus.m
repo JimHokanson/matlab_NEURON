@@ -2,7 +2,6 @@ function initializeReducedDimStimulus(obj1,obj2,options)
 %
 %   initializeReducedDimStimulus(obj1,obj2,options)
 %
-%   In general this method should be called from the predictor superclass.
 %   The method uses PCA to reduce the # of dimensions in the stimulus for
 %   comparison and subsequent prediction.
 %   
@@ -12,26 +11,24 @@ function initializeReducedDimStimulus(obj1,obj2,options)
 %   obj2    : Secondary instance, this can be used when performing
 %             dimensionality reduction on both old and new stimuli
 %   options : Class: NEURON.xstim.single_AP_sim.dim_reduction_options
-%   
-%   FULL PATH:
-%   =======================================================================
-%   NEURON.xstim.single_AP_sim.applied_stimuli.initializeReducedDimStimulus
 %
 %   See Also:
 %   NEURON.xstim.single_AP_sim.dim_reduction_options
-%   NEURON.xstim.single_AP_sim.predictor.initializeLowDStimulus
 %   NEURON.xstim.single_AP_sim.applied_stimulus_manager.getLowDStimulusInfo
+%
+%   FULL PATH:
+%   NEURON.xstim.single_AP_sim.applied_stimuli.initializeReducedDimStimulus
 
 if obj2.n == 0
-    [~,scores1,latent] = pca(obj1.stimulus,'Algorithm','svd','econ');
-elseif isempty(obj1)
-    error('Only object 2 should be empty')
+    [~,scores1,latent] = pca(obj1.stimulus,'Algorithm','svd','Economy',true);
+elseif obj1.n == 0
+    [~,scores2,latent] = pca(obj2.stimulus,'Algorithm','svd','Economy',true);
 else
     n1         = obj1.n;
     temp_data  = [obj1.stimulus; obj2.stimulus];
     data_mean  = mean(temp_data,1);
     
-    [coeff,~,latent] = pca(temp_data,'Algorithm','svd','econ');
+    [coeff,~,latent] = pca(temp_data,'Algorithm','svd','Economy',true);
     
     %PCA uses svd which uses an iterative solver meaning that some points
     %which are exactly the same in a high dimensional space will not be

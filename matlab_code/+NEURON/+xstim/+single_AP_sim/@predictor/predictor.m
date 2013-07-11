@@ -95,10 +95,8 @@ classdef predictor < sl.obj.handle_light
             obj.old_data    = obj.logged_data.solution;
             obj.new_data    = new_data;
             
-            obj.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(xstim_obj,new_data,obj.old_data);
-            
-            obj.dim_reduction_options    
-            
+            obj.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(obj,xstim_obj,new_data,obj.old_data);
+                        
             obj.grouper                  = NEURON.xstim.single_AP_sim.grouper(obj);
             obj.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(obj);
         end
@@ -171,18 +169,6 @@ classdef predictor < sl.obj.handle_light
             types      = old.predictor_types(old_indices);
             
             new.updateSolutions(new_indices,thresholds,types,ranges);
-        end
-        function initializeLowDStimulus(obj)
-            %initializeLowDStimulus Initializes a low-d representation of the stimuli
-            %
-            %    initializeLowDStimulus(obj)
-            %
-            %    This only needs to be called if the predictor is going to use it
-            
-            
-            %TODO: Verify that there is a check that this has been done
-            %already ...
-            
         end
         function addSolutionResults(obj)
             %I want this method to be what predictors can call when they

@@ -9,7 +9,8 @@ function predicted_thresholds = predictThresholds(obj,new_indices)
 %
 %   ?? - what if any data will be persistent???
 %
-%
+%   OLD CODE:
+%   NEURON.simulaton.extracellular_stim.threshold_predictor.predictThresholds
 %
 %
 %

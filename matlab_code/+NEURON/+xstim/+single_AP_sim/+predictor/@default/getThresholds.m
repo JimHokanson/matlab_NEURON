@@ -6,23 +6,25 @@ function predictor_info = getThresholds(obj)
 %   This is a specific implementation for getting thershold data.
 %
 %   This implementation:
-%   1) Reduces the # of points to solve by 
+%   -----------------------------------------------------------------------
+%   1) Reduces the # of points to solve by finding redundant applied stimuli
+%
 %
 %   FULL PATH:
 %   =======================================================================
 %   NEURON.xstim.single_AP_sim.predictor.default.getThreshold
 
+%Reduction in the # of points to solve for by finding redundant applied stimuli 
 obj.stimulus_manager.reducePointsToSolveByMatchingStimuli();
 
-%2) Initialize groupings
-%---------------------------------------------------------------
+keyboard
 
 g = obj.grouper;
-
 indices = g.getNextGroup();
 
 while ~isempty(indices)
-    
+
+    %NEURON.xstim.single_AP_sim.predictor.predictThresholds
     predicted_thresholds = obj.predictThresholds(indices);
     
     threshold_result_obj = obj.getThresholdsFromSimulation(indices,predicted_thresholds);

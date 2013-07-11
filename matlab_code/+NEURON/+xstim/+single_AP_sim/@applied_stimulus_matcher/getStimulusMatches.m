@@ -11,15 +11,16 @@ function getStimulusMatches(obj)
 %   See Also:
 %   NEURON.xstim.single_AP_sim.predictor.setSameAsOld
 %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.applyStimulusMatches
+%   NEURON.xstim.single_AP_sim.applied_stimuli.initializeReducedDimStimulus
 %
 %   FULL PATH:
 %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.getStimulusMatches
 
 
-s = obj.p;
+s = obj.stim_manager;
 
-old_stim = s.old_stimuli.low_d_stimulus;
-new_stim = s.new_stimuli.low_d_stimulus;
+[old_stim,new_stim] = s.getLowDStimulusInfo;
+
 n_old    = size(old_stim,1);
 n_new    = size(new_stim,1);
 n_total  = n_old + n_new;
@@ -48,7 +49,7 @@ has_old_source = ref_I <= n_old;
 new_and_old_source = is_new_mask & has_old_source;
 new_and_new_source = is_new_mask & is_redundant & ~has_old_source;
 
-obj.unique_old_indices = find(~is_redundant && ~is_new_mask);
+obj.unique_old_indices = find(~is_redundant & ~is_new_mask);
 
 %If any of our old points have the same applied stimulus as an "old" point
 %then we apply the solution that the old point used.

@@ -7,6 +7,9 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
     %   identifical based on having the same applied stimulus. It also
     %   is responsible for determining what "the same" is.
     %
+    %   This class should mainly be interfaced through:
+    %       NEURON.xstim.single_AP_sim.applied_stimulus_manager
+    %
     %   IMPROVEMENTS
     %   ===================================================================
     %   1) We could eventually allow loose matching of stimuli based 
@@ -14,21 +17,26 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
     %   2) We might want to more clearly expose what interface this class 
     %   has that is used by the applied_stimulus_manager
     %
+    %   See Also:
+    %   NEURON.xstim.single_AP_sim.applied_stimulus_manager
     %
     %   MAIN METHODS 
     %   ===================================================================
     %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.getStimulusMatches
     
+    %Options ==============================================================
     properties
-       stim_manager
+       %None currently ... 
     end
     
-    %Properties for later application ...
+    properties
+       stim_manager %NEURON.xstim.single_AP_sim.applied_stimulus_manager
+    end
+    
     properties
        %.getStimulusMatches()
+       d1 = '---- Populate with applyStimulusMatchInfo ----'
        match_info_computed = false
-       
-       unique_old_indices
        
        redundant_new_indices__with_old_source
        old_index_sources
@@ -38,7 +46,11 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
        new_index_sources     %Indices whose solutions match the redundant indices
        
        %.applyStimulusMatchInfo()
-       
+       d2 = '----  Populate with getUniqueOldIndices ----'
+       unique_old_indices %This is important for doing prediction. The new
+       %approach for thresholding saves redundant information for quicker
+       %lookup. If we are using stimuli and thresholds for prediction we
+       %will want to ignore redundant old stimuli
     end
     
     methods
@@ -66,6 +78,12 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
     
     %Public Methods =======================================================
     methods
+        function unique_old_indices = getUniqueOldIndices(obj)
+            if ~obj.match_info_computed
+               obj.getStimulusMatches();
+            end 
+            unique_old_indices = obj.unique_old_indices;
+        end
         function applyStimulusMatchInfo(obj)
             if ~obj.match_info_computed
                obj.getStimulusMatches();
