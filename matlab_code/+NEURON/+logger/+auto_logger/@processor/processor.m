@@ -3,7 +3,14 @@ classdef processor < sl.obj.handle_light
     %
     %   Class:
     %   NEURON.logger.auto_logger.processor
-    
+    %
+    %   NOT YET IMPLEMENTED
+    %   LOW PRIORITY
+    %
+    %   It should probably be renamed to property_processor. The
+    %   idea was to have it be the class that details with comparisons of
+    %   old and new properties, and retrieval of properties from the data
+    %   classes.
     
     %==================================================================
     %3 Column cell array

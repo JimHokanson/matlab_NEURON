@@ -1,0 +1,1 @@
+This directory contains all hoc code, and other related NEURON files, for this repo.

@@ -33,6 +33,10 @@ classdef ID < handle_light
             %   NOTE: An empty trial_row will be used to indicate
             %   a NULL ID
             
+            if nargin == 0
+                return
+            end
+            
             if isempty(trial_row)
                 trial_row     = NaN;
                 creation_date = NaN;
@@ -42,6 +46,9 @@ classdef ID < handle_light
             obj.class_type    = class_type;
             obj.trial_row     = trial_row;
             obj.creation_date = creation_date;
+        end
+        function s = getStruct(obj)
+           s = sl.struct.toObject(obj); 
         end
         function flag = isValid(obj)
             flag = ~isnan(obj.trial_row);         
@@ -75,6 +82,14 @@ classdef ID < handle_light
         function flag = ne(obj,ID)
            %Not sure if I need this ...
            flag = ~eq(obj,ID);
+        end
+    end
+    
+    methods (Static)
+        function obj = fromStruct(s)
+           %NOTE: We could do version updating here ...
+           obj = NEURON.logger.ID;
+           sl.struct.toObject(obj,s);
         end
     end
 end

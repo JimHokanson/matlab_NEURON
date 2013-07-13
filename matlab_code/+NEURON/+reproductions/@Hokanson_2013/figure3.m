@@ -1,6 +1,8 @@
-function figure3()
+function figure3(use_long)
 %
 %   NEURON.reproductions.Hokanson_2013.figure3
+%
+%   NEURON.reproductions.Hokanson_2013.figure3(true)
 %
 %   Impact of Stimulus Width on Result.
 %
@@ -9,7 +11,15 @@ function figure3()
 
 obj = NEURON.reproductions.Hokanson_2013;
 
-ELECTRODE_LOCATION       = {obj.ALL_ELECTRODE_PAIRINGS{7}};
+if ~exist('use_long','var')
+    use_long = false;
+end
+
+if use_long
+    ELECTRODE_LOCATION       = {obj.ALL_ELECTRODE_PAIRINGS{14}};
+else
+    ELECTRODE_LOCATION       = {obj.ALL_ELECTRODE_PAIRINGS{7}};
+end
 FIBER_DIAMETER           = 15;
 STIM_START_TIME          = 0.1;
 PHASE_AMPLITUDES         = [-1 0.5];

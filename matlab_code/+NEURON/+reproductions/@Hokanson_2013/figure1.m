@@ -2,47 +2,53 @@ function figure1()
 %
 %   NEURON.reproductions.Hokanson_2013.figure1
 %
-%   MULTIPLE DISTANCES
+%   NEURON.reproductions.Hokanson_2013.figure1()
 %
+%   =======================================================================
+%                       MULTIPLE ELECTRODE DISTANCES
+%   =======================================================================
 %
 %   This method examines the volume-ratio for a range of distances and
 %   amplitudes for a single fiber diameter. It is meant to provide insight
 %   into what stimulus separations are acceptable
 
-MAX_STIM_TEST_LEVEL      = 30;
-ELECTRODE_LOCATIONS_TEST = 2:8; %This is the transverse set ...
-STIM_WIDTH               = {[0.2 0.4]};
-FIBER_DIAMETER           = 15;
+import NEURON.reproductions.*
 
-obj = NEURON.reproductions.Hokanson_2013;
+C.MAX_STIM_TEST_LEVEL      = 30;
+C.FIBER_DIAMETER           = 15;
 
-[dual_counts,single_counts,x_stim] = getCountData(obj,...
-        MAX_STIM_TEST_LEVEL,...
-        obj.ALL_ELECTRODE_PAIRINGS(ELECTRODE_LOCATIONS_TEST),...
-        STIM_WIDTH,FIBER_DIAMETER);
+TITLE_STRINGS = {'Transverse pairings' 'Longitudinal pairings'};
+EL_INDICES    = {15:-1:9 8:-1:2};
 
-vol_ratio = dual_counts./single_counts;
+obj = Hokanson_2013;
+avr = Hokanson_2013.activation_volume_requestor(obj);
+avr.fiber_diameter = C.FIBER_DIAMETER;
 
-%Plot Type 1
-%---------------------------------
-%subplot(1,2,1)
-figure
-imagesc(x_stim,1400:-200:200,vol_ratio');
-xlabel('Stimulus Amplitude (uA)','FontSize',18)
-ylabel('Distance between electrode pair (um)','FontSize',18)
-colorbar
-set(gca,'FontSize',18)
-
-%subplot(1,2,2)
-figure
-plot(x_stim,vol_ratio,'Linewidth',3)
-
-%This would ideally be extracted from the pairings
-electrode_separations = 1400:-200:200;
-legend(arrayfun(@(x) sprintf('%d um',x),electrode_separations,'un',0))
-set(gca,'FontSize',18)
-xlabel('Stimulus Amplitude (uA)','FontSize',18)
-ylabel('Volume Ratio')
+%Data retrieval
+%--------------------------------------------------------------------------
+rs_all = cell(1,2);
+rd_all = cell(1,2);
+for iPair = 1:2
+    electrode_locations_test = obj.ALL_ELECTRODE_PAIRINGS(EL_INDICES{iPair});
+    
+    rs_all{iPair}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL,...
+        'single_with_replication',true);
+    rd_all{iPair}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL);
+end
 
 keyboard
+%Plotting results
+%--------------------------------------------------------------------------
+for iPair = 1:2
+    
+    electrode_locations_test = obj.ALL_ELECTRODE_PAIRINGS(EL_INDICES{iPair});
+    
+    final_strings = obj.getElectrodeSeparationStrings(electrode_locations_test);
+    
+    %Change to: versus amplitude ...
+    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair},false);
+    legend(final_strings)
+    title(TITLE_STRINGS{iPair})
+end
+
 end

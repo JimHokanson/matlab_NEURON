@@ -43,7 +43,10 @@ classdef homogeneous_anisotropic < NEURON.tissue
             
             %TODO: Document the 10 ...
             
-            scale_factor = 10*sqrt(det(diag(obj.resistivity)))/(4*pi);
+            scale_factor = 10*sqrt(prod(obj.resistivity))/(4*pi);
+            
+            %TODO: Above would be better as:
+            %=> 10 * sqrt(prod(obj.resistivity)
             
             %scale_factor = 10*obj.resistivity/(4*pi);
             

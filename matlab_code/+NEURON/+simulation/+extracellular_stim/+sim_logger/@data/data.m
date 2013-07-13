@@ -214,6 +214,9 @@ classdef data < handle_light
            %
            %
            %    initPredictorObj(obj)
+           %
+           %    NEURON.simulation.extracellular_stim.sim_logger.data.getThresholds
+           %
            
            obj.predictor_obj = NEURON.simulation.extracellular_stim.threshold_predictor(...
                     obj.new_stimuli_matrix,...

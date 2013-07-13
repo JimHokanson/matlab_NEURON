@@ -76,6 +76,7 @@ classdef single_sim < handle_light
             vm_local       = obj.membrane_potential;
             
             %NOTE: Due to time extension dt may be wrong ...
+            %?? - why would dt be wrong and not final time
             time_vector   = obj.xstim_obj.props.getTimeVector;
             
             n_space_points = size(vm_local,2);
@@ -100,6 +101,13 @@ classdef single_sim < handle_light
 % % %             ylabel('time','FontSize',in.font_size)
 % % %             title(sprintf('Stimulus Scale: %0.2f',obj.tested_scale),...
 % % %                 'FontSize',in.font_size)
+        end
+        function plot__singleSpace(obj,index)
+           vm_local = obj.membrane_potential;
+           time_vector   = obj.xstim_obj.props.getTimeVector;
+           plot(time_vector,vm_local(:,index))
+           xlabel('Time (ms)')
+           ylabel('Membrane Potential (mV)')
         end
     end
     

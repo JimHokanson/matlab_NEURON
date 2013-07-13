@@ -3,7 +3,12 @@ classdef activation_volume < handle
     %   Class:
     %   NEURON.simulation.extracellular_stim.results.activation_volume
     %
-    %   TODO: Summarize purpose of this class
+    %   This class is meant to handle analyis of activation volumes.
+    %
+    %   Improvements. The design of this class needs to be significantly
+    %   changed. The biggest problem is the non-static nature of the
+    %   result and the inclusion of replicated data with non-replicated
+    %   data.
     
     
     %METHODS IN OTHER FILES  %=============================================
@@ -15,8 +20,7 @@ classdef activation_volume < handle
     methods (Hidden)
         adjustBoundsGivenMaxScale(obj,max_scale,varargin)
     end
-    
-    
+
     %REFERENCE OBJECTS ====================================================
     properties (Hidden)
         xstim_obj  %
@@ -47,15 +51,12 @@ classdef activation_volume < handle
         bounds = [] % [min x xyz; max x xyz]
         %This property is initialized in the constructor
     end
-    
-    
-    
+
     methods
         function obj = activation_volume(xstim_obj)
             
             obj.xstim_obj  = xstim_obj;
             obj.sim_logger = xstim_obj.sim__getLogInfo;
-            
             
             %Population of bounds
             %--------------------------------------------------------------
@@ -68,15 +69,25 @@ classdef activation_volume < handle
             
             
             if obj.spacing_model == 1
-                obj.bounds(1,1:2)  = round2(obj.bounds(1,1:2) - obj.start_width,obj.step_size,@floor);
-                obj.bounds(2,1:2)  = round2(obj.bounds(2,1:2) + obj.start_width,obj.step_size,@ceil);
                 
-                %Updating z to completely encompass the axon ...
-                z_distance_spanned = obj.bounds(2,3) - obj.bounds(1,3);
-                extra_spacing      = (obj.getInternodeLength - z_distance_spanned)/2;
-                obj.bounds(1,3)    = round2(obj.bounds(1,3) - extra_spacing,obj.step_size,@floor);
-                obj.bounds(2,3)    = round2(obj.bounds(2,3) + extra_spacing,obj.step_size,@ceil);
+                step_sz_local = obj.step_size;
                 
+                rf = @(x) sl.array.roundToPrecision(x,step_sz_local,@floor);
+                rc = @(x) sl.array.roundToPrecision(x,step_sz_local,@ceil);
+                
+                
+                %Round x & y mins down
+                %----------------------------------------------------------
+                obj.bounds(1,1:2)  = rf(obj.bounds(1,1:2) - obj.start_width);
+                
+                %Round x & y max values up
+                %----------------------------------------------------------
+                obj.bounds(2,1:2)  = rc(obj.bounds(2,1:2) + obj.start_width);
+                
+                half_INL = obj.getInternodeLength/2;
+                
+                obj.bounds(1,3)    = rf(-half_INL);
+                obj.bounds(2,3)    = rc(half_INL);
             else
                 error('Only spacing model #1 is implemented')
             end
@@ -85,10 +96,10 @@ classdef activation_volume < handle
         function [slice_thresholds,xyz_new] = getSliceThresholds(obj,max_stim_level,dim_use,dim_value,varargin)
            %getSliceThresholds  Retrieves thresholds for a 2d plane
            %
+           %    [slice_thresholds,xyz_new] = getSliceThresholds(obj,max_stim_level,dim_use,dim_value,varargin)
+           %
            %    Specify the singular dimension and the value of that
            %    dimension to examine for the other 2 dimensions.
-           %
-           %    [slice_thresholds,xyz_new] = getSliceThresholds(obj,max_stim_level,dim_use,dim_value,varargin)
            %
            %    OUTPUTS
            %    ===========================================================
@@ -120,7 +131,7 @@ classdef activation_volume < handle
            
            %thresholds = getThresholdsEncompassingMaxScale(obj,max_stim_level);
            
-           [thresholds,x,y,z] = getThresholdsAndBounds(obj,max_stim_level,in.replication_points,in.replication_center);
+           [thresholds,x,y,z] = obj.getThresholdsAndBounds(max_stim_level,in.replication_points);
            
            xyz = {x,y,z};
            
@@ -211,12 +222,24 @@ classdef activation_volume < handle
         function varargout = getXYZlattice(obj,as_cell)
             %getXYZlattice
             %
-            %    CALLING FORMS
-            %    ===========================================================
-            %    [x,y,z]   = getXYZlattice(obj,false)
+            %   varargout = getXYZlattice(obj,*as_cell)
             %
-            %    [{x,y,z}] = getXYZlattice(obj,true)
+            %   Returns vectors for each of the dimensions based on the
+            %   bounds and the step size.
             %
+            %   INPUTS
+            %   ===========================================================
+            %   as_cell : (default false), changes output type, see
+            %           varargout
+            %
+            %   OUTPUTS
+            %   ===========================================================
+            %   varargout :
+            %       'as_cell' = true
+            %           - returns a single cell array => [{x,y,z}]
+            %       'as_cell' = false
+            %           - returns each dimension as an output => [x,y,z]
+            %           
             
             if ~exist('as_cell','var')
                 as_cell = false;

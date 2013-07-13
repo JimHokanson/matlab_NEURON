@@ -11,6 +11,7 @@ classdef electrode < NEURON.loggable
     %       NEURON.simulation.extracellular_stim
     %
     %   CONSTRUCTOR CALL:
+    %   ===================================================================
     %   NEURON.simulation.extracellular_stim.electrode.create
     %
     %   DATA SETTING METHODS
@@ -31,10 +32,21 @@ classdef electrode < NEURON.loggable
     %   matrix of all electrode channels and their stimulus amplitude over
     %   time.
     %   3) Could make it easier to insert a train of pulses ...
+    %       This should be executed 
     %   4) Add ability to change # of electrodes
+    %
+    %   QUESTIONS
+    %   ===================================================================
+    %   1) How can I merge this with the work done for an intracellular
+    %   stimulation electrode? In particular, a timing for stimulus pattern
+    %   class may be necessary to for both.
+    %
     
     properties (Hidden)
-        parent  %Class: NEURON.simulation.extracellular_stim
+       parent  %Class: NEURON.simulation.extracellular_stim
+       %Known uses: TODO: Make this dynamic from the help class 
+       %1) 
+       
     end
     
     properties (SetAccess = private)
@@ -57,7 +69,11 @@ classdef electrode < NEURON.loggable
         %.objectChanged()
         configuration = 1 %This was added on to allow querying as to whether
         %or not it had changed since last asked. This is primarily for
-        %recomputing the applied stimulus to a cell.
+        %recomputing the applied stimulus to a cell. In other words, if
+        %something about this has changed since the last time the
+        %simulation computed the applied stimulus, then the stimulus needs
+        %to be recalculated since changing parameters here would change the
+        %applied stimulus.
     end
 
     %INITIALIZATION METHODS ===============================================
@@ -191,39 +207,58 @@ classdef electrode < NEURON.loggable
         %   - the goal is to provide a method which
         %   will mark up current plots with the locations of the electrodes
         %end
-        function plot(objs)
-            %plot(objs)
-            %
-            %
-            %    TO SHOW:
-            %    -------------------------------------------
-            %    1) location of electrodes
-            %        - how to do this ?????
-            %        - 2d? 3d?
-            %    2) amplitude data
-            %        -> offsets ????
-            
-            
-        end
+        function plot(objs,amp_scalar)
+           %plot(objs)
+           %
+           %    
+           %    TO SHOW:
+           %    -------------------------------------------
+           %    1) location of electrodes
+           %        - how to do this ?????
+           %        - 2d? 3d?
+           %    2) amplitude data 
+           %        -> offsets ????
+           
+           if ~exist('amp_scalar','var')
+               amp_scalar = 1;
+           end
+           
+           [stim_amps,time] = getPlotData(objs,amp_scalar);
+           
+           stairs(time,stim_amps)
+           
+           %keyboard
+           
+        end 
         function [stim_amps,time] = getPlotData(objs,amp_scalar)
-            %getPlotData
-            %
-            %    [stim_amps,time] = getPlotData(objs,*amp_scalar)
-            %
-            %    This function provides the data necessary for plotting the
-            %    stimulation amplitudes of each electrode.
-            %
-            %    OUTPUTS
-            %    ===========================================================
-            %    stim_amps : [samples x electrodes]
-            %    time      : [1 x samples], time of transitions of stimulus,
-            %            plus beginning and end times.
-            %
-            %    OPTIONAL INPUTS
-            %    ===========================================================
-            %    amp_scalar :
-            %
-            %    OUTPUTP
+           %getPlotData
+           %    
+           %    [stim_amps,time] = getPlotData(objs,*amp_scalar)
+           %
+           %    This function provides the data necessary for plotting the
+           %    stimulation amplitudes of each electrode.
+           %
+           %    OUTPUTS
+           %    ===========================================================
+           %    stim_amps : [samples x electrodes]
+           %    time      : [1 x samples], time of transitions of stimulus,
+           %            plus beginning and end times.
+           %
+           %    OPTIONAL INPUTS
+           %    ===========================================================
+           %    amp_scalar : 
+           %
+           
+           %Currently this algorithm just needs to:
+           %1) add on a final time
+           %value and set the stimulus amplitude to zero at that time.
+           %2) Multiply the data by a scalar if 
+           %
+           %
+           
+           if ~exist('amp_scalar','var')
+               amp_scalar = 1;
+           end
             
             %Currently this algorithm just needs to:
             %1) add on a final time
@@ -263,6 +298,12 @@ classdef electrode < NEURON.loggable
     %EVENT HANDLING    %===================================================
     methods (Access = private, Hidden)
         function objectChanged(objs)
+            %
+            %   objectsChanged(objs)
+            %
+            %   Any method that changes some property of the object should
+            %   call this method to update the configuration numbers.
+            
             for iObj = 1:length(objs)
                 obj = objs(iObj);
                 obj.configuration = obj.configuration + 1;

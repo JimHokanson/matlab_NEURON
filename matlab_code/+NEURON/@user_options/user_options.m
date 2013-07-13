@@ -175,9 +175,6 @@ classdef user_options < handle_light
 %         function writeObjectToFile(obj)
 %            getFilePath 
 %         end
-        function reset(obj)
-            initialize(obj)
-        end
         function defined_flags = checkPropsDefined(obj,props_to_check)
             %checkPropsDefined
             %
@@ -195,6 +192,14 @@ classdef user_options < handle_light
     end
     
     methods (Static)
+        function reset()
+            %
+            %
+            %   NEURON.user_options.reset();
+            
+            obj = NEURON.user_options.getInstance;
+            initialize(obj)
+        end
         function obj = getInstance()
             persistent uniqueInstance
             if isempty(uniqueInstance)

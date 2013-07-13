@@ -179,9 +179,15 @@ classdef extracellular_stim < NEURON.simulation
             %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
             sim_logger.initializeLogging(obj); 
         end
-        function thresholds = sim__getThresholdsMulipleLocations2(obj,cell_locations,varargin)
+        function [solution,predictor_info] = sim__getThresholdsMulipleLocations2(obj,cell_locations,varargin)
             
             thresholds = [];
+            
+            
+            %TODO: Allow passing the request handler in ...
+            %NOTE: This gets a bit messy since the id of the object 
+            %could change. We really need to build in an easy to check
+            %object changed property in xstim
             
             in.threshold_sign     = 1;
             in.reshape_output     = true;
@@ -189,19 +195,7 @@ classdef extracellular_stim < NEURON.simulation
             
             r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,cell_locations);
             
-            % basic steps: 
-            % 1 - initialize the request_handler 
-            % Which then goes and inits the logged_Data (pass in the sign)
-            % call: request_handler.getThresholds
-            % 2 - has request_handler return indices of unknown
-            %     cell_locations
-            % 3 - sends these reduced (potentially) cell_locations to the 
-            %     predictor_obj. Along with the sign. predictor_obj
-            % 4 - predictor_obj sees if the matrix is emmpty and returns
-            %     early.
-            % 4 - OR predictor interacts w/ request_handler to manage data?
-            
-            % Step 2-4 not done here directly, but thru request_handler_obj
+            [solution,predictor_info] = r.getSolution();
             
             
             

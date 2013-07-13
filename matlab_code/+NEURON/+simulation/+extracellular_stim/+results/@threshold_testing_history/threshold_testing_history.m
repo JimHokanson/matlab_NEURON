@@ -27,7 +27,8 @@ classdef threshold_testing_history < handle_light
         %3 - way too strong a stimulus - NEURON threw an error (tissue fried case)
         %4 - no propagation, stimulus too weak
         
-        last_threshold_stimuli
+        last_threshold_stimulus
+        last_non_threshold_stimulus
         last_threshold_vm = [] %[time x space] Potential recorded
         %at each point in space. Spatial interpretation is left up to the
         %cell. Values are for the last tested stimuli which showed action
@@ -68,13 +69,18 @@ classdef threshold_testing_history < handle_light
                obj.n_above = obj.n_above + 1;               
            end
         end
-
         function finalizeData(obj,stimulus_threshold)
            obj.tested_stimuli(obj.n_loops+1:end) = [];
            obj.response_type(obj.n_loops+1:end)  = [];
            obj.stimulus_threshold = stimulus_threshold; 
-           obj.last_threshold_stimuli = ...
+           
+           %TODO: Fix this ...
+           %??? - the solver should have this information ...
+           %We should probably just get it from the solver ...
+           obj.last_threshold_stimulus = ...
                     obj.tested_stimuli(find(obj.response_type == 1,1,'last'));
+           obj.last_non_threshold_stimulus = ...
+                    obj.tested_stimuli(find(obj.tested_stimuli < obj.last_threshold_stimulus,1,'last'));
         end
         function str = getSummaryString(obj)
             str = sprintf('SIMULATION FINISHED: THRESHOLD = %0g, n_loops = %d',...

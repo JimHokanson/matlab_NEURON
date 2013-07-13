@@ -1,9 +1,7 @@
 function varargout = computeStimulus(obj,varargin)
 %computeStimulus Computes the stimulus
 %
-%   varargout = computeStimulus(obj,varargin)
-%
-%   [tvec,vall] = computeStimulus(obj,varargin)
+%   [tvec,vall,cell_xyz_all] = computeStimulus(obj,varargin)
 %
 %   Computes the stimulus that is applied to a cell.
 %
@@ -43,8 +41,11 @@ function varargout = computeStimulus(obj,varargin)
 %
 %   See Also:
 %       NEURON.cell.extracellular_stim_capable.getXYZnodes
+%       NEURON.simulation.extracellular_stim.plot__AppliedStimulus
 
 INF_MOVE_CELL = sqrt(1/3); %Distance between this (for x,y,and z) and 0 is 1
+MAX_MV_STIM   = 1e4; %10 V max
+
 
 in.remove_zero_stim_option = 0;
 in.xyz_use                 = [];
@@ -97,8 +98,11 @@ v_all = helper__getVall(obj,cell_xyz_all,all_stim);
 %Check for problems
 %--------------------------------------------------------------------
 %TODO: Handle zero applied stimulus ...
-[~,J] = find(isinf(v_all));
-if any(isinf(v_all(:)))
+%[~,J] = find(isinf(v_all));
+
+[~,J] = find(v_all > MAX_MV_STIM);
+
+if ~isempty(J)
     
     cell_xyz_all(J,:) = cell_xyz_all(J,:) + INF_MOVE_CELL;
     
@@ -109,15 +113,17 @@ if any(isinf(v_all(:)))
     %isn't so high as to notice this small amount of movement
     v_all = helper__getVall(obj,cell_xyz_all,all_stim);
     
-    if any(isinf(v_all(:)))
+    if any(v_all(:) > MAX_MV_STIM)
         error('Jim''s crappy fix to handling infinite stimulation failed, please come up with a better solution')
     end
 end
 
 %Not super thrilled about this hack ...
+%TODO: This is going to become a handle class  ...
 if nargout
     varargout{1} = t_vec;
     varargout{2} = v_all;
+    varargout{3} = cell_xyz_all;
 else
     obj.v_all = v_all;
     obj.t_vec = t_vec;
