@@ -179,10 +179,7 @@ classdef extracellular_stim < NEURON.simulation
             %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
             sim_logger.initializeLogging(obj); 
         end
-        function [solution,predictor_info] = sim__getThresholdsMulipleLocations2(obj,cell_locations,varargin)
-            
-            thresholds = [];
-            
+        function r = sim__getThresholdsMulipleLocations2(obj,cell_locations,varargin)
             
             %TODO: Allow passing the request handler in ...
             %NOTE: This gets a bit messy since the id of the object 
@@ -195,7 +192,7 @@ classdef extracellular_stim < NEURON.simulation
             
             r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,cell_locations);
             
-            [solution,predictor_info] = r.getSolution();
+            %[solution,predictor_info] = r.getSolution();
             
             
             

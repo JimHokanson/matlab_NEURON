@@ -13,22 +13,40 @@ function figure2(use_long)
 %   This is tentatively:
 %       NEW FIGURE 2
 
-if ~exist('use_long','var')
-    use_long = false;
-end
+import NEURON.reproductions.*
 
-obj = NEURON.reproductions.Hokanson_2013;
+C.MAX_STIM_TEST_LEVEL = 30;
+
+
+
+obj = Hokanson_2013;
+avr = Hokanson_2013.activation_volume_requestor(obj);
+
+EL_LOCATIONS = {[0 -50 -200; 0 50 200]      [-200 0 0;200 0 0]};
 
 C.MAX_STIM_TEST_LEVEL     = 30;
-
 if use_long
-    C.ELECTRODE_LOCATION  = {[0    -50  -200; 0   50  200]};
+    C.ELECTRODE_LOCATION  = 
 else
-    C.ELECTRODE_LOCATION  = {[-200   0   0;  200  0   0]};
+    C.ELECTRODE_LOCATION  = 
 end
 
 
 C.STIM_WIDTH              = {[0.2 0.4]};
+
+
+rs_all = cell(1,2);
+rd_all = cell(1,2);
+for iPair = 1:2
+    electrode_locations_test = EL_LOCATIONS{iPair};
+    
+    
+    
+end
+
+
+
+
 
 fiber_diameters          = obj.ALL_DIAMETERS;
 

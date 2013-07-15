@@ -19,7 +19,7 @@ classdef threshold_options < handle_light
     
     properties (Constant)
         THERSHOLD_ERROR_OPTIONS = {'absolute' 'relative'} 
-        MIN_THRESHOLD = 0.001 %Units uA
+        MIN_THRESHOLD = 0.000001 %Units uA
     end
     
     properties

@@ -7,12 +7,20 @@ classdef request_handler
     %   thresholds. It is meant as the top level interface object with the
     %   user when determining multiple thresholds ...
     %
+    %   
+    %   NEURON.simulation.extracellular_stim.??/
+    %
+    %   Main subclass:
+    %   NEURON.xstim.single_AP_sim.solver
+    %
+    %
     %   See Also:
+    %   NEURON.xstim.single_AP_sim.solver
     %   NEURON.xstim.single_AP_sim.logged_data
     %   NEURON.xstim.single_AP_sim.solution
     %   NEURON.xstim.single_AP_sim.applied_stimuli
-    %   NEURON.xstim.single_AP_sim.predictor
-    %   NEURON.xstim.single_AP_sim.solution.match_resul
+    %   NEURON.xstim.single_AP_sim.solver
+    %   NEURON.xstim.single_AP_sim.solution.match_result
     
     properties
         parent      %Class: NEURON.xstim
@@ -35,7 +43,7 @@ classdef request_handler
     end
     
     properties
-        predictor  %Subclass of: NEURON.xstim.single_AP_sim.predictor
+        solver  %SC: NEURON.xstim.single_AP_sim.solver
     end
     
     methods
@@ -47,7 +55,11 @@ classdef request_handler
             %   See Also:
             %   NEURON.simulation.extracellular_stim.get...???
             
-            in.predictor = 'default'; %Name of the predictor to use, only
+            DEFAULT_TIME = 1.2; %NOTE: We expect the auto changer (not 
+            %sure of the class) to change to a valid time
+            %We also will force auto-changing ...
+            
+            in.solver = 'default'; %Name of the predictor to use, only
             %the default option is currently supported ...
             in = sl.in.processVarargin(in,varargin);
             
@@ -55,15 +67,20 @@ classdef request_handler
             obj.stim_sign = stim_sign;
             obj.cell_locations_input = cell_locations;
             
-            %TODO: We might need to set the current location
-            %of the cell to 0 to ensure that we aren't filtering based
-            %on the location of the cell. Ideally we could filter on this
-            %parameter ...
+            %HACK FOR LOGGER COMPARISON ...
+            parent.cell_obj.moveCenter([0 0 0]);
+            parent.props.changeProps('tstop',DEFAULT_TIME)
+            %TODO: Check this value before setting, throw warning
+            %if not true ...
+            parent.options.autochange_run_time = true;
             
             xstim_logger = parent.getLogger;
             obj.xstim_ID = xstim_logger.getInstanceID(); %This is a critical
             %line that associates the data we will create with the current
             %simulation
+            
+            %Make a nicer display function
+            fprintf(2,'Save string: %s\n',obj.xstim_ID.getSaveString);
             
             obj.logged_data = NEURON.xstim.single_AP_sim.logged_data(stim_sign,obj.xstim_ID);
             %NEURON.xstim.single_AP_sim.logged_data
@@ -92,21 +109,18 @@ classdef request_handler
             
             %If not, create objects for possible user manipulation
             %--------------------------------------------------------------
-            %
             %   NOTE: We only do object construction here. We later will
-            %   make a call to solve the objects. Between these calls the
-            %   user can change options ..., they could even change
-            %   the predictor object itself ...
+            %   make a call to solve the objects.
             
             new_cell_locations = match_result.getUnmatchedLocations();            
-            p = NEURON.xstim.single_AP_sim.predictor.create(in.predictor);
+            s = NEURON.xstim.single_AP_sim.solver.create(in.solver);
             new_data = NEURON.xstim.single_AP_sim.new_solution(stim_sign,obj.xstim_ID,new_cell_locations);
             
-            %NEURON.xstim.single_AP_sim.predictor.initializeSuperProps
-            p.initializeSuperProps(obj.logged_data,new_data,parent,stim_sign);
-            p.initializeSubclassProps();
+            %NEURON.xstim.single_AP_sim.solver.initializeSuperProps
+            s.initializeSuperProps(obj.logged_data,new_data,parent,stim_sign);
+            s.initializeSubclassProps();
             
-            obj.predictor = p;
+            obj.solver = s;
         end
         function [solution,predictor_info] = getSolution(obj)
             %
@@ -116,7 +130,7 @@ classdef request_handler
             %    OUTPUTS
             %    ===========================================================
             %    solution: NEURON.xstim.single_AP_sim.solution
-            %    predictor_info: Output depends on the predictor ...
+            %    predictor_info: Output depends on the solver ...
             %
             
             %Check if solution is found - if so, return early
@@ -133,9 +147,9 @@ classdef request_handler
                 return
             end
             
-            %Things are missing, call predictor ...
+            %Things are missing, call solver ...
             %--------------------------------------------------------------
-            predictor_info = obj.predictor.getThresholdSolutions();
+            predictor_info = obj.solver.getThresholdSolutions();
             
             match_result = obj.logged_data.checkIfSolved(xyz);
             %NEURON.xstim.single_AP_sim.solution.match_result

@@ -51,6 +51,7 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
        %approach for thresholding saves redundant information for quicker
        %lookup. If we are using stimuli and thresholds for prediction we
        %will want to ignore redundant old stimuli
+       unique_new_indices
     end
     
     methods
@@ -85,6 +86,14 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
             unique_old_indices = obj.unique_old_indices;
         end
         function applyStimulusMatchInfo(obj)
+            %
+            %
+            %   In general this should be called by the
+            %   applied_stimulus_manager.
+            %
+            %
+            %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.applyStimulusMatchInfo
+            
             if ~obj.match_info_computed
                obj.getStimulusMatches();
             end
@@ -95,10 +104,10 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
                         obj.old_index_sources);
             end
             
-            if ~isempty(obj.redundant_new_indices__with_old_source)
+            if ~isempty(obj.redundant_new_indices__with_new_source)
                 new_solution = obj.stim_manager.new_data;
                 new_solution.addWillSolveLaterIndices(...
-                        obj.redundant_new_indices__with_old_source,...
+                        obj.redundant_new_indices__with_new_source,...
                         @obj.applyStimulusMatchesCallback);
             end
         end

@@ -8,7 +8,7 @@ classdef ID < handle_light
     %   NEURON.logger
     %   NEURON.logger.getID
     
-    properties (SetAccess = private)
+    properties (SetAccess = {?sl.struct.toObject})
         class_type    %(char) string to uniquely identify class
         type          %(numeric), used for comparing subclass types
         %Unfortunately right now it is up to the user to manage
@@ -48,7 +48,7 @@ classdef ID < handle_light
             obj.creation_date = creation_date;
         end
         function s = getStruct(obj)
-           s = sl.struct.toObject(obj); 
+           s = sl.obj.toStruct(obj); 
         end
         function flag = isValid(obj)
             flag = ~isnan(obj.trial_row);         

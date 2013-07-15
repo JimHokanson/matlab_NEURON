@@ -20,9 +20,15 @@ function initializeReducedDimStimulus(obj1,obj2,options)
 %   NEURON.xstim.single_AP_sim.applied_stimuli.initializeReducedDimStimulus
 
 if obj2.n == 0
-    [~,scores1,latent] = pca(obj1.stimulus,'Algorithm','svd','Economy',true);
+    [coeff,~,latent] = pca(obj1.stimulus,'Algorithm','svd','Economy',true);
+    data_mean   = mean(obj1.stimulus,1);
+    temp_data_no_mean = bsxfun(@minus,obj1.stimulus,data_mean);
+    scores1     = temp_data_no_mean*coeff;
 elseif obj1.n == 0
-    [~,scores2,latent] = pca(obj2.stimulus,'Algorithm','svd','Economy',true);
+    [coeff,~,latent] = pca(obj2.stimulus,'Algorithm','svd','Economy',true);
+    data_mean   = mean(obj2.stimulus,1);
+    temp_data_no_mean = bsxfun(@minus,obj2.stimulus,data_mean);
+    scores2     = temp_data_no_mean*coeff;
 else
     n1         = obj1.n;
     temp_data  = [obj1.stimulus; obj2.stimulus];

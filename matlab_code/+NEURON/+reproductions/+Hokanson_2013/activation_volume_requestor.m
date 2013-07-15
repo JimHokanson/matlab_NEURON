@@ -17,7 +17,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
     
     properties
         custom_setup_function %This should be called if there are addditional
-        %steps to
+        %steps between initializing the xstim object 
         stim_widths      = [0.2 0.4] %TODO: Describe formats ...
         fiber_diameter   = 10
         stim_start_time  = 0.1
@@ -35,6 +35,13 @@ classdef activation_volume_requestor < sl.obj.handle_light
         end
         function result_objs = makeRequest(obj,electrode_locations,max_stim_level,varargin)
             %
+            %
+            %   The only thing this function can currently vary over is 
+            %   different electrode locations ...
+            %
+            %   INPUTS
+            %   ===========================================================
+            %   electrode_locations : (cell), 
             %
             %    OUTPUTS
             %    ===========================================================
@@ -76,7 +83,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
                     
                     
                     if ~isempty(obj.custom_setup_function)
-                        obj.custom_setup_function(obj)
+                        obj.custom_setup_function(obj,xstim)
                     end
                     
                     internode_length = xstim.cell_obj.getAverageNodeSpacing;
