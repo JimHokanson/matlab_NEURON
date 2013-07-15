@@ -73,6 +73,8 @@ classdef solver < sl.obj.handle_light
             switch lower(solver_type)
                 case 'default'
                     s = NEURON.xstim.single_AP_sim.solver.default;
+                case 'from_old_solver'
+                    s = NEURON.xstim.single_AP_sim.solver.from_old_solver;
                 otherwise
                     error('Solver type not recognized')
             end

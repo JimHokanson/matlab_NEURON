@@ -42,7 +42,7 @@ for iPair = 1:2
         temp_cell{2,iDiameter}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL);
     end
     rs_all(iPair) = [temp_cell{1,:}];
-    rd_all(iPair) = [temp_cell{1,:}];
+    rd_all(iPair) = [temp_cell{2,:}];
 end
 
 

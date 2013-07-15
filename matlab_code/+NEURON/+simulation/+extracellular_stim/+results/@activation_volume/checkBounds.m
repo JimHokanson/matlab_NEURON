@@ -35,13 +35,6 @@ function [too_small,min_abs_value_per_side,thresholds_by_side,threshold_xyz] = .
 %   =======================================================================
 %   max_scale :
 %
-%
-%   
-%
-%   OPTIONAL INPUTS
-%   ===================================================
-%   sim_logger : (default []),
-%
 %   See Also:
 %       NEURON.simulation.extracellular_stim.sim__getThresholdsMulipleLocations
 %       NEURON.simulation.extracellular_stim.results.activation_volume.adjustBoundsGivenMaxScale
@@ -87,8 +80,11 @@ end
 n_elements_per_side = cellfun(@(x) size(x,1),xyz_linear);
 xyz_all             = vertcat(xyz_linear{:});
 
+keyboard
+
 %Step 2: Compute thresholds
 %--------------------------------------------------------------------------
+%
 t_all = xstim_obj.sim__getThresholdsMulipleLocations(...
     xyz_all,...
     'threshold_sign',threshold_sign,...

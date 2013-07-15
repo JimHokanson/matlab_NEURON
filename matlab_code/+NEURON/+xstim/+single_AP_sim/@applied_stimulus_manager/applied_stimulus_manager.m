@@ -28,7 +28,7 @@ classdef applied_stimulus_manager < sl.obj.handle_light
         old_data
     end
 
-    properties (Access = private)
+    properties (SetAccess = private)
         %.getLowDStimulusInfo()
         low_d_initialized = false
         old_stimuli  %Class: NEURON.xstim.single_AP_sim.applied_stimuli

@@ -188,9 +188,11 @@ classdef extracellular_stim < NEURON.simulation
             
             in.threshold_sign     = 1;
             in.reshape_output     = true;
+            in.solver             = 'default'; %from_old_solver
             in = sl.in.processVarargin(in,varargin);
             
-            r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,cell_locations);
+            r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,...
+                            cell_locations,'solver',in.solver);
             
             %[solution,predictor_info] = r.getSolution();
             

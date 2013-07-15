@@ -113,6 +113,10 @@ classdef activation_volume_requestor < sl.obj.handle_light
                 
                 keyboard
                 if obj.merge_solvers
+                    xyz = act_obj.getXYZlattice(true);
+                    r   = xstim.sim__getThresholdsMulipleLocations2(xyz,'solver','from_old_solver');
+                    r.solver.act_obj = act_obj;
+                    r.getSolution();
                     continue
                 end
                 

@@ -56,6 +56,9 @@ classdef activation_volume < handle
         function obj = activation_volume(xstim_obj)
             
             obj.xstim_obj  = xstim_obj;
+            
+            %This is a call to get the logged data ...
+            %This is getting really slow ...
             obj.sim_logger = xstim_obj.sim__getLogInfo;
             
             %Population of bounds
@@ -203,9 +206,9 @@ classdef activation_volume < handle
             %I had pchip interpolation and it made my positive bound negative
             %and my negative bound positive
             if mod(bound_index,2) == 0
-                obj.bounds(bound_index) = round2(new_value,obj.step_size,@ceil);
+                obj.bounds(bound_index) = sl.array.roundToPrecision(new_value,obj.step_size,@ceil);
             else
-                obj.bounds(bound_index) = round2(new_value,obj.step_size,@floor);
+                obj.bounds(bound_index) = sl.array.roundToPrecision(new_value,obj.step_size,@floor);
             end
         end
     end
