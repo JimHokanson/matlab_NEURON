@@ -8,7 +8,8 @@ classdef Hokanson_2013
         
     properties (Constant)
         %MRG Diameters:
-        %[5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;];
+        %[5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;]; %These are all the 
+        %discrete diameters implemented in the original model.
         ALL_DIAMETERS = [5.7, 7.3 8.7, 10, 12.8, 15];
         ALL_ELECTRODE_PAIRINGS = {
             [0 0 0]                          %Centered Electrode

@@ -3,7 +3,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
     %   Class:
     %   NEURON.reproductions.Hokanson_2013.activation_volume_requestor
     %
-    %
+    %   This class needs to be documented ...
     
     properties
         main %Class: NEURON.reproductions.Hokanson_2013
@@ -11,8 +11,11 @@ classdef activation_volume_requestor < sl.obj.handle_light
     
     properties
         stim_resolution  = 0.1
-        slice_dim = 2
+        slice_dim   = 2
         slice_value = 0
+        quick_test  = false %If true we get junk results on the integration
+        %which can be useful for testing the workflow
+        merge_solvers = false
     end
     
     properties
@@ -70,6 +73,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
                 all_replication_sets = {[]};
             end
 
+            %Loop over all locations ...
             result_objs = cell(1,n_sets);
             for iSet = 1:n_sets
                 cur_elec_loc = electrode_locations{iSet};
@@ -81,11 +85,10 @@ classdef activation_volume_requestor < sl.obj.handle_light
                     
                     xstim.elec_objs.setStimPattern(obj.stim_start_time,obj.stim_widths,obj.phase_amplitudes);
                     
-                    
                     if ~isempty(obj.custom_setup_function)
                         obj.custom_setup_function(obj,xstim)
                     end
-                    
+
                     internode_length = xstim.cell_obj.getAverageNodeSpacing;
                     
                     %NEURON.simulation.extracellular_stim.sim__getActivationVolume
@@ -95,14 +98,22 @@ classdef activation_volume_requestor < sl.obj.handle_light
                 
                 %Actual Testing
                 %---------------------------------------------------------------
+                %NEURON.simulation.extracellular_stim.results.activation_volume.getVolumeCounts
                 if in.single_with_replication
                     replication_points = all_replication_sets{iSet};
                     [stim_level_counts,extras] = act_obj.getVolumeCounts(max_stim_level,...
-                        'replication_points',replication_points,...
-                        'stim_resolution',obj.stim_resolution);
+                        'replication_points',   replication_points,...
+                        'stim_resolution',      obj.stim_resolution,...
+                        'quick_test',           obj.quick_test);
                 else
                     [stim_level_counts,extras] = act_obj.getVolumeCounts(max_stim_level,...
-                        'stim_resolution',obj.stim_resolution);
+                        'stim_resolution',      obj.stim_resolution,...
+                        'quick_test',           obj.quick_test);
+                end
+                
+                keyboard
+                if obj.merge_solvers
+                    continue
                 end
                 
                 [slice_thresholds,slice_xyz] = ...

@@ -35,7 +35,6 @@ classdef grouper < sl.obj.handle_light
        %   2) new_data - only work with unsolved points (non-redundant)
        %    Anything else????
        
-       opt__invert_stimulus = true
        opt__min_group_size  = 20
        opt__n_bins          = 20  %This is the target size. If the # of 
        %entries in a group is less than .opt__min_group_size then

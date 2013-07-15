@@ -14,10 +14,11 @@ s = obj.s;
 %NEURON.xstim.single_AP_sim.applied_stimulus_manager.getLowDStimulusInfo
 [old_stim,new_stim] = s.stimulus_manager.getLowDStimulusInfo();
 
-if obj.opt__invert_stimulus
-   old_stim = 1./old_stim;
-   new_stim = 1./new_stim;
-end
+% % % %This shouldn't be done here
+% % % if obj.opt__invert_stimulus
+% % %    old_stim = 1./old_stim;
+% % %    new_stim = 1./new_stim;
+% % % end
 
 new_data_obj = s.new_data;
 

@@ -25,30 +25,31 @@ avr = Hokanson_2013.activation_volume_requestor(obj);
 EL_LOCATIONS = {[0 -50 -200; 0 50 200]      [-200 0 0;200 0 0]};
 
 C.MAX_STIM_TEST_LEVEL     = 30;
-if use_long
-    C.ELECTRODE_LOCATION  = 
-else
-    C.ELECTRODE_LOCATION  = 
-end
-
-
 C.STIM_WIDTH              = {[0.2 0.4]};
+C.FIBER_DIAMETERS         = obj.ALL_DIAMETERS;
 
+n_diameters = length(C.FIBER_DIAMETERS);
 
 rs_all = cell(1,2);
 rd_all = cell(1,2);
 for iPair = 1:2
     electrode_locations_test = EL_LOCATIONS{iPair};
-    
-    
-    
+    temp_cell = cell(2,length(C.FIBER_DIAMETERS));
+    for iDiameter = 1:n_diameters
+        avr.fiber_diameter = C.FIBER_DIAMETERS{iDiameter};
+        temp_cell{1,iDiameter}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL,...
+            'single_with_replication',true);
+        temp_cell{2,iDiameter}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL);
+    end
+    rs_all(iPair) = [temp_cell{1,:}];
+    rd_all(iPair) = [temp_cell{1,:}];
 end
 
 
 
 
 
-fiber_diameters          = obj.ALL_DIAMETERS;
+
 
 [dual_counts,single_counts,x_stim,extras] = getCountData(obj,...
     C.MAX_STIM_TEST_LEVEL,...
@@ -80,30 +81,30 @@ for iFig = 1:2
     plot(x_stim,vol_ratio,'Linewidth',3)
     
     
-        hold on
-        for iDiameter = 1:n_diameters
-            diameter_legends{iDiameter} = sprintf('%g um',obj.ALL_DIAMETERS(iDiameter));
+    hold on
+    for iDiameter = 1:n_diameters
+        diameter_legends{iDiameter} = sprintf('%g um',obj.ALL_DIAMETERS(iDiameter));
+        
+        if iFig == 2
             
-            if iFig == 2
-
-                [x_points_plot(1),x_points_plot(2),y_points_plot(1),y_points_plot(2)] = ...
-                    getLimitInfo(obj,x_stim(:),vol_ratio(:,iDiameter),...
-                    extras.single_slice_thresholds{iDiameter},...
-                    extras.single_slice_xyz{iDiameter},...
-                    extras.internode_lengths(iDiameter));
-
-                [x_points_plot(3),x_points_plot(4),y_points_plot(3),y_points_plot(4)] = ...
-                    getLimitInfo(obj,x_stim(:),vol_ratio(:,iDiameter),...
-                    extras.dual_slice_thresholds{iDiameter},...
-                    extras.dual_slice_xyz{iDiameter},...
-                    extras.internode_lengths(iDiameter));
-
-                plotLimits(obj,x_points_plot,y_points_plot)
+            [x_points_plot(1),x_points_plot(2),y_points_plot(1),y_points_plot(2)] = ...
+                getLimitInfo(obj,x_stim(:),vol_ratio(:,iDiameter),...
+                extras.single_slice_thresholds{iDiameter},...
+                extras.single_slice_xyz{iDiameter},...
+                extras.internode_lengths(iDiameter));
             
-            end
-
+            [x_points_plot(3),x_points_plot(4),y_points_plot(3),y_points_plot(4)] = ...
+                getLimitInfo(obj,x_stim(:),vol_ratio(:,iDiameter),...
+                extras.dual_slice_thresholds{iDiameter},...
+                extras.dual_slice_xyz{iDiameter},...
+                extras.internode_lengths(iDiameter));
+            
+            plotLimits(obj,x_points_plot,y_points_plot)
+            
         end
-        hold off
+        
+    end
+    hold off
     
     
     set(gca,'FontSize',18)
@@ -128,27 +129,27 @@ keyboard
 n_fibers = length(fiber_diameters);
 
 for iFigure = 1:n_fibers
-
-figure
-subplot(2,1,1)
-
-% [temp,xyz_single_temp] = arrayfcns.replicate3dData(thresholds_single,...
-%                             XYZ_MESH_SINGLE,current_pair,STEP_SIZE);
-
-cur_xyz = extras.single_slice_xyz{iFigure};
-imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.single_slice_thresholds{iFigure})')
-set(gca,'CLim',[0 40])
-axis equal
-colorbar
-
-
-subplot(2,1,2)
-cur_xyz = extras.dual_slice_xyz{iFigure};
-imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.dual_slice_thresholds{iFigure})')
-set(gca,'CLim',[0 40])
-axis equal
-colorbar
-
+    
+    figure
+    subplot(2,1,1)
+    
+    % [temp,xyz_single_temp] = arrayfcns.replicate3dData(thresholds_single,...
+    %                             XYZ_MESH_SINGLE,current_pair,STEP_SIZE);
+    
+    cur_xyz = extras.single_slice_xyz{iFigure};
+    imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.single_slice_thresholds{iFigure})')
+    set(gca,'CLim',[0 40])
+    axis equal
+    colorbar
+    
+    
+    subplot(2,1,2)
+    cur_xyz = extras.dual_slice_xyz{iFigure};
+    imagesc(cur_xyz{1},cur_xyz{3},squeeze(extras.dual_slice_thresholds{iFigure})')
+    set(gca,'CLim',[0 40])
+    axis equal
+    colorbar
+    
 end
 
 

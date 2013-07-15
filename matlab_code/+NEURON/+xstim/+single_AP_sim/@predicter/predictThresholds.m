@@ -46,7 +46,11 @@ if dim_inputs == 1
     [x,I] = sort(known_inputs);
     y = known_thresholds(I);
     %Diff is not-zero, why are these not unique ????
-    predicted_thresholds = interp1(x,y,unknown_inputs,'pchip','extrap');
+    predicted_thresholds = interp1(x,y,unknown_inputs,'pchip'); %Extrapolation
+    %if present turned out to be a bad idea ...
+    %We could improve this with a max and min assignment
+    %instead of the default ... i.e. assign to min if less than current
+    %min or max if greater than current max ...
     
     bad_sign_mask = sign(predicted_thresholds) ~= obj.s.stim_sign;
     if any(bad_sign_mask)
