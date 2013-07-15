@@ -16,7 +16,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
         quick_test  = false %If true we get junk results on the integration
         %which can be useful for testing the workflow
         merge_solvers = false
-        use_new_solver = false;
+        use_new_solver = false
     end
     
     properties
@@ -124,7 +124,6 @@ classdef activation_volume_requestor < sl.obj.handle_light
                     r   = xstim.sim__getSingleAPSolver('solver','from_old_solver');
                     r.solver.act_obj = act_obj;
                     r.getSolution(xyz);
-                    keyboard
                     continue
                 end
                 
