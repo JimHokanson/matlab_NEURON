@@ -1,15 +1,11 @@
-function result_obj = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,all_distances,dim_move,varargin)
+function result_obj = sim__getCurrentDistanceCurve(obj,all_distances,varargin)
 %sim__getCurrentDistanceCurve
 %
-%   t_all = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,all_distances,dim_move)
-%
-%   The cell location will be centered at [0,0,0]
+%   t_all = sim__getCurrentDistanceCurve(obj,all_distances,varargin)
 %
 %   INPUTS
 %   =======================================================================
-%   starting_value : Starting stimulus scale, SIGN is important, applies
-%       for the first distance tested.
-%   base_xyz :
+%   all_distances: All distances to test
 %
 %
 %   OPTIONAL INPUTS
@@ -30,6 +26,10 @@ function result_obj = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,a
 %       NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
 
 in.use_sim_logger = true;
+in.starting_value = 1; %Starting stimulus scale, SIGN is important, applies
+%for the first distance tested.
+in.base_xyz       = [0 0 0];
+in.dim_move       = 2;
 in = processVarargin(in,varargin);
 
 elec_obj_local   = obj.elec_objs;

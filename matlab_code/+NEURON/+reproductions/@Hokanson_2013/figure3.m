@@ -4,10 +4,11 @@ function figure3(use_long)
 %
 %   NEURON.reproductions.Hokanson_2013.figure3(true)
 %
-%   Impact of Stimulus Width on Result.
+%   =======================================================================
+%                       MULTIPLE STIMULUS WIDTHS
+%   =======================================================================
 %
-%   This is currently NEW FIGURE 3
-%   
+%   This is currently NEW FIGURE 3 
 
 obj = NEURON.reproductions.Hokanson_2013;
 
@@ -20,14 +21,15 @@ if use_long
 else
     ELECTRODE_LOCATION       = {obj.ALL_ELECTRODE_PAIRINGS{7}};
 end
-FIBER_DIAMETER           = 15;
-STIM_START_TIME          = 0.1;
-PHASE_AMPLITUDES         = [-1 0.5];
-MAX_STIM_AMPLITUDE_DEFAULT = 30;
-STIM_WIDTHS_ALL     = [0.050 0.100 0.2 0.40 1 2];
-DEFAULT_WIDTH_INDEX = 3; %references the 0.2 we've been testing ...
+C.FIBER_DIAMETER           = 15;
+C.STIM_START_TIME          = 0.1;
+C.PHASE_AMPLITUDES         = [-1 0.5];
+C.MAX_STIM_AMPLITUDE_DEFAULT = 30;
+C.STIM_WIDTHS_ALL     = [0.050 0.100 0.2 0.40 1 2];
+C.DEFAULT_WIDTH_INDEX = 3; %references the 0.2 we've been testing ...
+
 n_stim_widths       = length(STIM_WIDTHS_ALL);
-STIM_SPACING = 200;
+
 
 %We might make a separate function that examines reproducing
 %work from Yoshida & Horch where for a fixed amplitude they varied the
@@ -38,10 +40,14 @@ FONT_SIZE = 18;
 
 %Determining rough scaling factors to test
 %--------------------------------------------------------------------------
-x_dist_test   = 20:20:800; %We should make sure that this is sufficiently
-%large so as to encompass MAX_STIM_AMPLITUDE_DEFAULT for our default
-%stimulus width
-n_x_dist_test = length(x_dist_test);
+    STARTING_STIM_VALUE = 1;
+    BASE_XYZ       = [0 0 0];
+    DIM_TO_VARY    = 2; 
+    DISTANCES_TEST = 20:20:800;
+    %We should make sure that this is sufficiently
+    %large so as to encompass MAX_STIM_AMPLITUDE_DEFAULT for our default
+    %stimulus width
+n_x_dist_test = length(DISTANCES_TEST);
 
 thresholds_current_distance = zeros(n_x_dist_test,n_stim_widths);
 
@@ -51,16 +57,24 @@ for iStim = 1:n_stim_widths
     
     %TODO: make this a class method that is exposed ...
     %------------------------------------------
-    options = {...
-        'tissue_resistivity',obj.TISSUE_RESISTIVITY};
-    xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
+    xstim = obj.instantiateXstim([0 0 0]);
     
-    xstim_obj.cell_obj.props_obj.changeFiberDiameter(FIBER_DIAMETER);
-    xstim_obj.elec_objs.setStimPattern(STIM_START_TIME,cur_widths,PHASE_AMPLITUDES);
+    xstim.cell_obj.props_obj.changeFiberDiameter(C.FIBER_DIAMETER);
+    xstim.elec_objs.setStimPattern(C.STIM_START_TIME,cur_widths,C.PHASE_AMPLITUDES);
     
-    temp_result_obj = xstim_obj.sim__getCurrentDistanceCurve(1,[0 0 0],x_dist_test,2);
+    %NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
+
+    temp_result_obj = xstim.sim__getCurrentDistanceCurve(...
+        STARTING_STIM_VALUE, BASE_XYZ, DISTANCES_TEST, DIM_TO_VARY);
     thresholds_current_distance(:,iStim) = temp_result_obj.thresholds;
 end
+
+
+
+
+
+
+
 
 %We first need to find the distance that the "default" stimulus width
 %will activate given the maximum stimulus amplitude at that stimulus width

@@ -224,13 +224,13 @@ classdef Hokanson_2013
            %
            %    INPUTS
            %    ==========================================
+           %        Class: 
            %    rs : cell array of objects
            %    rd : cell array of objects ...
            %
            %    Crap, how to determine overlap for 2 electrodes ...
            
-                      FONT_SIZE = 18;
-           keyboard 
+           FONT_SIZE = 18;
             
            n_sets = length(rs);
            
