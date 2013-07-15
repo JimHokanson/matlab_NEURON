@@ -65,7 +65,7 @@ classdef solver < sl.obj.handle_light
     
     %Object Construction ==================================================
     methods (Static)
-        function s = create(solver_type)
+        function s = create(solver_type,xstim_obj)
             %
             %
             %   s = create(solver_type)
@@ -78,11 +78,19 @@ classdef solver < sl.obj.handle_light
                 otherwise
                     error('Solver type not recognized')
             end
+            
+            s.xstim       = xstim_obj;
+            s.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(s);
+            
+            s.predicter                = NEURON.xstim.single_AP_sim.predicter(s);
+            s.grouper                  = NEURON.xstim.single_AP_sim.grouper(s);
+            s.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(s);
+            
         end
     end
     
     methods
-        function initializeSuperProps(obj,logged_data,new_data,xstim_obj,stim_sign)
+        function initializeSuperProps(obj,logged_data,new_data,stim_sign)
             %This method should be called by request handler to initialize
             %the properties that this class holds ...
             %
@@ -99,17 +107,16 @@ classdef solver < sl.obj.handle_light
             %    See Also:
             %    NEURON.xstim.single_AP_sim.request_handler
             
-            obj.xstim       = xstim_obj;
             obj.stim_sign   = stim_sign;
             obj.logged_data = logged_data;
             obj.old_data    = obj.logged_data.solution;
             obj.new_data    = new_data;
             
-            obj.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(obj,xstim_obj,new_data,obj.old_data);
-            
-            obj.predicter                = NEURON.xstim.single_AP_sim.predicter(obj);
-            obj.grouper                  = NEURON.xstim.single_AP_sim.grouper(obj);
-            obj.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(obj);
+            %NEURON.xstim.single_AP_sim.applied_stimulus_manager
+            obj.stimulus_manager.initialize(obj.xstim,new_data,obj.old_data)
+            obj.grouper.reset();
+            obj.predicter.reset();
+
         end
         function predictor_info = getThresholdSolutions(obj)
             %

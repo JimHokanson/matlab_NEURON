@@ -23,6 +23,9 @@ classdef predicter < sl.obj.handle_light
         function obj = predicter(s_obj)
             obj.s = s_obj;
         end
+        function reset(obj)
+           obj.initialized = false; 
+        end
         function initialize(obj)
             
             stim_manager   = obj.s.stimulus_manager;

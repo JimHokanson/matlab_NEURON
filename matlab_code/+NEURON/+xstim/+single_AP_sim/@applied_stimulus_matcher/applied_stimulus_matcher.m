@@ -38,6 +38,9 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
        d1 = '---- Populate with applyStimulusMatchInfo ----'
        match_info_computed = false
        
+       
+       
+       
        redundant_new_indices__with_old_source
        old_index_sources
        
@@ -57,6 +60,10 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
     methods
         function obj = applied_stimulus_matcher(stim_man_obj)
            obj.stim_manager = stim_man_obj;
+        end
+        function reset(obj)
+           obj.match_info_computed = false;
+           %Reset other properties ????
         end
         function applyStimulusMatchesCallback(obj)
            %

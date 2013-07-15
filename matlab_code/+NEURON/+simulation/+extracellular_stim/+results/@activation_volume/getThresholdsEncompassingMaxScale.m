@@ -14,7 +14,8 @@ function thresholds = getThresholdsEncompassingMaxScale(obj,max_stim_level)
 %   max_stim_level : signed value, maximum stimulus value to encompass
 %           within the solution volume
 %
-%   
+%   FULL PATH:
+%   NEURON.simulation.extracellular_stim.results.activation_volume.getThresholdsEncompassingMaxScale
 
 
 %NEURON.simulation.extracellular_stim.results.activation_volume.adjustBoundsGivenMaxScale
@@ -26,8 +27,13 @@ obj.adjustBoundsGivenMaxScale(max_stim_level)
 done = false;
 while ~done
     
-    thresholds = obj.xstim_obj.sim__getThresholdsMulipleLocations(obj.getXYZlattice(true),...
-        'threshold_sign',sign(max_stim_level),'initialized_logger',obj.sim_logger);
+    if isempty(obj.request_handler)
+        thresholds = obj.xstim_obj.sim__getThresholdsMulipleLocations(obj.getXYZlattice(true),...
+            'threshold_sign',sign(max_stim_level),'initialized_logger',obj.sim_logger);
+    else
+        r = obj.request_handler;
+        keyboard
+    end
     
     %TODO: Implement gradient testing
     

@@ -36,17 +36,20 @@ classdef applied_stimulus_manager < sl.obj.handle_light
     end
     
     methods
-        function obj = applied_stimulus_manager(s_obj,xstim_obj,new_data,old_data)
-
+        function obj = applied_stimulus_manager(s_obj)
             obj.s        = s_obj;
-            obj.new_data = new_data;
-            obj.old_data = old_data;   
-            
             obj.dim_reduction_options    = NEURON.xstim.single_AP_sim.dim_reduction_options;
             obj.applied_stimulus_matcher = NEURON.xstim.single_AP_sim.applied_stimulus_matcher(obj);
+        end
+        function initialize(obj,xstim_obj,new_data,old_data)
+            obj.new_data = new_data;
+            obj.old_data = old_data;  
             
+            %NEURON.xstim.single_AP_sim.applied_stimuli
             obj.old_stimuli = obj.old_data.getAppliedStimulusObject(xstim_obj);
             obj.new_stimuli = obj.new_data.getAppliedStimulusObject(xstim_obj);
+            obj.low_d_initialized = false;
+            obj.applied_stimulus_matcher.reset();
         end
     end
     

@@ -56,6 +56,9 @@ classdef grouper < sl.obj.handle_light
         function obj = grouper(s_obj)
            obj.s = s_obj;  
         end
+        function reset(obj)
+           obj.initialized = false; 
+        end
         function new_indices = getNextGroup(obj)
             %
             %

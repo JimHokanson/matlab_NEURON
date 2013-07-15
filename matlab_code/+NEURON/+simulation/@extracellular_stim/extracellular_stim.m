@@ -179,7 +179,7 @@ classdef extracellular_stim < NEURON.simulation
             %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
             sim_logger.initializeLogging(obj); 
         end
-        function r = sim__getThresholdsMulipleLocations2(obj,cell_locations,varargin)
+        function r = sim__getSingleAPSolver(obj,varargin)
             
             %TODO: Allow passing the request handler in ...
             %NOTE: This gets a bit messy since the id of the object 
@@ -187,12 +187,11 @@ classdef extracellular_stim < NEURON.simulation
             %object changed property in xstim
             
             in.threshold_sign     = 1;
-            in.reshape_output     = true;
+%             in.reshape_output     = true;
             in.solver             = 'default'; %from_old_solver
             in = sl.in.processVarargin(in,varargin);
-            
-            r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,...
-                            cell_locations,'solver',in.solver);
+
+            r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,'solver',in.solver);
             
             %[solution,predictor_info] = r.getSolution();
             

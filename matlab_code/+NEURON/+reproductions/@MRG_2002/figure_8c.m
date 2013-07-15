@@ -24,6 +24,8 @@ function figure_8c
 %2) Save data
 %3) Do plotting
 
+error('Currently broken')
+
 N_FIBERS           = 50;
 
 STIM_START_TIME    = 0.1;
@@ -38,7 +40,7 @@ options = {...
     'tissue_resistivity',obj.TISSUE_RESISTIVITY};
 xstim_obj = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
 
-obj = NEURON.simulation.extracellular_stim;
+%obj = NEURON.simulation.extracellular_stim;
 
 t_obj = obj.threshold_cmd_obj;
 t_obj.allow_opposite_sign = false;

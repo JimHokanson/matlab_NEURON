@@ -80,15 +80,21 @@ end
 n_elements_per_side = cellfun(@(x) size(x,1),xyz_linear);
 xyz_all             = vertcat(xyz_linear{:});
 
-keyboard
-
 %Step 2: Compute thresholds
 %--------------------------------------------------------------------------
-%
+
+if isempty(obj.request_handler)
 t_all = xstim_obj.sim__getThresholdsMulipleLocations(...
     xyz_all,...
     'threshold_sign',threshold_sign,...
     'initialized_logger',obj.sim_logger);
+else
+   r = obj.request_handler;
+   t = r.getSolution(xyz_all);
+   keyboard 
+end
+
+
 
 %Step 3: Put thresholds back into a per side basis
 %--------------------------------------------------------------------------

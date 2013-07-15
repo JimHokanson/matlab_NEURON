@@ -16,6 +16,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
         quick_test  = false %If true we get junk results on the integration
         %which can be useful for testing the workflow
         merge_solvers = false
+        use_new_solver = false;
     end
     
     properties
@@ -93,7 +94,13 @@ classdef activation_volume_requestor < sl.obj.handle_light
                     
                     %NEURON.simulation.extracellular_stim.sim__getActivationVolume
                     %NEURON.simulation.extracellular_stim.results.activation_volume
-                    act_obj   = xstim.sim__getActivationVolume();
+                    
+                    if obj.use_new_solver
+                        r = xstim.sim__getSingleAPSolver('solver','from_old_solver');
+                        act_obj   = xstim.sim__getActivationVolume('request_handler',r);
+                    else
+                        act_obj   = xstim.sim__getActivationVolume();
+                    end
                 end
                 
                 %Actual Testing
@@ -111,12 +118,13 @@ classdef activation_volume_requestor < sl.obj.handle_light
                         'quick_test',           obj.quick_test);
                 end
                 
-                keyboard
+                
                 if obj.merge_solvers
                     xyz = act_obj.getXYZlattice(true);
-                    r   = xstim.sim__getThresholdsMulipleLocations2(xyz,'solver','from_old_solver');
+                    r   = xstim.sim__getSingleAPSolver('solver','from_old_solver');
                     r.solver.act_obj = act_obj;
-                    r.getSolution();
+                    r.getSolution(xyz);
+                    keyboard
                     continue
                 end
                 
