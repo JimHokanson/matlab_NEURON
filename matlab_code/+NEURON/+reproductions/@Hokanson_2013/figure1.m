@@ -2,8 +2,6 @@ function figure1()
 %
 %   NEURON.reproductions.Hokanson_2013.figure1
 %
-%   NEURON.reproductions.Hokanson_2013.figure1()
-%
 %   =======================================================================
 %                       MULTIPLE ELECTRODE DISTANCES
 %   =======================================================================
@@ -17,12 +15,13 @@ import NEURON.reproductions.*
 C.MAX_STIM_TEST_LEVEL      = 30;
 C.FIBER_DIAMETER           = 15;
 
-TITLE_STRINGS = {'Transverse pairings' 'Longitudinal pairings'};
-EL_INDICES    = {15:-1:9 8:-1:2};
+TITLE_STRINGS = {'Transverse pairings'  'Longitudinal pairings'};
+EL_INDICES    = {15:-1:9    8:-1:2};
 
 obj = Hokanson_2013;
 avr = Hokanson_2013.activation_volume_requestor(obj);
 avr.fiber_diameter = C.FIBER_DIAMETER;
+avr.quick_test = true;
 
 %Data retrieval
 %--------------------------------------------------------------------------

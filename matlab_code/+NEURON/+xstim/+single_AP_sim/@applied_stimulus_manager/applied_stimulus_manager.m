@@ -7,7 +7,7 @@ classdef applied_stimulus_manager < sl.obj.handle_light
     %       stimulus_manager
     %
     %   See Also:
-    %   NEURON.xstim.single_AP_sim.predictor
+    %   NEURON.xstim.single_AP_sim.solver
     
     properties
         dim_reduction_options %NEURON.xstim.single_AP_sim.dim_reduction_options
@@ -19,7 +19,7 @@ classdef applied_stimulus_manager < sl.obj.handle_light
     end
     
     properties
-        p %SC: NEURON.xstim.single_AP_sim.predictor
+        s   %SC: NEURON.xstim.single_AP_sim.solver
         %
         %   Needed for calling:
         %   .setSameAsOld()
@@ -28,7 +28,7 @@ classdef applied_stimulus_manager < sl.obj.handle_light
         old_data
     end
 
-    properties (Access = private)
+    properties (SetAccess = private)
         %.getLowDStimulusInfo()
         low_d_initialized = false
         old_stimuli  %Class: NEURON.xstim.single_AP_sim.applied_stimuli
@@ -36,17 +36,20 @@ classdef applied_stimulus_manager < sl.obj.handle_light
     end
     
     methods
-        function obj = applied_stimulus_manager(p_obj,xstim_obj,new_data,old_data)
-
-            obj.p        = p_obj;
-            obj.new_data = new_data;
-            obj.old_data = old_data;   
-            
+        function obj = applied_stimulus_manager(s_obj)
+            obj.s        = s_obj;
             obj.dim_reduction_options    = NEURON.xstim.single_AP_sim.dim_reduction_options;
             obj.applied_stimulus_matcher = NEURON.xstim.single_AP_sim.applied_stimulus_matcher(obj);
+        end
+        function initialize(obj,xstim_obj,new_data,old_data)
+            obj.new_data = new_data;
+            obj.old_data = old_data;  
             
+            %NEURON.xstim.single_AP_sim.applied_stimuli
             obj.old_stimuli = obj.old_data.getAppliedStimulusObject(xstim_obj);
             obj.new_stimuli = obj.new_data.getAppliedStimulusObject(xstim_obj);
+            obj.low_d_initialized = false;
+            obj.applied_stimulus_matcher.reset();
         end
     end
     
@@ -56,6 +59,7 @@ classdef applied_stimulus_manager < sl.obj.handle_light
             unique_old_indices = obj.applied_stimulus_matcher.getUniqueOldIndices();
         end
         function reducePointsToSolveByMatchingStimuli(obj)
+            %NEURON.xstim.single_AP_sim.applied_stimulus_manager.reducePointsToSolveByMatchingStimuli
             obj.applied_stimulus_matcher.applyStimulusMatchInfo();
         end
     end
@@ -81,7 +85,7 @@ classdef applied_stimulus_manager < sl.obj.handle_light
             low_d_new = obj.new_stimuli.getLowDStimulus();
         end
         function setSameAsOld(obj,new_indices,old_indices) 
-           obj.p.setSameAsOld(new_indices,old_indices);
+           obj.s.setSameAsOld(new_indices,old_indices);
         end
     end
     

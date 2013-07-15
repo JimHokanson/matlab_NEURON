@@ -1,4 +1,4 @@
-function act_obj = sim__getActivationVolume(obj)
+function act_obj = sim__getActivationVolume(obj,varargin)
 %
 %   act_obj = sim__getActivationVolume(obj)
 %
@@ -10,7 +10,7 @@ function act_obj = sim__getActivationVolume(obj)
 %   =======================================================================
 %   NEURON.simulation.extracellular_stim.sim__getActivationVolume
 
-act_obj = NEURON.simulation.extracellular_stim.results.activation_volume(obj);
+act_obj = NEURON.simulation.extracellular_stim.results.activation_volume(obj,varargin{:});
 
 
 end

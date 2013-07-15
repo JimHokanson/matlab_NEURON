@@ -50,6 +50,7 @@ new_and_old_source = is_new_mask & has_old_source;
 new_and_new_source = is_new_mask & is_redundant & ~has_old_source;
 
 obj.unique_old_indices = find(~is_redundant & ~is_new_mask);
+obj.unique_new_indices = find(~is_redundant(n_old+1:end) &  is_new_mask(n_old+1:end));
 
 %If any of our old points have the same applied stimulus as an "old" point
 %then we apply the solution that the old point used.

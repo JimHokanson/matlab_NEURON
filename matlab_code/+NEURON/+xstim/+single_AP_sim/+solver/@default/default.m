@@ -1,7 +1,7 @@
-classdef default < NEURON.xstim.single_AP_sim.predictor
+classdef default < NEURON.xstim.single_AP_sim.solver
     %
     %   Class:
-    %   NEURON.xstim.single_AP_sim.predictor.default
+    %   NEURON.xstim.single_AP_sim.solver.default
     %
     %
     %   Possible options to support
@@ -14,7 +14,7 @@ classdef default < NEURON.xstim.single_AP_sim.predictor
     %
     %   MAIN METHOD
     %   ===================================================================
-    %   NEURON.xstim.single_AP_sim.predictor.default.getThresholds
+    %   NEURON.xstim.single_AP_sim.solver.default.getThresholds
     
 end
 

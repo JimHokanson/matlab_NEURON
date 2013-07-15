@@ -24,7 +24,13 @@ classdef activation_volume < handle
     %REFERENCE OBJECTS ====================================================
     properties (Hidden)
         xstim_obj  %
+        
+        %Known calls to solvers ...
+        %------------------------------------------------------------------
+        %NEURON.simulation.extracellular_stim.results.activation_volume.checkBounds
+        %NEURON.simulation.extracellular_stim.results.activation_volume.getThresholdsEncompassingMaxScale
         sim_logger
+        request_handler
     end
     
     properties (Hidden)
@@ -53,14 +59,27 @@ classdef activation_volume < handle
     end
 
     methods
-        function obj = activation_volume(xstim_obj)
+        function obj = activation_volume(xstim,varargin)
+            %
+            %
             
-            obj.xstim_obj  = xstim_obj;
-            obj.sim_logger = xstim_obj.sim__getLogInfo;
+            in.request_handler = [];
+            in = sl.in.processVarargin(in,varargin);
+            
+            obj.request_handler = in.request_handler;
+            
+            
+            obj.xstim_obj  = xstim;
+            
+            %This is a call to get the logged data ...
+            %This is getting really slow ...
+            if isempty(in.request_handler)
+                obj.sim_logger = xstim.sim__getLogInfo;
+            end
             
             %Population of bounds
             %--------------------------------------------------------------
-            elec_objs = xstim_obj.elec_objs;
+            elec_objs = xstim.elec_objs;
             
             all_elec_locations = vertcat(elec_objs.xyz);
             
@@ -203,9 +222,9 @@ classdef activation_volume < handle
             %I had pchip interpolation and it made my positive bound negative
             %and my negative bound positive
             if mod(bound_index,2) == 0
-                obj.bounds(bound_index) = round2(new_value,obj.step_size,@ceil);
+                obj.bounds(bound_index) = sl.array.roundToPrecision(new_value,obj.step_size,@ceil);
             else
-                obj.bounds(bound_index) = round2(new_value,obj.step_size,@floor);
+                obj.bounds(bound_index) = sl.array.roundToPrecision(new_value,obj.step_size,@floor);
             end
         end
     end

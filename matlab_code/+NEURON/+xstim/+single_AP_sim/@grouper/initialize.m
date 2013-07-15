@@ -1,36 +1,31 @@
 function initialize(obj)
 %
 %
-%   IMPROVEMENTS:
-%   =======================================================================
-%   1) Provide option if we have too few new points to just solve
-%   everything all at once ...
-%   2) 
+%   This method initializes the groups based on stimulus distance.
+%   Eventually we could create methods which iteratively update
+%   the groupings based on threshold solutions ...
 %
 %   FULL PATH:
 %   NEURON.xstim.single_AP_sim.grouper.initialize
 
 
-%Question, how to expand 
+s = obj.s;
 
-%Step 1 - organize data
-%--------------------------------------------------------------------------
-%old_data %old data and new data - run unique ??????
+%NEURON.xstim.single_AP_sim.applied_stimulus_manager.getLowDStimulusInfo
+[old_stim,new_stim] = s.stimulus_manager.getLowDStimulusInfo();
 
-p = obj.p;
-old_stim = p.old_stimuli.low_d_stimulus;
-new_stim = p.new_stimuli.low_d_stimulus;
+% % % %This shouldn't be done here
+% % % if obj.opt__invert_stimulus
+% % %    old_stim = 1./old_stim;
+% % %    new_stim = 1./new_stim;
+% % % end
 
-new_data_obj = p.new_data;
-
-%ASSUMPTION: For now let's assume any solved new stimuli are
-%redundant
+new_data_obj = s.new_data;
 
 solved_mask = new_data_obj.solution_available;
 
 %We'll need to adjust indices later on ...
 input_data = new_stim(~solved_mask,:);
-
 
 imd = sci.cluster.iterative_max_distance(input_data,...
     'previous_data',old_stim);
@@ -47,6 +42,7 @@ obj.imd = imd;
 %          max_distance: [1x9516 double]
 
 %Translate indices back to unsolved indices ...
+%TODO: Rewrite function ...
 fixed_indices = sl.indices.new_to_old.getOldIndices__oldKeepMask__newIndices(~solved_mask,imd.index_order);
 
 
@@ -62,14 +58,27 @@ norm_dist_contributions = cumsum(max_distance)./sum(max_distance);
 %-----------------------------------
 n_bins = obj.opt__n_bins;
 edges  = linspace(0,1,n_bins+1);
-N = histc(norm_dist_contributions,edges);
+N      = histc(norm_dist_contributions,edges);
 
 r = sl.array.enforce_minimum_counts_by_regrouping(N,obj.opt__min_group_size);
 
-obj.groups_of_indices_to_run = sl.array.grabDataByCounts(fixed_indices,r.counts_out);
+obj.groups_of_indices_to_run = sl.array.toCellArrayByCounts(fixed_indices,r.counts_out);
+
+I1 = find(~solved_mask);
+I2 = s.stimulus_manager.applied_stimulus_matcher.unique_new_indices;
+I3 = sort(fixed_indices);
+assert(isequal(I1,I2),'I1 and I2 not equal');
+
+assert(isequal(I1,I3),'I1 and I3 not equal');
+
+assert(isequal(length(unique([obj.groups_of_indices_to_run{:}])),length(I1)),'Length mismatch')
+
 
 obj.max_index = length(obj.groups_of_indices_to_run);
 obj.cur_index = 0;
+
+obj.initialized = true;
+
 
 end
 

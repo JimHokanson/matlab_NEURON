@@ -1,7 +1,7 @@
-classdef predictor < sl.obj.handle_light
+classdef solver < sl.obj.handle_light
     %
     %   Class:
-    %   NEURON.xstim.single_AP_sim.predictor
+    %   NEURON.xstim.single_AP_sim.solver
     %
     %   This in general will be an abstract class with some helper
     %   methods that other classes can use ...
@@ -9,10 +9,13 @@ classdef predictor < sl.obj.handle_light
     %   QUESTIONS
     %   ===================================================================
     %   1) ??? What's the main call that will return the thresholds ???
+    %       - i.e. here we are concerned with solving unknowns, not
+    %       necessarily with fufilling the user request ...
+    %
     %
     %   See Also:
     %   NEURON.xstim.single_AP_sim.request_handler
-    %   NEURON.xstim.single_AP_sim.predictor.default
+    %   NEURON.xstim.single_AP_sim.solver.default
     %   NEURON.xstim.single_AP_sim.predictor_info
     %   NEURON.xstim.single_AP_sim.applied_stimuli
     %   NEURON.xstim.single_AP_sim.dim_reduction_options
@@ -25,7 +28,7 @@ classdef predictor < sl.obj.handle_light
     %   ===================================================================
     %   1) Make sure that we never assign an invalidly signed stimulus ...
     
-    %Predictor Options
+    %solver Options
     %-----------------------------------------------------
     
     %Properties for subclass to use =======================================
@@ -43,6 +46,7 @@ classdef predictor < sl.obj.handle_light
         
         grouper %NEURON.xstim.single_AP_sim.grouper.initialize
         binary_search_adjuster   %NEURON.xstim.single_AP_sim.binary_search_adjuster
+        predicter
     end
     
     properties (Dependent)
@@ -61,18 +65,32 @@ classdef predictor < sl.obj.handle_light
     
     %Object Construction ==================================================
     methods (Static)
-        function p = create(predictor_type)
-            switch lower(predictor_type)
+        function s = create(solver_type,xstim_obj)
+            %
+            %
+            %   s = create(solver_type)
+            
+            switch lower(solver_type)
                 case 'default'
-                    p = NEURON.xstim.single_AP_sim.predictor.default;
+                    s = NEURON.xstim.single_AP_sim.solver.default;
+                case 'from_old_solver'
+                    s = NEURON.xstim.single_AP_sim.solver.from_old_solver;
                 otherwise
-                    error('Predictor type not recognized')
+                    error('Solver type not recognized')
             end
+            
+            s.xstim       = xstim_obj;
+            s.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(s);
+            
+            s.predicter                = NEURON.xstim.single_AP_sim.predicter(s);
+            s.grouper                  = NEURON.xstim.single_AP_sim.grouper(s);
+            s.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(s);
+            
         end
     end
     
     methods
-        function initializeSuperProps(obj,logged_data,new_data,xstim_obj,stim_sign)
+        function initializeSuperProps(obj,logged_data,new_data,stim_sign)
             %This method should be called by request handler to initialize
             %the properties that this class holds ...
             %
@@ -89,16 +107,16 @@ classdef predictor < sl.obj.handle_light
             %    See Also:
             %    NEURON.xstim.single_AP_sim.request_handler
             
-            obj.xstim       = xstim_obj;
             obj.stim_sign   = stim_sign;
             obj.logged_data = logged_data;
             obj.old_data    = obj.logged_data.solution;
             obj.new_data    = new_data;
             
-            obj.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(obj,xstim_obj,new_data,obj.old_data);
-                        
-            obj.grouper                  = NEURON.xstim.single_AP_sim.grouper(obj);
-            obj.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(obj);
+            %NEURON.xstim.single_AP_sim.applied_stimulus_manager
+            obj.stimulus_manager.initialize(obj.xstim,new_data,obj.old_data)
+            obj.grouper.reset();
+            obj.predicter.reset();
+
         end
         function predictor_info = getThresholdSolutions(obj)
             %
@@ -152,7 +170,7 @@ classdef predictor < sl.obj.handle_light
             %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.getStimulusMatches
             %
             %   FULL PATH:
-            %   NEURON.xstim.single_AP_sim.predictor.setSameAsOld
+            %   NEURON.xstim.single_AP_sim.solver.setSameAsOld
             
             old = obj.old_data;
             new = obj.new_data;
@@ -168,14 +186,22 @@ classdef predictor < sl.obj.handle_light
             
             types      = old.predictor_types(old_indices);
             
-            new.updateSolutions(new_indices,thresholds,types,ranges);
+            new.updateSolutions(new_indices,thresholds,types,ranges,false);
         end
-        function addSolutionResults(obj)
+        function addSolutionResults(obj,new_indices,thresholds,type,ranges)
             %I want this method to be what predictors can call when they
             %learn new results ...
             %
             %    This will handle the interface to the saving objects
             %    for logging the results ...
+            %
+            %   FULL PATH:
+            %   NEURON.xstim.single_AP_sim.solver.addSolutionResults
+            
+            new = obj.new_data;
+            
+            %Call to: NEURON.xstim.single_AP_sim.new_solution.updateSolutions
+            new.updateSolutions(new_indices,thresholds,type,ranges,true);
         end
     end
     

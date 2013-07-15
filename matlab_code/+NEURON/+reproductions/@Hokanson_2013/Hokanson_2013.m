@@ -8,7 +8,8 @@ classdef Hokanson_2013
         
     properties (Constant)
         %MRG Diameters:
-        %[5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;];
+        %[5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;]; %These are all the 
+        %discrete diameters implemented in the original model.
         ALL_DIAMETERS = [5.7, 7.3 8.7, 10, 12.8, 15];
         ALL_ELECTRODE_PAIRINGS = {
             [0 0 0]                          %Centered Electrode
@@ -223,13 +224,13 @@ classdef Hokanson_2013
            %
            %    INPUTS
            %    ==========================================
+           %        Class: 
            %    rs : cell array of objects
            %    rd : cell array of objects ...
            %
            %    Crap, how to determine overlap for 2 electrodes ...
            
-                      FONT_SIZE = 18;
-           keyboard 
+           FONT_SIZE = 18;
             
            n_sets = length(rs);
            

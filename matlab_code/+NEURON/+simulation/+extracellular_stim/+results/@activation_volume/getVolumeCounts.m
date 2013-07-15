@@ -63,6 +63,7 @@ in.replication_points = [];
 in.stim_resolution    = 0.1;
 in.min_amp            = 1;
 in.bounds_guess       = [];
+in.quick_test         = false;
 in = processVarargin(in,varargin);
 
 %Input Handling
@@ -221,9 +222,14 @@ N_start_indices(use_zero_edge) = 1;
 N = zeros(length(final_stim_amplitudes),1);
 
 %  :/   I don't like all these variables ...
-[N,z_saturation_threshold] = integrate(x,y,z,max_z_index_keep,in.stim_resolution,N_start_indices,interpolate_cube_mask,min_cube,max_cube,use_zero_edge,abs_thresholds,N,MIN_AMP);
-
-stim_level_counts     = cumsum(N)';
+%We might want to make all of this a class ...
+if in.quick_test
+   stim_level_counts       = N + 1;
+   z_saturation_threshold  = 1;
+else
+   [N,z_saturation_threshold] = integrate(x,y,z,max_z_index_keep,in.stim_resolution,N_start_indices,interpolate_cube_mask,min_cube,max_cube,use_zero_edge,abs_thresholds,N,MIN_AMP);
+   stim_level_counts     = cumsum(N)';
+end
 
 extras.stim_amplitudes  = final_stim_amplitudes;
 extras.xyz_cell         = xyz_cell;
@@ -231,8 +237,6 @@ extras.N                = N;
 extras.threshold_extras = threshold_extras;
 extras.z_saturation_threshold = z_saturation_threshold;
 extras.raw_abs_thresholds   = abs_thresholds;
-%Add raw counts ...
-%NOTE: I guess this is just diff of the counts ...
 
 end
 

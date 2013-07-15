@@ -1,9 +1,12 @@
+Current Status:
+Working on initializing predicter
+
 Remaining steps for prediction work:
 1) DONE Ensure that our logger class is working as intended
-2) Finish moving code over for prediction algorithm
+2) DONE Finish moving code over for prediction algorithm
 3) DONE add support for unique old stimuli ...
 4) add support for logging results
 5) finish adjustment of binary searching
 6) determine output to be passed out to user ...
 7) Write predictor for transfering old results over to new ...
-8) Move cell location to standard location ...
+8) Move cell location to standard location to help logger matching

@@ -3,7 +3,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
     %   Class:
     %   NEURON.reproductions.Hokanson_2013.activation_volume_requestor
     %
-    %
+    %   This class needs to be documented ...
     
     properties
         main %Class: NEURON.reproductions.Hokanson_2013
@@ -11,13 +11,17 @@ classdef activation_volume_requestor < sl.obj.handle_light
     
     properties
         stim_resolution  = 0.1
-        slice_dim = 2
+        slice_dim   = 2
         slice_value = 0
+        quick_test  = false %If true we get junk results on the integration
+        %which can be useful for testing the workflow
+        merge_solvers = false
+        use_new_solver = false;
     end
     
     properties
         custom_setup_function %This should be called if there are addditional
-        %steps to
+        %steps between initializing the xstim object 
         stim_widths      = [0.2 0.4] %TODO: Describe formats ...
         fiber_diameter   = 10
         stim_start_time  = 0.1
@@ -35,6 +39,13 @@ classdef activation_volume_requestor < sl.obj.handle_light
         end
         function result_objs = makeRequest(obj,electrode_locations,max_stim_level,varargin)
             %
+            %
+            %   The only thing this function can currently vary over is 
+            %   different electrode locations ...
+            %
+            %   INPUTS
+            %   ===========================================================
+            %   electrode_locations : (cell), 
             %
             %    OUTPUTS
             %    ===========================================================
@@ -63,6 +74,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
                 all_replication_sets = {[]};
             end
 
+            %Loop over all locations ...
             result_objs = cell(1,n_sets);
             for iSet = 1:n_sets
                 cur_elec_loc = electrode_locations{iSet};
@@ -74,28 +86,46 @@ classdef activation_volume_requestor < sl.obj.handle_light
                     
                     xstim.elec_objs.setStimPattern(obj.stim_start_time,obj.stim_widths,obj.phase_amplitudes);
                     
-                    
                     if ~isempty(obj.custom_setup_function)
-                        obj.custom_setup_function(obj)
+                        obj.custom_setup_function(obj,xstim)
                     end
-                    
+
                     internode_length = xstim.cell_obj.getAverageNodeSpacing;
                     
                     %NEURON.simulation.extracellular_stim.sim__getActivationVolume
                     %NEURON.simulation.extracellular_stim.results.activation_volume
-                    act_obj   = xstim.sim__getActivationVolume();
+                    
+                    if obj.use_new_solver
+                        r = xstim.sim__getSingleAPSolver('solver','from_old_solver');
+                        act_obj   = xstim.sim__getActivationVolume('request_handler',r);
+                    else
+                        act_obj   = xstim.sim__getActivationVolume();
+                    end
                 end
                 
                 %Actual Testing
                 %---------------------------------------------------------------
+                %NEURON.simulation.extracellular_stim.results.activation_volume.getVolumeCounts
                 if in.single_with_replication
                     replication_points = all_replication_sets{iSet};
                     [stim_level_counts,extras] = act_obj.getVolumeCounts(max_stim_level,...
-                        'replication_points',replication_points,...
-                        'stim_resolution',obj.stim_resolution);
+                        'replication_points',   replication_points,...
+                        'stim_resolution',      obj.stim_resolution,...
+                        'quick_test',           obj.quick_test);
                 else
                     [stim_level_counts,extras] = act_obj.getVolumeCounts(max_stim_level,...
-                        'stim_resolution',obj.stim_resolution);
+                        'stim_resolution',      obj.stim_resolution,...
+                        'quick_test',           obj.quick_test);
+                end
+                
+                
+                if obj.merge_solvers
+                    xyz = act_obj.getXYZlattice(true);
+                    r   = xstim.sim__getSingleAPSolver('solver','from_old_solver');
+                    r.solver.act_obj = act_obj;
+                    r.getSolution(xyz);
+                    keyboard
+                    continue
                 end
                 
                 [slice_thresholds,slice_xyz] = ...

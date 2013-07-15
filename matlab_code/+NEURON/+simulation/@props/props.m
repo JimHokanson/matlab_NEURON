@@ -59,7 +59,9 @@ classdef props < handle_light
            %
            
            final_time_used = obj.cmd_obj.getScalar('t');
-           if final_time_used == 0
+           if isnan(final_time_used)
+               error('Why is this NaN?')
+           elseif final_time_used == 0
                %TODO: Throw warning here ...
                final_time = obj.tstop;
            else

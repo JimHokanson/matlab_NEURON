@@ -41,10 +41,17 @@ classdef new_solution < sl.obj.handle_light
     end
     
     %??? Make some of these access private?????
-    properties
+    properties (SetAccess = {?sl.struct.toObject})
+        d1 = '---- Do not access these properties, for debugging only ----'
         solved %[1 x n], This should be set if values are learned or
         %predicted. In this case threshold values should be available.
         
+        solved_and_unique %(logical, [1 x n]), I needed to start keeping
+        %track of indices that had been solved, not because they were
+        %similar to old solutions, but because they were solved directly
+        %
+        %Not using this was causing problems with prediction algorithms
+        %that didn't like not having unique values ...
 
         will_solve_later %(logical, [1 x n]) 
         %The idea with these properties is to allow handling
@@ -64,10 +71,12 @@ classdef new_solution < sl.obj.handle_light
         %   -----------------------------------------------
         %    1) NEURON.xstim.single_AP_sim.applied_stimulus_matcher
         %    2)
-        
-        
+    end
+    
+    properties (SetAccess = {?sl.struct.toObject})
+        d2 = '----  Fine to access directly for now ----'
         cell_locations   %(numeric, [n x 3])
-        thresholds       %(numeric, [1 x n])
+        thresholds       %(numeric, [1 x n]), default NaN
         solved_dates     %(numeric, [1 x n]), Matlab time
         prediction_types %(numeric, [1 x n])
         ranges           %(numeric, [n x 2])
@@ -82,6 +91,11 @@ classdef new_solution < sl.obj.handle_light
     end
     
     methods
+        function summarize(obj)
+           %NEURON.xstim.single_AP_sim.new_solution.summarize
+           fprintf('%d total, %d like old stimuli, %d like new stimuli, %d remaining\n',...
+               length(obj.thresholds),sum(obj.solved),sum(obj.will_solve_later),sum(~obj.solution_available))
+        end
         function value = get.all_done(obj)
             value = all(obj.solution_available);
         end
@@ -105,11 +119,14 @@ classdef new_solution < sl.obj.handle_light
             %empty cell locations ...
             obj.file_save_path = obj.getSavePath(stim_sign,xstim_ID);
             
+            obj.stim_sign = stim_sign;
+            
             if ~isempty(cell_locations)
                 obj.cell_locations = cell_locations;
                 
                 n_elements = size(cell_locations,1);
                 obj.solved           = false(1,n_elements);
+                obj.solved_and_unique = false(1,n_elements);
                 obj.will_solve_later = false(1,n_elements);
                 obj.thresholds       = NaN(1,n_elements);
                 obj.solved_dates     = NaN(1,n_elements);
@@ -149,7 +166,6 @@ classdef new_solution < sl.obj.handle_light
         %   to this class ...
         %
         %
-        
         function addWillSolveLaterIndices(obj,indices,fh)
             %
             %
@@ -170,6 +186,10 @@ classdef new_solution < sl.obj.handle_light
     end
     
     methods
+        function indices = getIndicesOfUniqueStimuliWithKnownThresholds(obj)
+           %NEURON.xstim.single_AP_sim.new_solution.getIndicesOfUniqueStimuliWithKnownThresholds
+           indices = find(obj.solved_and_unique); 
+        end
         function copySolutions(obj,source_indices,redundant_indices)
             %
             %
@@ -192,10 +212,10 @@ classdef new_solution < sl.obj.handle_light
             t2 = obj.prediction_types(source_indices);
             r  = obj.ranges(source_indices,:);
             
-            obj.updateSolutions(redundant_indices,t,t2,r);
+            obj.updateSolutions(redundant_indices,t,t2,r,false);
             
         end
-        function updateSolutions(obj,indices,thresholds,type_or_types,range_data)
+        function updateSolutions(obj,indices,thresholds,type_or_types,range_data,is_unique)
             %
             %
             %    updateSolutions(obj,indices,thresholds,type,range_data)
@@ -213,6 +233,7 @@ classdef new_solution < sl.obj.handle_light
             end
             
             obj.solved(indices)           = true;
+            obj.solved_and_unique(indices) = is_unique;
             obj.thresholds(indices)       = thresholds;
             obj.solved_dates(indices)     = now;
             obj.prediction_types(indices) = type_or_types;
@@ -222,13 +243,7 @@ classdef new_solution < sl.obj.handle_light
         end
         function saveToDisk(obj)
             
-            s = sl.obj.toStruct(obj); 
-            
-            s.will_solve_later(:) = false;
-            s.will_solve_later_setter = [];
-            %NOTE: If recreating from disk we don't want to
-            %solve the solutions later ...
-            %
+            s = sl.obj.toStruct(obj,{'will_solve_later' 'will_solve_later_fh'});  %#ok<NASGU>
             %NOTE: We will only reload from disk for merging with old data.
             
             save(obj.file_save_path,'s');
@@ -269,12 +284,15 @@ classdef new_solution < sl.obj.handle_light
             save_path = sl.dir.createFolderIfNoExist(true,base_path,sign_folder,file_name);
         end
         function mergeResultsWithOld(obj,logged_data_obj)
-            mask = obj.solved;  %Only pass in solved entries ...
+            %
+            %
+            %
+            %
             
-            %TODO: Pass in properties from object to method below
-            %UNFINISHED           UNFINISHED
-            keyboard
-            logged_data_obj.addEntries(obj.solved_dates(mask),obj.cell_locations(mask,:))
+            mask = obj.solved;  %Only pass in solved entries ...
+
+            logged_data_obj.addEntries(obj.solved_dates(mask),obj.cell_locations(mask,:),...
+                    obj.thresholds(mask),obj.prediction_types(mask),obj.ranges(mask,:))
             
             delete(obj.file_save_path);
         end

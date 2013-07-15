@@ -91,16 +91,14 @@ end
 
 fprintf('Updating bounds to encompass a stimulation scale at %g, Current min: %0.1f\n',max_scale,min(min_abs_value_per_side));
 
-%IMPORTANT: This is only valid for the axon model where z shouldn't need to
-%be resized ...
+%IMPORTANT: This is only valid for the axon model where z shouldn't need to be resized ...
 done = false;
 while ~done
     cur_index                    = cur_index + 1;
     min_history_all(cur_index,:) = min_abs_value_per_side;
     bounds_all(cur_index,:)      = obj.bounds(1:4);
     
-    if cur_index == 3
-        %NOTE: For right now we'll only run this once ...
+    if cur_index == 3  %NOTE: For right now we'll only run this once ...
         for iSide = 1:4
             if too_small(iSide)
                 %NOTE: This could be improved ...

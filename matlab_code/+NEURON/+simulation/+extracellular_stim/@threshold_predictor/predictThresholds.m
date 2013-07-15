@@ -10,7 +10,7 @@ function predicted_thresholds = predictThresholds(obj,...
 %
 %
 %   FULL PATH:
-%   NEURON.simulaton.extracellular_stim.threshold_predictor.predictThresholds
+%   NEURON.simulation.extracellular_stim.threshold_predictor.predictThresholds
 
 
 
