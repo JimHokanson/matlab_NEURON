@@ -1,15 +1,11 @@
-function result_obj = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,all_distances,dim_move,varargin)
+function result_obj = sim__getCurrentDistanceCurve(obj,all_distances,varargin)
 %sim__getCurrentDistanceCurve
 %
-%   t_all = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,all_distances,dim_move)
-%
-%   The cell location will be centered at [0,0,0]
+%   t_all = sim__getCurrentDistanceCurve(obj,all_distances,varargin)
 %
 %   INPUTS
 %   =======================================================================
-%   starting_value : Starting stimulus scale, SIGN is important, applies
-%       for the first distance tested.
-%   base_xyz :
+%   all_distances: All distances to test
 %
 %
 %   OPTIONAL INPUTS
@@ -30,6 +26,10 @@ function result_obj = sim__getCurrentDistanceCurve(obj,starting_value,base_xyz,a
 %       NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
 
 in.use_sim_logger = true;
+in.starting_value = 1; %Starting stimulus scale, SIGN is important, applies
+%for the first distance tested.
+in.base_xyz       = [0 0 0];
+in.dim_move       = 2;
 in = processVarargin(in,varargin);
 
 elec_obj_local   = obj.elec_objs;
@@ -37,22 +37,22 @@ thresh_opt_local = obj.threshold_options_obj;
 
 assert(length(elec_obj_local) == 1,'Function is only designed for a singular electrode')
 assert(issorted(all_distances),'Distances must be sorted')
-assert(isequal(size(base_xyz),[1 3]),'Base xyz must be size [1 x 3]')
+assert(isequal(size(in.base_xyz),[1 3]),'Base xyz must be size [1 x 3]')
 
 moveCenter(obj.cell_obj,[0 0 0])
 
 result_obj = NEURON.simulation.extracellular_stim.results.current_distance(...
-    base_xyz,dim_move,all_distances);
+    in.base_xyz,in.dim_move,all_distances);
 
 
 if in.use_sim_logger
     
     moveElectrode(elec_obj_local,[0 0 0]);
     
-    cell_locations = num2cell(base_xyz);
-    cell_locations{dim_move} = all_distances;
+    cell_locations = num2cell(in.base_xyz);
+    cell_locations{in.dim_move} = all_distances;
     all_thresholds = obj.sim__getThresholdsMulipleLocations(cell_locations,...
-        'threshold_sign',sign(starting_value),'reshape_output',false);
+        'threshold_sign',sign(in.starting_value),'reshape_output',false);
 
 else
     
@@ -71,8 +71,8 @@ else
     
     %Initialization of values for loop
     %----------------------------------------------------------------------
-    next_stim_start_guess = starting_value;
-    xyz_electrode         = base_xyz;
+    next_stim_start_guess = in.starting_value;
+    xyz_electrode         = in.base_xyz;
     all_thresholds        = zeros(1,n_steps);
     
     %Determination of threshold values
@@ -81,7 +81,7 @@ else
         
         cur_index  = step_indices_order(iStep);
         
-        xyz_electrode(dim_move) = all_distances(cur_index);
+        xyz_electrode(in.dim_move) = all_distances(cur_index);
         moveElectrode(elec_obj_local,xyz_electrode)
         temp = sim__determine_threshold(obj,next_stim_start_guess);
         all_thresholds(cur_index) = temp.stimulus_threshold;

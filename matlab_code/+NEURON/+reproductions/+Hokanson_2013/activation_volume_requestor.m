@@ -119,7 +119,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
                 end
                 
                 
-                if obj.merge_solvers
+                if ~obj.use_new_solver && obj.merge_solvers
                     xyz = act_obj.getXYZlattice(true);
                     r   = xstim.sim__getSingleAPSolver('solver','from_old_solver');
                     r.solver.act_obj = act_obj;
@@ -164,6 +164,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
                     rep_extras = extras.threshold_extras.replication_extras;
 
                     r.overlap_amplitudes     = rep_extras.electrode_interaction_thresholds;
+                    r.electrode_z_locations  = rep_extras.electrode_z_locations;
                     r.mean_error             = rep_extras.mean_rep_error;
                 end
                 

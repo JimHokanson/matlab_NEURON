@@ -58,6 +58,9 @@ function [replicated_thresholds,x,y,z,extras] = helper__createReplicatedData(obj
 %           .mean_rep_error
 
 
+%What is the final z  value that is output?
+%It is zero centered on the first electrode ...
+
 %TODO: Document this code and clean it up ...
 
 %ASSUMPTION: Axon model that repeats along z-axis ...
@@ -128,7 +131,7 @@ function [replicated_thresholds,x,y,z,extras] = helper__createReplicatedData(obj
 %          1
 %     o---------o
 %     98765456789         Intermediate lines ...
-% 987654567898765456789   Combination of results from both 2's
+% 987654567898765456789   <= Combination of results from both 2's
 %
 %     54565456765    <= Final result (min of each point above)
 %
@@ -156,14 +159,13 @@ function [replicated_thresholds,x,y,z,extras] = helper__createReplicatedData(obj
 dz  = replication_points(:,3) - replication_points(1,3);
 INL = obj.getInternodeLength;
 
-
 n_points   = size(replication_points,1);
 if n_points == 1
     error('This function should not be called with only a single location')
 end
 new_points = zeros(2*n_points - 1,3);
-new_points(1,1:2) = replication_points(1,1:2);
-%new_points(1,3)   = 0; %By definition
+new_points(1,1:2) = replication_points(1,1:2); %Copy x&y, we are only
+%manipulating z
 
 %These are the new z-values for the first set of points. The second set of
 %points will equal this value, +/- an INL, unless the point is at z = 0,
@@ -171,17 +173,21 @@ new_points(1,1:2) = replication_points(1,1:2);
 first_z_values = mod(dz,INL);
 
 %To keep track of which solution goes to which electrode. Each electrode
-%gets a maximum of 2 points. The first electrode only gets 1.
+%gets a maximum of 2 points. The first electrode only gets 1 since we are
+%centering all other electrodes around the solution to this electrode ...
 electrode_ids = ones(1,2*n_points - 1);
 
-cur_point = 1;
+
+electrode_z_locations = zeros(1,n_points);
+
+cur_point     = 1;
 for iPoint = 2:n_points
     
     %Assignment of x-y, these don't change
     %-------------------------------------------------
     cur_point = cur_point + 1;
     new_points(cur_point,1:2) = replication_points(iPoint,1:2);
-    electrode_ids(cur_point) = iPoint;
+    electrode_ids(cur_point)  = iPoint;
     
     %Assignment of new z values
     cur_z = first_z_values(iPoint);
@@ -194,15 +200,14 @@ for iPoint = 2:n_points
         %-------------------------------------------------
         cur_point = cur_point + 1;
         new_points(cur_point,1:2) = replication_points(iPoint,1:2);
-        electrode_ids(cur_point) = iPoint;
-        
-%         %This ensures that our solution will now cover:
-%         %z from -INL/2 to INL/2
-%         if cur_z > INL/2
-%             new_points(cur_point,3) = cur_z - INL;
-%         else
-            new_points(cur_point,3) = cur_z - INL;
-%         end
+        electrode_ids(cur_point)  = iPoint;
+        new_points(cur_point,3)   = cur_z - INL;
+        cur_electrode_z_values = new_points(cur_point-1:cur_point,3);
+        [~,I] = min(abs(cur_electrode_z_values));
+        electrode_z_locations(iPoint) = cur_electrode_z_values(I);
+    %else
+        %NULL ASSIGNMENT
+        %electrode_z_locations(iPoint) = 0;
     end
 end
 
@@ -215,8 +220,7 @@ new_points(cur_point+1:end,:)  = [];
 %====================================================================
 xyz_orig         = obj.getXYZlattice(true);
 [V_temp,xyz_new] = arrayfcns.replicate3dData(abs_thresholds,xyz_orig,...
-    new_points,obj.step_size,...
-    'z_bounds',[xyz_orig{3}(1) xyz_orig{3}(end)]);
+                        new_points,obj.step_size,'z_bounds',[xyz_orig{3}(1) xyz_orig{3}(end)]);
 
 %
 %This is debugging code. Errpr from replication analysis. If we do this
@@ -309,6 +313,7 @@ for i1 = 1:n_points
     end
 end
 extras.electrode_interaction_thresholds = electrode_interaction_thresholds;
+extras.electrode_z_locations            = electrode_z_locations;
 %electrode_thresholds = ...
 
 %NOTE: This is where we combine multiple electrodes together, using the
