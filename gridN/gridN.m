@@ -173,7 +173,7 @@ zmin = min(z);
 zmax = max(z);
 
 % did they supply a scalar for the nodes?
-%and do the nodes encopmass the traingin data?
+%and do the nodes encompass the training data?
 if length(xnodes)==1
     xnodes = linspace(xmin,xmax,xnodes)';
     xnodes(end) = xmax; % make sure it hits the max
