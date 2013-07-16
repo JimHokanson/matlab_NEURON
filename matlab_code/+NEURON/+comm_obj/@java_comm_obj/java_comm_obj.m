@@ -98,7 +98,7 @@ classdef java_comm_obj < NEURON.comm_obj
             
             %Java Reader class - local code, added during initialization
             %
-            %NEURON.comm_obj.java_comm_obj.init_system_setup
+            NEURON.comm_obj.java_comm_obj.init_system_setup
             %
             %See: \private\java_code\src\NEURON_reader.java
             obj.j_reader        = NEURON_reader(obj.j_input_stream,...
