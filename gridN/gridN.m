@@ -1,5 +1,14 @@
 function [ out ] = gridN( x,y,z,t,xnodes,ynodes,znodes )
-%Creates an N dimensional table from the m points in the n*m matrix x.
+%   Does interpolation in 4-D. Returns values on a 3-D grid corresponding
+%   to all the combinations of values at the nodes (xnodes, ynodes, znodes)
+%
+%   gridN( x,y,z,t,xnodes,ynodes,znodes )
+%   
+%   INPUTS
+%   ======================================================================
+%   x, y, z, t : training data. 
+%   xnodes, ynodes, znodes: nodes on the grid for interpolation
+%
 
 params.interp = 'linear';
 params.regularizer = 'gradient';
@@ -57,8 +66,8 @@ nz = length(znodes);
 
 ngrid = nx*ny*nz;
 
-% create the matrix from linear interpolation of the 
-% points realation to each cell 
+% create the matrix from linear interpolation of the
+% points realation to each cell
 interp = params.interp;
 S = helper__interpMatrix(x,y,z,xnodes,ynodes,znodes,interp);
 
@@ -68,23 +77,32 @@ P = helper__regularMatrix(params, nx, ny, nz, dx, dy, dz, ngrid);
 temp = size(P,1);
 NA = norm(S,1);
 NR = norm(P,1);
-%S = [S;P*(NA/NR)];
-%S = [S;P];
+S = [S;P*(NA/NR)];
 
 %Solve
 rhs = t;
-%rhs = [rhs;zeros(temp,1)];
+rhs = [rhs;zeros(temp,1)];
 out = S\rhs;
-%out = reshape(S\rhs,nz,ny,nx); %???? what order?
+%out = reshape(S\rhs,nz,ny,nx); 
 %     out = S\G; %which is faster? what is the best solver option?
 end
 
 
 function S = helper__interpMatrix(x,y,z,xnodes,ynodes,znodes,interp)
+%   Creates the interpolation matrix or lookup table.
+%
+%   helper__interpMatrix(x,y,z,xnodes,ynodes,znodes,interp)
+%   
+%   INPUTS
+%   ======================================================================
+%   x, y, z : training data 
+%   xnodes, ynodes, znodes: nodes on the grid for interpolation
+%   interp: string, Interpolation method. Default = linear
+
+
 var = 3; %number of independent variables
 
 % determine which cell in the array each point lies in
-% nodes: [length of each var, var nodes]
 [~,indx] = histc(x,xnodes);
 [~,indy] = histc(y,ynodes);
 [~,indz] = histc(z,znodes);
@@ -114,35 +132,39 @@ ind = indx + nx*(indy-1) + nx*ny*(indz-1);
 
 switch(interp)
     case 'linear' %uses linear/bilinear/trilinear interpolation
-        %likely not effective for more than 3-dimensions
         tx = min(1,max(0,(x - xnodes(indx))./dx(indx)));
         ty = min(1,max(0,(y - ynodes(indy))./dy(indy)));
         tz = min(1,max(0,(z - znodes(indz))./dz(indz)));
         
-        cmb = 2^var; % cmb == 8... 
+        cmb = 2^var; % cmb == 8...
         indMat1 = repmat((1:n)',1,cmb);
         indMat2 = [ind,    ind+1,    ind+nx,    ind+nx+1,...
-            ind+(nx*ny), ind+(nx*ny)+1, ind+nx+(ny*nx), ind+nx+(ny*nx)+1]; %not right :P
+            ind+(nx*ny), ind+(nx*ny)+1, ind+nx+(ny*nx), ind+nx+(ny*nx)+1]; 
         
         % Matrix of variables representing linear distance
-        % this is a nightmare, is there a way to not hard-code this?
         dstMat = [(1-tx).*(1-ty).*(1-tz), (tx).*(1-ty).*(1-tz), (1-tx).*(ty).*(1-tz), (tx).*(ty).*(1-tz),...
-                  (1-tx).*(1-ty).*(tz),   (tx).*(1-ty).*(tz),   (1-tx).*(ty).*(tz),   (tx).*(ty).*(tz)];
+            (1-tx).*(1-ty).*(tz),   (tx).*(1-ty).*(tz),   (1-tx).*(ty).*(tz),   (tx).*(ty).*(tz)];
         % So essentially the index values up above refer to point's
         % relation to each cell. +1 means next x cell, +nx means next y
         % cell, + (ny*ny) means next z cell. All indexing has essentially
         % been done in this manner.
-        
-        %dstMat = fliplr(dstMat);
 end
 
 S = sparse(indMat1,indMat2,dstMat,n,ngrid);
 end
 
 
-%Adjusts the locations given by the nodes in the event that the min/max of
-%the training data is outside of the node boundaries.
-function [xnodes, ynodes, znodes] = helper__adjustNodes(x,y,z,xnodes,ynodes,znodes)
+function [xnodes, ynodes, znodes] = helper__adjustNodes(x,y,z,xnodes,ynodes,znodes) 
+%   Adjusts the locations given by the nodes in the event that the min/max
+%   of the training data is outside of the node boundaries.
+%
+%   helper__adjustNodes(x,y,z,xnodes,ynodes,znodes)
+%   
+%   INPUTS
+%   ======================================================================
+%   x, y, z : training data 
+%   xnodes, ynodes, znodes: nodes on the grid for interpolation
+% 
 xmin = min(x);
 xmax = max(x);
 ymin = min(y);
@@ -191,7 +213,23 @@ end
 end
 
 
-function Areg = helper__regularMatrix(params, nx, ny, nz, dx, dy, dz, ngrid)
+function Areg = helper__regularMatrix(params, nx, ny, nz, dx, dy, dz)
+%   Creates a particular regularizer (specified in main or default)
+%   default is 'gradient'
+%
+%   helper__regularMatrix(params, nx, ny, nz, dx, dy, dz)
+%   
+%   INPUTS
+%   ======================================================================
+%   params : struct created in main function that holds differnt parameters 
+%            and values. here It is needed for .regularizer and the scales  
+%   nx, ny, nz: lengths of x,y,z vectors (from main function) respectively
+%   dx, dy, dz: first differnce of x,y,z nodes from main function.
+%   input_3 : (default -1), 
+%
+
+ngrid = nx*ny*nz; 
+
 switch(params.regularizer)
     %In what order should these be developed???
     case 'gradient'
