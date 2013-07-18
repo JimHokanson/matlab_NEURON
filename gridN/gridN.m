@@ -137,8 +137,7 @@ ty = min(1,max(0,(y - ynodes(indy))./dy(indy)));
 tz = min(1,max(0,(z - znodes(indz))./dz(indz)));
 
 switch(interp)
-    % case 'cubic' % tricubic
-    case 'tetrahedral'
+    case 'tetrahedral' %needs testing!!!
         indMat1 = repmat((1:n),1,4);
         [~, maxt] = max(tx,ty,tz);
         [~, mint] = min(tx,ty,tz);
@@ -152,11 +151,15 @@ switch(interp)
         maxsp = sparse(1:n,maxt,delta(1),n,3);
         minsp = sparse(1:n,mint,delta(2),n,3);
         % I need to find a better way of finding the determinant w/o this
-        % nonsense XP
-        v1 = ;
-        v2 = ;
-        v3 = ;
-        v4 = ;
+        % hardcoded nonsense XP
+        v1 = ; %not sure yet;
+        v2 = (tx.*minsp(2,:)+tz.*minsp(1,:)+ty.*minsp(3,:)) - (tz.*minsp(2,:)+ty.*minsp(1,:)+tx.*minsp(3,:));
+        v3 = (tx.*maxsp(2,:)+tz.*maxsp(1,:)+ty.*maxsp(3,:)) - (tz.*maxsp(2,:)+ty.*maxsp(1,:)+tx.*maxsp(3,:));
+        
+        v4 = (tz.*maxsp(1,:).*minsp(2,:) + ty.*maxsp(3,:).*minsp(1,:) + ...
+              tx.*maxsp(2,:).*minsp(3,:)) - ...
+             (tx.*maxsp(3,:).*minsp(2,:) + tx.*maxsp(2,:).*minsp(1,:) + ...
+              ty.*maxsp(1,:).*minsp(3,:));
         dstMat  = (1/6)*[v1,v2,v3,v4];
     case 'nearest' % nearest neighbor interpolation in a cell
         k = round(1-tx) + round(1-ty)*nx + round(1-tz)*nx*ny;
