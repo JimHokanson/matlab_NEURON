@@ -40,8 +40,9 @@ classdef activation_volume_results < sl.obj.handle_light
     
     %Single electrodes only ...
     properties
-       overlap_amplitudes
-       mean_error
+        overlap_amplitudes
+        electrode_z_locations
+        mean_error
     end
     
     methods
@@ -53,8 +54,11 @@ classdef activation_volume_results < sl.obj.handle_light
         % end
     end
     
-    methods
-    end
+    %     methods
+    %         function overlap_amplitude = getDualOverlapAmplitudeFromSingle(dual_obj,single_obj)
+    %
+    %         end
+    %     end
     
     %PLOTTING METHODS
     %----------------------------------------------------------------------

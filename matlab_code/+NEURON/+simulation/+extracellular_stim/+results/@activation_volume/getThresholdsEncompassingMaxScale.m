@@ -31,8 +31,9 @@ while ~done
         thresholds = obj.xstim_obj.sim__getThresholdsMulipleLocations(obj.getXYZlattice(true),...
             'threshold_sign',sign(max_stim_level),'initialized_logger',obj.sim_logger);
     else
-        r = obj.request_handler;
-        keyboard
+        r   = obj.request_handler;
+        s   = r.getSolution(obj.getXYZlattice(true));
+        thresholds = s.thresholds;
     end
     
     %TODO: Implement gradient testing

@@ -52,10 +52,10 @@ classdef  solution < sl.obj.handle_light
             %   new_obj = getPartialObject(obj,I)
             %
             
-            new_obj = xstim.single_AP_sim.solution([]);
-            new_obj.cell_locations   = obj.stim_sign(I,:);
+            new_obj = NEURON.xstim.single_AP_sim.solution([]);
+            new_obj.cell_locations   = obj.cell_locations(I,:);
             new_obj.thresholds       = obj.thresholds(I);
-            new_obj.solve_dates      = obj.solve_data(I);
+            new_obj.solve_dates      = obj.solve_dates(I);
             new_obj.predictor_types  = obj.predictor_types(I);
             new_obj.ranges           = obj.ranges(I,:);
             new_obj.hash = now;  

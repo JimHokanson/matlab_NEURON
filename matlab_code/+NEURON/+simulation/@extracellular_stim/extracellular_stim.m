@@ -191,33 +191,7 @@ classdef extracellular_stim < NEURON.simulation
             in.solver             = 'default'; %from_old_solver
             in = sl.in.processVarargin(in,varargin);
 
-            r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,'solver',in.solver);
-            
-            %[solution,predictor_info] = r.getSolution();
-            
-            
-            
-            
-            
-% % % % % %             if isempty(in.initialized_logger)
-% % % % % %                 sim_logger = NEURON.simulation.extracellular_stim.sim_logger;
-% % % % % % 
-% % % % % %                 %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
-% % % % % %                 sim_logger.initializeLogging(obj);
-% % % % % %             else
-% % % % % %                 sim_logger = in.initialized_logger; 
-% % % % % %             end
-% % % % % %             
-% % % % % %             %NEURON.simulation.extracellular_stim.sim_logger.getThresholds
-% % % % % %             thresholds = sim_logger.getThresholds(cell_locations,in.threshold_sign);
-% % % % % %             
-% % % % % %             if in.reshape_output && iscell(cell_locations)
-% % % % % %                sz = cellfun('length',cell_locations);
-% % % % % %                %Silly meshgrid :/
-% % % % % %                t = reshape(thresholds,[sz(2) sz(1) sz(3)]);
-% % % % % %                thresholds = permute(t,[2 1 3]);
-% % % % % %             end
-            
+            r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,'solver',in.solver);            
         end
         function thresholds = sim__getThresholdsMulipleLocations(obj,cell_locations,varargin)
             %sim__getThresholdsMulipleLocations

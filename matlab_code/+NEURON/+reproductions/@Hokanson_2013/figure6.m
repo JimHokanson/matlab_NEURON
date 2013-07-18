@@ -1,13 +1,7 @@
 function figure6()
 %
-%   NEURON.reproductions.Hokanson_2013.figure1
-%
-%   MULTIPLE DISTANCES
-%
-%
-%   This method examines the volume-ratio for a range of distances and
-%   amplitudes for a single fiber diameter. It is meant to provide insight
-%   into what stimulus separations are acceptable
+%   
+%   I'm not sure what I was going to do with this file ...
 
 MAX_STIM_TEST_LEVEL      = 30;
 ELECTRODE_LOCATIONS_TEST = 2:8; %This is the transverse set ...

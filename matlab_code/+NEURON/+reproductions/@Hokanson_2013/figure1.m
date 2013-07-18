@@ -15,13 +15,16 @@ import NEURON.reproductions.*
 C.MAX_STIM_TEST_LEVEL      = 30;
 C.FIBER_DIAMETER           = 15;
 
-TITLE_STRINGS = {'Transverse pairings'  'Longitudinal pairings'};
+TITLE_STRINGS = {'Longitudinal pairings' 'Transverse pairings'};
 EL_INDICES    = {15:-1:9    8:-1:2};
 
 obj = Hokanson_2013;
 avr = Hokanson_2013.activation_volume_requestor(obj);
 avr.fiber_diameter = C.FIBER_DIAMETER;
-avr.quick_test = true;
+
+avr.quick_test     = true;
+%avr.merge_solvers  = true;
+avr.use_new_solver = true;
 
 %Data retrieval
 %--------------------------------------------------------------------------
@@ -29,6 +32,8 @@ rs_all = cell(1,2);
 rd_all = cell(1,2);
 for iPair = 1:2
     electrode_locations_test = obj.ALL_ELECTRODE_PAIRINGS(EL_INDICES{iPair});
+    
+    avr.slice_dim = iPair; %Long slice on x, trans on y
     
     rs_all{iPair}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL,...
         'single_with_replication',true);

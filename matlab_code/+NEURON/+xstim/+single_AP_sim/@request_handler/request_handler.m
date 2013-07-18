@@ -88,6 +88,7 @@ classdef request_handler
             
             
         end
+        
         function [solution,predictor_info] = getSolution(obj,cell_locations,varargin)
             %
             %
@@ -104,8 +105,9 @@ classdef request_handler
             %cell_locations_input
             %logged_data
             
+            in.reshape_output = true;
             in.stim_sign = obj.default_stim_sign;
-            in = sl.in.processVarargin(in,varargin);
+            in = sl.in.processVarargin(in,varargin); 
             
             stim_sign = in.stim_sign;
             
@@ -124,7 +126,6 @@ classdef request_handler
             
             logged_data = NEURON.xstim.single_AP_sim.logged_data(in.stim_sign,obj.xstim_ID);
             
-            
             %This line checks to see if the requested locations were
             %previously request and solved ...
             match_result = logged_data.checkIfSolved(xyz);
@@ -132,6 +133,7 @@ classdef request_handler
             
             if match_result.is_complete_match
                 solution = match_result.getFullSolution();
+                solution = helper__reshapeOutput(solution,in.reshape_output,cell_locations_input);
                 return
             end
             
@@ -153,13 +155,14 @@ classdef request_handler
             %--------------------------------------------------------------
             predictor_info = s.getThresholdSolutions();
             
-            match_result = obj.logged_data.checkIfSolved(xyz);
+            match_result = logged_data.checkIfSolved(xyz);
             %NEURON.xstim.single_AP_sim.solution.match_result
             
             if match_result.is_complete_match
                 obj.solution       = match_result.getFullSolution();
                 obj.solution_found = true;
                 solution = obj.solution;
+                solution = helper__reshapeOutput(solution,in.reshape_output,cell_locations_input);
                 return
             else
                 error('The predictor failed to populate all solutions')
@@ -170,3 +173,10 @@ classdef request_handler
     end
 end
 
+function solution = helper__reshapeOutput(solution,reshape_output,cell_locations_input)
+
+if reshape_output && iscell(cell_locations_input)
+   solution.thresholds = sl.xyz.vectorToMatrixByCell(solution.thresholds,cell_locations_input);
+end
+
+end

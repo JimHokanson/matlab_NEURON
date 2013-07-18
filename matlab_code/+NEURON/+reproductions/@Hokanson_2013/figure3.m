@@ -1,135 +1,56 @@
-function figure3(use_long)
+function figure3
 %
 %   NEURON.reproductions.Hokanson_2013.figure3
-%
-%   NEURON.reproductions.Hokanson_2013.figure3(true)
 %
 %   =======================================================================
 %                       MULTIPLE STIMULUS WIDTHS
 %   =======================================================================
 %
-%   This is currently NEW FIGURE 3 
+%   This is currently NEW FIGURE 3
 
-obj = NEURON.reproductions.Hokanson_2013;
+import NEURON.reproductions.*
 
-if ~exist('use_long','var')
-    use_long = false;
-end
+EL_LOCATIONS = {[0 -50 -200; 0 50 200]      [-200 0 0;200 0 0]};
 
-if use_long
-    ELECTRODE_LOCATION       = {obj.ALL_ELECTRODE_PAIRINGS{14}};
-else
-    ELECTRODE_LOCATION       = {obj.ALL_ELECTRODE_PAIRINGS{7}};
-end
+C.MAX_STIM_AMPLITUDE_DEFAULT = 30; %For 0.2 ms width ...
 C.FIBER_DIAMETER           = 15;
-C.STIM_START_TIME          = 0.1;
-C.PHASE_AMPLITUDES         = [-1 0.5];
-C.MAX_STIM_AMPLITUDE_DEFAULT = 30;
-C.STIM_WIDTHS_ALL     = [0.050 0.100 0.2 0.40 1 2];
-C.DEFAULT_WIDTH_INDEX = 3; %references the 0.2 we've been testing ...
-
-n_stim_widths       = length(STIM_WIDTHS_ALL);
-
+C.STIM_WIDTHS_ALL          = [0.050 0.100 0.2 0.40 1 2];
+C.DEFAULT_WIDTH_INDEX = find(C.STIM_WIDTHS_ALL  == 0.2);
+C.STIM_START_TIME   = 0.1;
+C.PHASE_AMPLITUDES  = [-1 0.5];
+n_stim_widths              = length(C.STIM_WIDTHS_ALL);
 
 %We might make a separate function that examines reproducing
 %work from Yoshida & Horch where for a fixed amplitude they varied the
 %pulse width ...
 CONST_AMPLITUDE_TESTS = [5 10 15 20];
-
 FONT_SIZE = 18;
 
-%Determining rough scaling factors to test
-%--------------------------------------------------------------------------
-    STARTING_STIM_VALUE = 1;
-    BASE_XYZ       = [0 0 0];
-    DIM_TO_VARY    = 2; 
-    DISTANCES_TEST = 20:20:800;
-    %We should make sure that this is sufficiently
-    %large so as to encompass MAX_STIM_AMPLITUDE_DEFAULT for our default
-    %stimulus width
-n_x_dist_test = length(DISTANCES_TEST);
+obj = NEURON.reproductions.Hokanson_2013;
+avr = Hokanson_2013.activation_volume_requestor(obj);
+avr.fiber_diameter = C.FIBER_DIAMETER;
+avr.quick_test     = true;
+%avr.merge_solvers  = true;
+avr.use_new_solver = true;
 
-thresholds_current_distance = zeros(n_x_dist_test,n_stim_widths);
-
-fprintf('Running current vs distance tests for stim width normalizaton\n')
-for iStim = 1:n_stim_widths
-    cur_widths = [STIM_WIDTHS_ALL(iStim) 2*STIM_WIDTHS_ALL(iStim)];
-    
-    %TODO: make this a class method that is exposed ...
-    %------------------------------------------
-    xstim = obj.instantiateXstim([0 0 0]);
-    
-    xstim.cell_obj.props_obj.changeFiberDiameter(C.FIBER_DIAMETER);
-    xstim.elec_objs.setStimPattern(C.STIM_START_TIME,cur_widths,C.PHASE_AMPLITUDES);
-    
-    %NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
-
-    temp_result_obj = xstim.sim__getCurrentDistanceCurve(...
-        STARTING_STIM_VALUE, BASE_XYZ, DISTANCES_TEST, DIM_TO_VARY);
-    thresholds_current_distance(:,iStim) = temp_result_obj.thresholds;
-end
+max_stim_amplitudes_by_width = helper__getMaxStimulusAmplitudesByWidth(obj,C);
 
 
-
-
-
-
-
-
-%We first need to find the distance that the "default" stimulus width
-%will activate given the maximum stimulus amplitude at that stimulus width
-%that we want to investigate. For example, for a 200 us pulse, how much
-%tissue will we activate given the maximum stimulus amplitude we are
-%testing
-dist_given_max_default_amp = interp1(...
-            thresholds_current_distance(:,DEFAULT_WIDTH_INDEX),...
-            x_dist_test(:),MAX_STIM_AMPLITUDE_DEFAULT);
- 
-%Next we say, for each stimulus width, how strong a stimulus do we need
-%(approximately) to get the same amount of tissue
-amps_given_desired_distance = zeros(1,n_stim_widths);
-for iStim = 1:n_stim_widths
-   amps_given_desired_distance(iStim) = interp1(...
-       x_dist_test(:),thresholds_current_distance(:,iStim),...
-       dist_given_max_default_amp);
-end
-      
-%This is a rough approximation which is only correct if the volume
-%grows the same way for all stim widths, as we have only examined point on
-%the volume, really we would need to also take into account longitudinal
-%direction. We round up here as the max amplitudes should be integers.
-max_stim_amplitudes_by_width = ceil(amps_given_desired_distance);
-
-%Obtaining volume data
-%--------------------------------------------------------------------------
-dual_counts_all   = cell(1,n_stim_widths);
-single_counts_all = cell(1,n_stim_widths);
-stim_amps_all     = cell(1,n_stim_widths);
-
-%NOTE: We run each width separately as we are testing different 
-%stim amplitudes at each width. We could improve the counts
-for iStim = 1:n_stim_widths
-    fprintf('Running Stim Width %d/%d\n',iStim,n_stim_widths);
-    cur_widths = {[STIM_WIDTHS_ALL(iStim) 2*STIM_WIDTHS_ALL(iStim)]};
-   
-    [dual_counts_all{iStim},single_counts_all{iStim},stim_amps_all{iStim},temp_extras] = ... 
-                getCountData(obj,max_stim_amplitudes_by_width(iStim),...
-                ELECTRODE_LOCATION,cur_widths,FIBER_DIAMETER);
-            
-    if iStim == 1
-        extras = temp_extras;
-    else
-        fn = fieldnames(extras);
-        for iField = 1:length(fn)
-            cur_field = fn{iField};
-            extras.(cur_field) = [extras.(cur_field) temp_extras.(cur_field)];
-        end
-    end          
-end
-
-ratio_all         = cell(1,n_stim_widths);
-for iStim = 1:n_stim_widths
-   ratio_all{iStim} = dual_counts_all{iStim}./single_counts_all{iStim}; 
+rs_all = cell(1,2);
+rd_all = cell(1,2);
+for iPair = 2:2
+    electrode_locations_test = EL_LOCATIONS{iPair};
+    temp_cell = cell(2,n_stim_widths);
+    for iWidth = 1:n_stim_widths
+        cur_max_stim       = max_stim_amplitudes_by_width(iWidth);
+        cur_stim_width     = C.STIM_WIDTHS_ALL(iWidth);
+        avr.stim_widths    = [cur_stim_width 2*cur_stim_width];
+        temp_cell{1,iWidth}  = avr.makeRequest(electrode_locations_test,cur_max_stim,...
+            'single_with_replication',true);
+        temp_cell{2,iWidth}  = avr.makeRequest(electrode_locations_test,cur_max_stim);
+    end
+    rs_all{iPair} = temp_cell(1,:);
+    rd_all{iPair} = temp_cell(2,:);
 end
 
 %Plotting Results
@@ -179,31 +100,7 @@ volume_dual   = cell(1,n_stim_widths);
 
 for iWidth = 1:n_stim_widths
     x_plot = single_counts_all{1,iWidth}.^(1/3);
-    plot(x_plot,ratio_all{iWidth},'linewidth',3)
-    
-%     volume_single{iWidth} = interp1(stim_amps_all{iWidth},...
-%         x_plot,extras.single_slice_thresholds{iWidth});
-%     volume_dual{iWidth} = interp1(stim_amps_all{iWidth},...
-%         x_plot,extras.dual_slice_thresholds{iWidth});
-%     
-%     dual_t   = volume_dual{iWidth};
-%     single_t = volume_single{iWidth}; 
-% 
-%     t_min_z_dual   = min(dual_t(:,:,1));
-%     t_min_x_dual   = min(dual_t(ceil(size(dual_t,1)/2),:,:));
-%     t_min_z_single = min(single_t(:,:,1));
-%     
-%     x_single       = extras.single_slice_xyz{iWidth}{1};
-%     t_min_x_single = min(single_t(x_single == STIM_SPACING,:,:));
-%     
-%     all_values = [t_min_x_single t_min_z_single t_min_x_dual t_min_z_dual];
-%     chars      = 'xzXZ';
-%     for iVal = 1:4
-%        y_val = interp1(x_plot(:),ratio_all{iWidth},all_values(iVal));
-%        s = text(all_values(iVal),y_val,chars(iVal));
-%        set(s,'FontSize',18)
-%     end
-    
+    plot(x_plot,ratio_all{iWidth},'linewidth',3)    
 end
 legend(width_labels)
 xlabel('Cubed Root Original Recruitment Volume (um^3)^(1/3)','FontSize',FONT_SIZE)
@@ -221,7 +118,7 @@ set(gca,'FontSize',FONT_SIZE)
 % % % % %    cur_data = squeeze(volume_single{iWidth});
 % % % % %    [~,h] = contour(cur_xyz{1},cur_xyz{3},cur_data',contour_value);
 % % % % %    set(h,'Color',color_order(iWidth,:));
-% % % % %    
+% % % % %
 % % % % %    ax(2) = subplot(1,2,2);
 % % % % %    hold all
 % % % % %    cur_xyz  = extras.dual_slice_xyz{iWidth};
@@ -231,6 +128,65 @@ set(gca,'FontSize',FONT_SIZE)
 % % % % % end
 % % % % % linkaxes(ax)
 % % % % % legend(width_labels)
+
+
+end
+
+function max_stim_amplitudes_by_width = helper__getMaxStimulusAmplitudesByWidth(obj,C)
+
+%Determining rough scaling factors to test
+%--------------------------------------------------------------------------
+C.DISTANCES_TEST = 20:20:800;
+%We should make sure that this is sufficiently
+%large so as to encompass MAX_STIM_AMPLITUDE_DEFAULT for our default
+%stimulus width
+n_x_dist_test = length(C.DISTANCES_TEST);
+
+n_stim_widths              = length(C.STIM_WIDTHS_ALL);
+
+thresholds_current_distance = zeros(n_x_dist_test,n_stim_widths);
+
+fprintf('Running current vs distance tests for stim width normalizaton\n')
+for iStim = 1:n_stim_widths
+    cur_widths = [C.STIM_WIDTHS_ALL(iStim) 2*C.STIM_WIDTHS_ALL(iStim)];
+    
+    %TODO: make this a class method that is exposed ...
+    %------------------------------------------
+    xstim = obj.instantiateXstim([0 0 0]);
+    
+    xstim.cell_obj.props_obj.changeFiberDiameter(C.FIBER_DIAMETER);
+    xstim.elec_objs.setStimPattern(C.STIM_START_TIME,cur_widths,C.PHASE_AMPLITUDES);
+    
+    %NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
+    
+    temp_result_obj = xstim.sim__getCurrentDistanceCurve(C.DISTANCES_TEST);
+    thresholds_current_distance(:,iStim) = temp_result_obj.thresholds;
+end
+
+%We first need to find the distance that the "default" stimulus width
+%will activate given the maximum stimulus amplitude at that stimulus width
+%that we want to investigate. For example, for a 200 us pulse, how much
+%tissue will we activate given the maximum stimulus amplitude we are
+%testing
+dist_given_max_default_amp = interp1(...
+    thresholds_current_distance(:,C.DEFAULT_WIDTH_INDEX),...
+    C.DISTANCES_TEST(:),C.MAX_STIM_AMPLITUDE_DEFAULT);
+
+%Next we say, for each stimulus width, how strong a stimulus do we need
+%(approximately) to get the same amount of tissue
+amps_given_desired_distance = zeros(1,n_stim_widths);
+for iStim = 1:n_stim_widths
+    amps_given_desired_distance(iStim) = interp1(...
+        C.DISTANCES_TEST(:),thresholds_current_distance(:,iStim),...
+        dist_given_max_default_amp);
+end
+
+%This is a rough approximation which is only correct if the volume
+%grows the same way for all stim widths, as we have only examined point on
+%the volume, really we would need to also take into account longitudinal
+%direction. We round up here as the max amplitudes should be integers.
+max_stim_amplitudes_by_width = ceil(amps_given_desired_distance);
+
 
 
 end

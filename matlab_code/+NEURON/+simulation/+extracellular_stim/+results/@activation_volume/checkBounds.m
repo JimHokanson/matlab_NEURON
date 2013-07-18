@@ -90,8 +90,8 @@ t_all = xstim_obj.sim__getThresholdsMulipleLocations(...
     'initialized_logger',obj.sim_logger);
 else
    r = obj.request_handler;
-   t = r.getSolution(xyz_all);
-   keyboard 
+   s = r.getSolution(xyz_all);
+   t_all = s.thresholds;
 end
 
 
