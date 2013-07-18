@@ -1,20 +1,25 @@
-function [ out ] = gridN( x,y,z,t,xnodes,ynodes,znodes )
+function [ out ] = gridN( x,y,z,t,xnodes,ynodes,znodes, varargin )
 %   Does interpolation in 4-D. Returns values on a 3-D grid corresponding
 %   to all the combinations of values at the nodes (xnodes, ynodes, znodes)
 %
 %   gridN( x,y,z,t,xnodes,ynodes,znodes )
-%   
+%
 %   INPUTS
 %   ======================================================================
-%   x, y, z, t : training data. 
+%   x, y, z, t : training data.
 %   xnodes, ynodes, znodes: nodes on the grid for interpolation
 %
+% modified from 'gridfit' by John D'errico
+% http://www.mathworks.com/matlabcentral/fileexchange/8998-surface-fitting-using-gridfit
+% 7/9/2013
 
 params.interp = 'linear';
 params.regularizer = 'gradient';
 params.xscale = 1;
 params.yscale = 1;
 params.zscale = 1;
+
+% setParams( params, varargin(:) );
 
 % check lengths of the data
 n = length(x);
@@ -48,7 +53,7 @@ ynodes=ynodes(:);
 znodes=znodes(:);
 
 % Because the xnodes must fall within the range of the given x's we are
-% extending the xnodes to encompass the min and the max+1 of the xs this
+% extending the xnodes to encompass the min and the max of the xs this
 % might be a modify-able option later on.
 [xnodes, ynodes, znodes] = helper__adjustNodes(x,y,z,xnodes,ynodes,znodes);
 
@@ -64,15 +69,12 @@ nx = length(xnodes);
 ny = length(ynodes);
 nz = length(znodes);
 
-ngrid = nx*ny*nz;
-
-% create the matrix from linear interpolation of the
-% points realation to each cell
+% create the interpolant matrix of the points realation to each cell
 interp = params.interp;
 S = helper__interpMatrix(x,y,z,xnodes,ynodes,znodes,interp);
 
 % create regularizer matrix
-P = helper__regularMatrix(params, nx, ny, nz, dx, dy, dz, ngrid);
+P = helper__regularMatrix(params, nx, ny, nz, dx, dy, dz);
 
 temp = size(P,1);
 NA = norm(S,1);
@@ -82,20 +84,19 @@ S = [S;P*(NA/NR)];
 %Solve
 rhs = t;
 rhs = [rhs;zeros(temp,1)];
-out = S\rhs;
-%out = reshape(S\rhs,nz,ny,nx); 
-%     out = S\G; %which is faster? what is the best solver option?
+%out = S\rhs;
+out = reshape(S\rhs,nx,ny,nz);          %syntax?
 end
 
 
 function S = helper__interpMatrix(x,y,z,xnodes,ynodes,znodes,interp)
-%   Creates the interpolation matrix or lookup table.
+%   Creates the interpolant matrix.
 %
 %   helper__interpMatrix(x,y,z,xnodes,ynodes,znodes,interp)
-%   
+%
 %   INPUTS
 %   ======================================================================
-%   x, y, z : training data 
+%   x, y, z : training data
 %   xnodes, ynodes, znodes: nodes on the grid for interpolation
 %   interp: string, Interpolation method. Default = linear
 
@@ -130,16 +131,44 @@ indz(k)=indz(k)-1;
 
 ind = indx + nx*(indy-1) + nx*ny*(indz-1);
 
+% (x - xi)/(xi - xi+1) 
+tx = min(1,max(0,(x - xnodes(indx))./dx(indx)));
+ty = min(1,max(0,(y - ynodes(indy))./dy(indy)));
+tz = min(1,max(0,(z - znodes(indz))./dz(indz)));
+
 switch(interp)
-    case 'linear' %uses linear/bilinear/trilinear interpolation
-        tx = min(1,max(0,(x - xnodes(indx))./dx(indx)));
-        ty = min(1,max(0,(y - ynodes(indy))./dy(indy)));
-        tz = min(1,max(0,(z - znodes(indz))./dz(indz)));
+    % case 'cubic' % tricubic
+    case 'tetrahedral'
+        indMat1 = repmat((1:n),1,4);
+        [~, maxt] = max(tx,ty,tz);
+        [~, mint] = min(tx,ty,tz);
+        temp = [1, dx, dy*dx];
+        delta = [temp(maxt), temp(mint)];
+        indMat2 = [ind, ind+delta(1), ind+delta(2), ind+(ny*nx)+nx+1];
+        %V =  1; %so this is not necessary...
+        %hardcoded for now... :P
+        temp = [tx, ty, tz];
+        delta = [temp(maxt), temp(mint)];
+        maxsp = sparse(1:n,maxt,delta(1),n,3);
+        minsp = sparse(1:n,mint,delta(2),n,3);
+        % I need to find a better way of finding the determinant w/o this
+        % nonsense XP
+        v1 = ;
+        v2 = ;
+        v3 = ;
+        v4 = ;
+        dstMat  = (1/6)*[v1,v2,v3,v4];
+    case 'nearest' % nearest neighbor interpolation in a cell
+        k = round(1-tx) + round(1-ty)*nx + round(1-tz)*nx*ny;
+        indMat1 = (1:n)';       %row indices
+        indMat2 = ind+k;        %col indices 
+        dstMat  = ones(n,1);    %corresponding values.
         
+    case 'linear' %uses linear/bilinear/trilinear interpolation
         cmb = 2^var; % cmb == 8...
         indMat1 = repmat((1:n)',1,cmb);
         indMat2 = [ind,    ind+1,    ind+nx,    ind+nx+1,...
-            ind+(nx*ny), ind+(nx*ny)+1, ind+nx+(ny*nx), ind+nx+(ny*nx)+1]; 
+            ind+(nx*ny), ind+(nx*ny)+1, ind+nx+(ny*nx), ind+nx+(ny*nx)+1];
         
         % Matrix of variables representing linear distance
         dstMat = [(1-tx).*(1-ty).*(1-tz), (tx).*(1-ty).*(1-tz), (1-tx).*(ty).*(1-tz), (tx).*(ty).*(1-tz),...
@@ -154,17 +183,17 @@ S = sparse(indMat1,indMat2,dstMat,n,ngrid);
 end
 
 
-function [xnodes, ynodes, znodes] = helper__adjustNodes(x,y,z,xnodes,ynodes,znodes) 
+function [xnodes, ynodes, znodes] = helper__adjustNodes(x,y,z,xnodes,ynodes,znodes)
 %   Adjusts the locations given by the nodes in the event that the min/max
 %   of the training data is outside of the node boundaries.
 %
 %   helper__adjustNodes(x,y,z,xnodes,ynodes,znodes)
-%   
+%
 %   INPUTS
 %   ======================================================================
-%   x, y, z : training data 
+%   x, y, z : training data
 %   xnodes, ynodes, znodes: nodes on the grid for interpolation
-% 
+%
 xmin = min(x);
 xmax = max(x);
 ymin = min(y);
@@ -208,8 +237,6 @@ end
 if zmax > znodes(end)
     znodes(end) = zmax;
 end
-
-
 end
 
 
@@ -218,21 +245,52 @@ function Areg = helper__regularMatrix(params, nx, ny, nz, dx, dy, dz)
 %   default is 'gradient'
 %
 %   helper__regularMatrix(params, nx, ny, nz, dx, dy, dz)
-%   
+%
 %   INPUTS
 %   ======================================================================
-%   params : struct created in main function that holds differnt parameters 
-%            and values. here It is needed for .regularizer and the scales  
+%   params : struct created in main function that holds differnt parameters
+%            and values. here It is needed for .regularizer and the scales
 %   nx, ny, nz: lengths of x,y,z vectors (from main function) respectively
 %   dx, dy, dz: first differnce of x,y,z nodes from main function.
-%   input_3 : (default -1), 
+%   input_3 : (default -1),
 %
 
-ngrid = nx*ny*nz; 
+ngrid = nx*ny*nz;
 
 switch(params.regularizer)
-    %In what order should these be developed???
+    case 'laplacian' %??? needs testing
+        % X gradient regularization
+        [i,j,k] = ndgrid(2:(nx-1),1:ny,1:nz);
+        ind = i(:) + nx*(j(:)-1) + ny*nx*(k(:)-1);
+        dx1 = dx(i(:)-1)/params.xscale;
+        dx2 = dx(i(:))/params.xscale;
+        
+        Areg = sparse(repmat(ind,1,3),[ind-1,ind,ind+1], ...
+            [-2./(dx1.*(dx1+dx2)), ...
+            2./(dx1.*dx2), -2./(dx2.*(dx1+dx2))],ngrid,ngrid);
+        
+        % Addition of Y gradient regularization
+        [i,j,k] = ndgrid(1:nx,2:(ny-1),1:nz);
+        ind = i(:) + nx*(j(:)-1) + ny*nx*(k(:)-1);
+        dy1 = dy(j(:)-1)/params.yscale;
+        dy2 = dy(j(:))/params.yscale;
+        
+        Areg = Areg + sparse(repmat(ind,1,3),[ind-nx,ind,ind+nx], ...
+            [-2./(dy1.*(dy1+dy2)), ...
+            2./(dy1.*dy2), -2./(dy2.*(dy1+dy2))],ngrid,ngrid);
+        
+        % Addition of Z gradient regularization
+        [i,j,k] = ndgrid(1:nx,1:ny,2:(nz-1));
+        ind = i(:) + nx*(j(:)-1) + ny*nx*(k(:)-1);
+        dz1 = dz(k(:)-1)/params.zscale;
+        dz2 = dz(k(:))/params.zscale;
+        
+        Areg = Areg + sparse(repmat(ind,1,3),[ind-(nx*ny),ind,ind+(nx*ny)], ...
+            [-2./(dz1.*(dz1+dz2)), ...
+            2./(dz1.*dz2), -2./(dz2.*(dz1+dz2))],ngrid,ngrid);
+        
     case 'gradient'
+    %In what order should these be developed???
         % X gradient regularization
         [i,j,k] = ndgrid(2:(nx-1),1:ny,1:nz);
         ind = i(:) + nx*(j(:)-1) + ny*nx*(k(:)-1);
@@ -266,4 +324,11 @@ switch(params.regularizer)
 end
 end
 
+function setParams(params, varargin)
+% edits parameters for gridN
+if nargin == 1
+    return
+end
 
+
+end
