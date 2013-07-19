@@ -11,7 +11,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
     
     properties
         stim_resolution  = 0.1
-        slice_dim   = 2
+        slice_dims  = 'xz' %x by z %This should be two elements long
         slice_value = 0
         quick_test  = false %If true we get junk results on the integration
         %which can be useful for testing the workflow
@@ -21,7 +21,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
     
     properties
         custom_setup_function %This should be called if there are addditional
-        %steps between initializing the xstim object 
+        %steps between initializing the xstim object
         stim_widths      = [0.2 0.4] %TODO: Describe formats ...
         fiber_diameter   = 10
         stim_start_time  = 0.1
@@ -40,12 +40,12 @@ classdef activation_volume_requestor < sl.obj.handle_light
         function result_objs = makeRequest(obj,electrode_locations,max_stim_level,varargin)
             %
             %
-            %   The only thing this function can currently vary over is 
+            %   The only thing this function can currently vary over is
             %   different electrode locations ...
             %
             %   INPUTS
             %   ===========================================================
-            %   electrode_locations : (cell), 
+            %   electrode_locations : (cell),
             %
             %    OUTPUTS
             %    ===========================================================
@@ -58,6 +58,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
             %        replicates a single electrode
             
             in.single_with_replication = false;
+            in.single_output = true;
             in = sl.in.processVarargin(in,varargin);
             
             if ~iscell(electrode_locations)
@@ -73,7 +74,10 @@ classdef activation_volume_requestor < sl.obj.handle_light
             else
                 all_replication_sets = {[]};
             end
-
+            
+            xyz_info  = sl.xyz.str.parsed(obj.slice_dims);
+            slice_dim = find(xyz_info.missing_mask);
+            
             %Loop over all locations ...
             result_objs = cell(1,n_sets);
             for iSet = 1:n_sets
@@ -89,7 +93,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
                     if ~isempty(obj.custom_setup_function)
                         obj.custom_setup_function(obj,xstim)
                     end
-
+                    
                     internode_length = xstim.cell_obj.getAverageNodeSpacing;
                     
                     %NEURON.simulation.extracellular_stim.sim__getActivationVolume
@@ -122,13 +126,12 @@ classdef activation_volume_requestor < sl.obj.handle_light
                 if ~obj.use_new_solver && obj.merge_solvers
                     xyz = act_obj.getXYZlattice(true);
                     r   = xstim.sim__getSingleAPSolver('solver','from_old_solver');
-                    r.solver.act_obj = act_obj;
+                    r.solver.sim_logger = act_obj.sim_logger;
                     r.getSolution(xyz);
                     continue
                 end
                 
-                [slice_thresholds,slice_xyz] = ...
-                    act_obj.getSliceThresholds(max_stim_level,obj.slice_dim,obj.slice_value);
+                
                 
                 %Population of result
                 %---------------------------------------------------------------
@@ -143,15 +146,20 @@ classdef activation_volume_requestor < sl.obj.handle_light
                 r.xyz_used               = extras.xyz_cell;
                 
                 
-                r.slice_thresholds       = squeeze(slice_thresholds);
-                r.slice_xyz              = slice_xyz(1:3 ~= obj.slice_dim);
-                labels_temp = 'xyz';
-                r.slice_labels           = labels_temp(1:3 ~= obj.slice_dim);
-                r.slice_dim              = obj.slice_dim;
-                r.slice_value            = obj.slice_value;
+                r.slice = NEURON.reproductions.Hokanson_2013.activation_volume_slice(...
+                    act_obj,max_stim_level,xyz_info,slice_dim,obj.slice_value);
                 
+                if in.single_with_replication
+                    r.replicated_slice =  NEURON.reproductions.Hokanson_2013.activation_volume_slice(...
+                        act_obj,max_stim_level,xyz_info,slice_dim,obj.slice_value,...
+                        'replication_points',replication_points);
+                end
+
                 r.is_single              = in.single_with_replication;
                 if r.is_single
+                    %NOTE: Due to the merger, we adjust the z
+                    %values so the locations aren't exactly
+                    %correct (or rather, don't match up with these values)
                     r.electrode_locations = replication_points;
                 else
                     r.electrode_locations = cur_elec_loc;
@@ -162,13 +170,17 @@ classdef activation_volume_requestor < sl.obj.handle_light
                 
                 if in.single_with_replication
                     rep_extras = extras.threshold_extras.replication_extras;
-
+                    
                     r.overlap_amplitudes     = rep_extras.electrode_interaction_thresholds;
                     r.electrode_z_locations  = rep_extras.electrode_z_locations;
                     r.mean_error             = rep_extras.mean_rep_error;
                 end
                 
                 result_objs{iSet} = r;
+            end
+            
+            if in.single_output && length(result_objs) == 1
+                result_objs = result_objs{1};
             end
         end
     end

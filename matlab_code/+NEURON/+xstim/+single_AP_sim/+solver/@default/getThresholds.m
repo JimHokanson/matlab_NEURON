@@ -1,10 +1,15 @@
 function predictor_info = getThresholds(obj)
-%
+%getThresholds
 %
 %   predictor_info = getThresholds(obj)
 %
-%   This is a specific implementation for getting threshold data.
+%   This is a specific implementation for getting threshold data. The main 
 %
+%   OUTPUTS
+%   =======================================================================
+%   predictor_info : Currently empty []. Not sure what I want to pass back to
+%                    the user yet.
+%       
 %   This implementation:
 %   -----------------------------------------------------------------------
 %   1) Reduces the # of points to solve by finding redundant applied stimuli
@@ -24,9 +29,12 @@ if obj.new_data.all_done
 end
 
 %NEURON.xstim.single_AP_sim.new_solution.summarize
+%This will display a summary of how many data points remain to be solved.
 obj.new_data.summarize();
 
 %NEURON.xstim.single_AP_sim.grouper
+%
+%   The grouper is responsible for 
 g = obj.grouper;
 t_group = tic;
 indices = g.getNextGroup();

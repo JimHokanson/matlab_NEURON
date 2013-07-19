@@ -6,6 +6,8 @@ function numeric_dim = getNumericDim(dim_input)
 %   FULL PATH:
 %   arrayfcns.xyz.getNumericDim
 
+sl.warning.deprecated('','sl.xyz.getNumericDim','Moving to a better location')
+
 if ischar(dim_input)
     %TODO: Check char length
     numeric_dim = strfind('xyz',dim_input);

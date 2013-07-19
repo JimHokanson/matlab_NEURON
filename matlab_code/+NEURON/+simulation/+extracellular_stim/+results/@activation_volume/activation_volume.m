@@ -143,9 +143,11 @@ classdef activation_volume < handle
            %    EXAMPLE
            %    ===========================================================
            %    [slice_thresholds,xyz_new] = getSliceThresholds(obj,max_stim_level,dim_use,dim_value,varargin)
+           %
+           %    FULL PATH:
+           %    NEURON.simulation.extracellular_stim.results.activation_volume.getSliceThresholds
            
            in.replication_points = [];
-           in.replication_center = [0 0 0];
            in = processVarargin(in,varargin);
            
            %thresholds = getThresholdsEncompassingMaxScale(obj,max_stim_level);
@@ -156,7 +158,7 @@ classdef activation_volume < handle
            
            %xyz        = obj.getXYZlattice(true);
            
-           dim_use = arrayfcns.xyz.getNumericDim(dim_use);
+           dim_use = sl.xyz.getNumericDim(dim_use);
            
            xyz_new = cell(1,3);
            for iXYZ = 1:3

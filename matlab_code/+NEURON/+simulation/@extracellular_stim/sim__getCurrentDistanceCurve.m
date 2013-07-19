@@ -30,6 +30,7 @@ in.starting_value = 1; %Starting stimulus scale, SIGN is important, applies
 %for the first distance tested.
 in.base_xyz       = [0 0 0];
 in.dim_move       = 2;
+in.sim_logger_options = {};
 in = processVarargin(in,varargin);
 
 elec_obj_local   = obj.elec_objs;
@@ -51,8 +52,11 @@ if in.use_sim_logger
     
     cell_locations = num2cell(in.base_xyz);
     cell_locations{in.dim_move} = all_distances;
+    
+    %NEURON.simulation.extracellular_stim.sim__getThresholdsMulipleLocations
     all_thresholds = obj.sim__getThresholdsMulipleLocations(cell_locations,...
-        'threshold_sign',sign(in.starting_value),'reshape_output',false);
+        'threshold_sign',sign(in.starting_value),'reshape_output',false,...
+        in.sim_logger_options{:});
 
 else
     

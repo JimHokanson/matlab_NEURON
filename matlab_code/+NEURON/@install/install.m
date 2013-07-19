@@ -1,4 +1,4 @@
-classdef install
+classdef (Hidden) install
     %
     %   Class:
     %       NEURON.install

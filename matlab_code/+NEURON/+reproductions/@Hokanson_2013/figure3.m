@@ -11,6 +11,7 @@ function figure3
 import NEURON.reproductions.*
 
 EL_LOCATIONS = {[0 -50 -200; 0 50 200]      [-200 0 0;200 0 0]};
+TITLE_STRINGS = {'Longitudinal pairings'    'Transverse pairings'};
 
 C.MAX_STIM_AMPLITUDE_DEFAULT = 30; %For 0.2 ms width ...
 C.FIBER_DIAMETER           = 15;
@@ -19,6 +20,9 @@ C.DEFAULT_WIDTH_INDEX = find(C.STIM_WIDTHS_ALL  == 0.2);
 C.STIM_START_TIME   = 0.1;
 C.PHASE_AMPLITUDES  = [-1 0.5];
 n_stim_widths              = length(C.STIM_WIDTHS_ALL);
+C.MERGE_SOLVERS  = true;
+C.USE_NEW_SOLVER = false;
+C.QUICK_TEST     = false;
 
 %We might make a separate function that examines reproducing
 %work from Yoshida & Horch where for a fixed amplitude they varied the
@@ -29,16 +33,15 @@ FONT_SIZE = 18;
 obj = NEURON.reproductions.Hokanson_2013;
 avr = Hokanson_2013.activation_volume_requestor(obj);
 avr.fiber_diameter = C.FIBER_DIAMETER;
-avr.quick_test     = true;
-%avr.merge_solvers  = true;
-avr.use_new_solver = true;
+avr.quick_test     = C.QUICK_TEST ;
+%avr.merge_solvers = C.MERGE_SOLVERS;
+avr.use_new_solver = C.USE_NEW_SOLVER;
 
 max_stim_amplitudes_by_width = helper__getMaxStimulusAmplitudesByWidth(obj,C);
 
-
 rs_all = cell(1,2);
 rd_all = cell(1,2);
-for iPair = 2:2
+for iPair = 1:2
     electrode_locations_test = EL_LOCATIONS{iPair};
     temp_cell = cell(2,n_stim_widths);
     for iWidth = 1:n_stim_widths
@@ -53,10 +56,26 @@ for iPair = 2:2
     rd_all{iPair} = temp_cell(2,:);
 end
 
-%Plotting Results
+keyboard
+
+%--------------------------------------------------------------------------
+%                           Plotting results
 %--------------------------------------------------------------------------
 
-keyboard
+%1) Standard, vs amplitude ...
+for iPair = 1:2
+    subplot(1,2,iPair)
+    final_strings = sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
+        
+    %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
+    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair});
+    legend(final_strings)
+    title(TITLE_STRINGS{iPair})
+end
+
+
+
+
 
 %Result 1: normalized by amplitude
 %Result 2: normalized by charge
@@ -133,6 +152,11 @@ set(gca,'FontSize',FONT_SIZE)
 end
 
 function max_stim_amplitudes_by_width = helper__getMaxStimulusAmplitudesByWidth(obj,C)
+%
+%
+%   max_stim_amplitudes_by_width = helper__getMaxStimulusAmplitudesByWidth(obj,C)
+%
+%
 
 %Determining rough scaling factors to test
 %--------------------------------------------------------------------------
@@ -142,7 +166,7 @@ C.DISTANCES_TEST = 20:20:800;
 %stimulus width
 n_x_dist_test = length(C.DISTANCES_TEST);
 
-n_stim_widths              = length(C.STIM_WIDTHS_ALL);
+n_stim_widths = length(C.STIM_WIDTHS_ALL);
 
 thresholds_current_distance = zeros(n_x_dist_test,n_stim_widths);
 
@@ -159,7 +183,8 @@ for iStim = 1:n_stim_widths
     
     %NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
     
-    temp_result_obj = xstim.sim__getCurrentDistanceCurve(C.DISTANCES_TEST);
+    temp_result_obj = xstim.sim__getCurrentDistanceCurve(C.DISTANCES_TEST,...
+        'sim_logger_options',{'merge_solvers',C.MERGE_SOLVERS,'use_new_solver',C.USE_NEW_SOLVER});
     thresholds_current_distance(:,iStim) = temp_result_obj.thresholds;
 end
 

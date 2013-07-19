@@ -9,7 +9,6 @@ classdef logged_data < sl.obj.handle_light
     %   insure that the different predictor methods do not generate
     %   different outcomes.
     %
-    %
     %   Not sure if I want to eventually merge this with the solution. I
     %   feel like right now this class will maintain solving and more
     %   functionality might be added, where as the solution class will only
@@ -21,8 +20,6 @@ classdef logged_data < sl.obj.handle_light
     %
     %   IMPROVEMENTS
     %   ===================================================================
-    %   1) Store xstim_ID with data for hash comparison ...
-    %           This involves creating a save method for the ID
     %   
     %
     %   See Also:
@@ -66,6 +63,9 @@ classdef logged_data < sl.obj.handle_light
             obj.xstim_ID  = xstim_ID;
             obj.file_path = sl.dir.createFolderIfNoExist(true,base_path,sign_folder,file_name);
             obj.stim_sign = stim_sign;
+            
+            %Loading the data from disk ...
+            %--------------------------------------------------------------
             obj.loadData(xstim_ID);
         end
         function loadData(obj,xstim_ID)

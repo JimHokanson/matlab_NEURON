@@ -17,7 +17,7 @@ ACC = 0.05;
 
 predictor_info = [];
 
-sd = obj.act_obj.sim_logger.simulation_data_obj;
+sd = obj.sim_logger.simulation_data_obj;
 
 sd.applied_stimulus_matrix;
 

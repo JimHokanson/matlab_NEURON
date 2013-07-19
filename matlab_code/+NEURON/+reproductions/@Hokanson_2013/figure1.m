@@ -50,7 +50,7 @@ for iPair = 1:2
     final_strings = obj.getElectrodeSeparationStrings(electrode_locations_test);
     
     %Change to: versus amplitude ...
-    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair},false);
+    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair});
     legend(final_strings)
     title(TITLE_STRINGS{iPair})
 end

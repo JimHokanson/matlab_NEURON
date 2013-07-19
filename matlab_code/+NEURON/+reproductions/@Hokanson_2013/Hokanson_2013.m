@@ -50,6 +50,7 @@ classdef Hokanson_2013
     end
     
     methods (Static)
+        figure_boundsIllustration
         run()
         figure0()
         figure1()
@@ -63,40 +64,10 @@ classdef Hokanson_2013
     %In other files
     %===============================
     %example_figure_1
-    
+    %
+    %NEURON.reproductions.Hokanson_2013.figure_boundsIllustration
     
     methods
-        function example_figure_2(obj)
-           %Show recruitment redundancy ...
-           
-           %TODO: Might want to reduce resolution
-           %file is really large ...
-           X_VECTOR = -200:5:200;
-           Z_VECTOR = -2000:5:2000;
-           Y_VECTOR = 0;
-           
-           XYZ = {X_VECTOR Y_VECTOR Z_VECTOR};
-           
-           xstim = obj.instantiateXstim([0 0 0]);
-           
-           r = xstim.sim__getThresholdsMulipleLocations(XYZ);
-           
-           %Plotting results
-           %-------------------------------------------------
-           imagesc(X_VECTOR,Z_VECTOR,squeeze(r)');
-           colorbar;
-           axis equal
-           hold on
-           scatter(0,0,100,'w','filled')
-           hold off
-           
-           temp = sl.plot.postp.imageToPatch(gcf,'ignore_colorbars',false);
-           %print -depsc -painters wtf
-           %MATLAB:hg:patch:RGBColorDataNotSupported
-           
-           keyboard
-           
-        end
     end
         
     methods (Hidden)
@@ -142,15 +113,57 @@ classdef Hokanson_2013
            
            
         end
-        function plotVolumeRatio(obj,rs,rd,with_markup)
+        function plotSlices(obj,rs,rd,titles)
+           %
+           %    cell array of objects of type:
+           %    NEURON.reproductions.Hokanson_2013.activation_volume_results
+           %    rs
+           %    rd
+           %
+            
+           in.one_by_two = true; %Two columns
+           in.same_clim  = true; %If true all plots will have
+           %the same clim, otherwise only the pair will (single and double)
+           %for a current setting
+           in.clim_increment = 5; %Round up to the next
+           %multiple of some value for display ...
+           
+           in = sl.in.processVarargin();
+           
+           if in.one_by_two
+               m = 1;
+               n = 2;
+           else
+               m = 2;
+               n = 1;
+           end
+           
+           ax = zeros(length(rs),2);
+           for iSet = 1:n_sets
+              cur_rs = rs{iSet}; 
+              cur_rd = rd{iSet};
+              
+              ax(iSet,1) = subplot(m,n,1);
+              keyboard
+              ax(iSet,2) = subplot(m,n,2);
+              
+           end
+        end
+        function plotVolumeRatio(obj,rs,rd,varargin)
            %
            %    INPUTS
            %    ==========================================
-           %        Class: 
+           %    Class: NEURON.reproductions.Hokanson_2013.activation_volume_results
            %    rs : cell array of objects
            %    rd : cell array of objects ...
            %
            %    Crap, how to determine overlap for 2 electrodes ...
+           %
+           %    This turns out to be really tricky and is probably
+           %    best done by hand ...
+           
+           in.x_by_single_volume = false;
+           in = sl.in.processVarargin(in,varargin);
            
            FONT_SIZE = 18;
             
@@ -169,16 +182,20 @@ classdef Hokanson_2013
               end
               
               vol_ratio = cur_rd.counts./cur_rs.counts;
-              plot(stim_rs,vol_ratio,'Linewidth',3)
-              if with_markup
-                  
+              
+              if in.x_by_single_volume
+                 plot(cur_rs.counts,vol_ratio,'Linewidth',3)
+              else
+                 plot(stim_rs,vol_ratio,'Linewidth',3) 
               end
            end
-            
 
-           
            set(gca,'FontSize',FONT_SIZE)
-           xlabel('Stimulus Amplitude (uA)','FontSize',FONT_SIZE)
+           if in.x_by_single_volume
+               xlabel('1 um voxels','FontSize',FONT_SIZE)
+           else
+               xlabel('Stimulus Amplitude (uA)','FontSize',FONT_SIZE)
+           end
            ylabel('Volume Ratio','FontSize',FONT_SIZE)
         end
         function [xz_amp,xz_value] = getLimitAmplitudes(rs,rd,y_values)

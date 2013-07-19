@@ -21,11 +21,8 @@ classdef activation_volume_results < sl.obj.handle_light
         xyz_used
         
         
-        slice_thresholds
-        slice_xyz
-        slice_labels
-        slice_dim
-        slice_value
+        slice  %NEURON.reproductions.Hokanson_2013.activation_volume_slice         
+        replicated_slice   %NEURON.reproductions.Hokanson_2013.activation_volume_slice
     end
     
     %Request properties ...

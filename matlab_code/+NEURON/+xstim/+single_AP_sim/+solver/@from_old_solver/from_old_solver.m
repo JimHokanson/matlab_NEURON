@@ -17,7 +17,7 @@ classdef from_old_solver < NEURON.xstim.single_AP_sim.solver
     %   NEURON.xstim.single_AP_sim.solver.default.getThresholds
     
     properties
-       act_obj %Reference to activation volume 
+       sim_logger %Reference to activation volume 
     end
     
 end

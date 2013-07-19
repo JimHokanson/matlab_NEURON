@@ -156,32 +156,31 @@ function [replicated_thresholds,x,y,z,extras] = helper__createReplicatedData(obj
 %         large this may no longer be true.
 
 
-dz  = replication_points(:,3) - replication_points(1,3);
+%IMPORTANT: I modified the code so that it was centered on
+%z = 0, not on the first electrode ...
+
+z_use = replication_points(:,3);
 INL = obj.getInternodeLength;
 
 n_points   = size(replication_points,1);
 if n_points == 1
     error('This function should not be called with only a single location')
 end
-new_points = zeros(2*n_points - 1,3);
-new_points(1,1:2) = replication_points(1,1:2); %Copy x&y, we are only
-%manipulating z
+new_points = zeros(2*n_points,3);
 
 %These are the new z-values for the first set of points. The second set of
 %points will equal this value, +/- an INL, unless the point is at z = 0,
 %then we won't replicate.
-first_z_values = mod(dz,INL);
+first_z_values = mod(z_use,INL);
 
 %To keep track of which solution goes to which electrode. Each electrode
-%gets a maximum of 2 points. The first electrode only gets 1 since we are
-%centering all other electrodes around the solution to this electrode ...
-electrode_ids = ones(1,2*n_points - 1);
-
+%gets a maximum of 2 points.
+electrode_ids = ones(1,2*n_points);
 
 electrode_z_locations = zeros(1,n_points);
 
-cur_point     = 1;
-for iPoint = 2:n_points
+cur_point  = 0;
+for iPoint = 1:n_points
     
     %Assignment of x-y, these don't change
     %-------------------------------------------------

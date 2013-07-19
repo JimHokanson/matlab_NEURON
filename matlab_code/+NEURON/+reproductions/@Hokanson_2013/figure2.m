@@ -14,15 +14,24 @@ function figure2()
 
 import NEURON.reproductions.*
 
+%NEURON.reproductions.Hokanson_2013.activation_volume_requestor
+
+%PLOTTING OPTIONS
+%---------------------------------------------
+P.Y_LIM = [1 3];
+
+
+
 C.MAX_STIM_TEST_LEVEL = 30;
 
 obj = Hokanson_2013;
 avr = Hokanson_2013.activation_volume_requestor(obj);
-avr.quick_test     = true;
+avr.quick_test     = false;
 %avr.merge_solvers  = true;
 avr.use_new_solver = true;
 
 TITLE_STRINGS = {'Longitudinal pairings'    'Transverse pairings'};
+SLICE_DIMS    = {'zy' 'xz'};
 EL_LOCATIONS = {[0 -50 -200; 0 50 200]      [-200 0 0;200 0 0]};
 
 C.MAX_STIM_TEST_LEVEL     = 30;
@@ -35,9 +44,12 @@ n_diameters = length(C.FIBER_DIAMETERS);
 %--------------------------------------------------------------------------
 rs_all = cell(1,2);
 rd_all = cell(1,2);
-for iPair = 2:2
+for iPair = 1:2
     electrode_locations_test = EL_LOCATIONS{iPair};
     temp_cell = cell(2,n_diameters);
+    
+    avr.slice_dims = SLICE_DIMS{iPair}; %Long slice on x, trans on y
+
     for iDiameter = 1:n_diameters
         avr.fiber_diameter = C.FIBER_DIAMETERS(iDiameter);
         temp_cell{1,iDiameter}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL,...
@@ -49,17 +61,47 @@ for iPair = 2:2
 end
 
 keyboard
-%Plotting results
 %--------------------------------------------------------------------------
+%                           Plotting results
+%--------------------------------------------------------------------------
+
+%1) Standard, vs amplitude ...
 for iPair = 1:2
-        
-    final_strings = sl.cellstr.sprintf('%d - um',C.FIBER_DIAMETERS);
+    subplot(1,2,iPair)
+    final_strings = sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
         
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
-    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair},false);
+    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair});
     legend(final_strings)
     title(TITLE_STRINGS{iPair})
+    set(gca,'YLim',P.Y_LIM);
 end
+
+for iPair = 1:2
+    
+    single_strings = sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Independent',C.FIBER_DIAMETERS);
+    double_strings = sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Simultaneous',C.FIBER_DIAMETERS);
+    
+    titles = [single_strings(:) double_strings(:)];
+    
+    obj.plotSlices(rs_all{iPair},rd_all{iPair},titles,'one_by_two',iPair == 2)
+    %Add on labels
+    
+end
+
+%2) Threshold Plots ...
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 % % % % %subplot(1,2,1)

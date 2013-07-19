@@ -1,13 +1,18 @@
 classdef applied_stimuli < sl.obj.handle_light
     %
-    %
     %   Class:
     %   NEURON.xstim.single_AP_sim.applied_stimuli
+    %
+    %   This is a simple wrapper for holding onto the stimulus information
+    %   for a set of cell locations.
     %
     %   MAIN METHODS
     %   ===================================================================
     %   initializeReducedDimStimulus
     %   getLowDStimulus
+    %
+    %   See Also:
+    %   NEURON.xstim.single_AP_sim.applied_stimulus_manager
     
     properties
         xstim %Reference to simulation object to compute applied stimulus ...
@@ -16,8 +21,10 @@ classdef applied_stimuli < sl.obj.handle_light
     
     %Public Properties ====================================================
     properties
-        n
-        cell_locations
+        n                %Shortcut for getting size. This is equivalent to
+        %size(cell_locations,1).
+        cell_locations   %[n x 3], center locations of the cell. Using the
+        %xstim reference we can compute the applied stimulus.
         stimulus         %[n x nodes interleaved]
     end
     

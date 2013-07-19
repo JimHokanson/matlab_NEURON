@@ -3,11 +3,19 @@ classdef applied_stimulus_manager < sl.obj.handle_light
     %   Class:
     %   NEURON.xstim.single_AP_sim.applied_stimulus_manager
     %
-    %   Held by the predictor (parent) AS:
+    %   Held by the solver (parent) AS:
     %       stimulus_manager
+    %
+    %   This class is responsbile for anything related to the stimulus.
+    %   
+    %   
     %
     %   See Also:
     %   NEURON.xstim.single_AP_sim.solver
+    %   NEURON.xstim.single_AP_sim.applied_stimuli
+    %   NEURON.xstim.single_AP_sim.dim_reduction_options
+    %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher
+    
     
     properties
         dim_reduction_options %NEURON.xstim.single_AP_sim.dim_reduction_options
@@ -42,6 +50,13 @@ classdef applied_stimulus_manager < sl.obj.handle_light
             obj.applied_stimulus_matcher = NEURON.xstim.single_AP_sim.applied_stimulus_matcher(obj);
         end
         function initialize(obj,xstim_obj,new_data,old_data)
+            %
+            %
+            %   This method needs to be called any time the xyz data
+            %   is changed in the solver.
+            %
+            %   See Also:
+            %   
             obj.new_data = new_data;
             obj.old_data = old_data;  
             

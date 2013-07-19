@@ -96,14 +96,25 @@ classdef java_comm_obj < NEURON.comm_obj
             obj.j_input_stream  = obj.j_process.getInputStream;
             obj.j_output_stream = obj.j_process.getOutputStream;
             
-            %Java Reader class - local code, added during initialization
+            %Java Reader class:
+            %   local code, added during initialization
             %
-            NEURON.comm_obj.java_comm_obj.init_system_setup
+            %   Initialized in call to NEURON.s.init_system
+            %   NEURON.comm_obj.java_comm_obj.init_system_setup
             %
-            %See: \private\java_code\src\NEURON_reader.java
-            obj.j_reader        = NEURON_reader(obj.j_input_stream,...
-                obj.j_error_stream,obj.j_process);
+            %Source code: ./private/java_code/src/NEURON_reader.java
             
+            try
+                obj.j_reader = NEURON_reader(obj.j_input_stream,...
+                                    obj.j_error_stream,obj.j_process);
+            catch ME
+               fprintf(2,['Failed to instantiate NEURON_reader class\n' ...
+                   'this most often happens when failing to call\n' ... 
+                   'NEURON.s.init_system() on system startup\n' ...
+                   '--------------------------------------------------\n']);
+               %Add: NEURON.s.init_system() in startup
+               ME.rethrow();
+            end
         end
         
         function delete(obj)
