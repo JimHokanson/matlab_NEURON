@@ -13,7 +13,7 @@ function threshold_simulation_results = getThresholdsFromSimulation(obj,new_indi
 
 %Possible short circuit
 if obj.system_testing
-   threshold_simulation_results = obj.system_tester.getThresholdsFromSimulation(new_indices,predicted_thresholds);
+   threshold_simulation_results = obj.system_tester.getThresholdsFromSimulation(obj,new_indices,predicted_thresholds);
    return
 end
 

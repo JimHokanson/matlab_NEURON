@@ -230,11 +230,7 @@ classdef new_solution < sl.obj.handle_light
             %
             %    FULL PATH:
             %    NEURON.xstim.single_AP_sim.new_solution.updateSolutions
-            
-            if obj.system_testing
-               return 
-            end
-            
+
             if any(obj.solved(indices))
                 %This will eventually be allowed by not yet and perhaps
                 %not by this method ...
@@ -247,6 +243,11 @@ classdef new_solution < sl.obj.handle_light
             obj.solved_dates(indices)     = now;
             obj.prediction_types(indices) = type_or_types;
             obj.ranges(indices,:)         = range_data;
+            
+            %This needs to be here, not above
+            if obj.system_testing
+               return 
+            end
             
             obj.saveToDisk();
         end
@@ -301,6 +302,10 @@ classdef new_solution < sl.obj.handle_light
             %
             %
             %
+            
+            if obj.system_testing
+               return 
+            end
             
             mask = obj.solved;  %Only pass in solved entries ...
 

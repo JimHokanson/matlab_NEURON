@@ -188,10 +188,6 @@ classdef solver < sl.obj.handle_light
             %   FULL PATH:
             %   NEURON.xstim.single_AP_sim.solver.setSameAsOld
             
-            if obj.system_testing
-                return
-            end
-            
             old = obj.old_data;
             new = obj.new_data;
             
@@ -217,10 +213,6 @@ classdef solver < sl.obj.handle_light
             %
             %   FULL PATH:
             %   NEURON.xstim.single_AP_sim.solver.addSolutionResults
-            
-            if obj.system_testing
-                return
-            end
             
             new = obj.new_data;
             

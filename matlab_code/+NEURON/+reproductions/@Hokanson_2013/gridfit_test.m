@@ -1,7 +1,7 @@
-function gridfit_test
+function p_cell = gridfit_test
 %gridfit testing
 %
-%   NEURON.reproductions.Hokanson_2013.gridfit_test
+%   p_cell = NEURON.reproductions.Hokanson_2013.gridfit_test
 %
 %   Written for Ivana's presentation
 %   Eventually we will build in a testing framework
@@ -34,11 +34,9 @@ ldo = rh.getLoggedDataObject;
 
 %NOTE: We can edit st to use different training locations
 
+n_approaches = 1;
 
-
-keyboard
-
-
+p_cell = cell(1,n_approaches);
 for iApproach = 1:n_approaches
     
     %Change things here that we want to be different between the different
@@ -50,7 +48,16 @@ for iApproach = 1:n_approaches
 %            rh  = NEURON.xstim.single_AP_sim.request_handler(xstim,STIM_SIGN);
 %     end
     
-    predictor_info = rh.runTester(st);
-    
+    rng(1) %This should be an input
+    p_cell{iApproach} = rh.runTester(st);
 end
+
+
+%Moving average filter of threshold errors
+% p = p_cell{1};
+% plot(abs(p.threshold_prediction_error),'o')
+% B = 1./100*ones(1,100);
+% A = 1;
+% temp = filter(B,A,abs(p.threshold_prediction_error));
+% plot(temp,'o')
 

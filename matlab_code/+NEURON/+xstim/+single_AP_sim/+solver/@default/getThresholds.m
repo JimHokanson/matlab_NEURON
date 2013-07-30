@@ -47,6 +47,7 @@ cur_sim_index = 0;
 %TODO: Change time for maximum stimulus here to avoid warning messing
 %things up ...
 
+all_threshold_results = [];
 
 while ~isempty(indices)
     
@@ -60,6 +61,13 @@ while ~isempty(indices)
     %Class: NEURON.xstim.single_AP_sim.threshold_simulation_results
 
     threshold_result_obj.logResults();
+    
+    if isempty(all_threshold_results)
+       all_threshold_results = threshold_result_obj;
+    else
+       all_threshold_results.mergeObjects(threshold_result_obj);
+    end
+    
 
     fprintf('Last Index: %d, group avg time: %0.3g, error: %0.3g\n',...
         cur_sim_index,toc(t_group)/n_indices,threshold_result_obj.avg_error);
@@ -79,7 +87,7 @@ while ~isempty(indices)
     end
 end
 
-%????
+predictor_info = all_threshold_results;
 
 
 end
