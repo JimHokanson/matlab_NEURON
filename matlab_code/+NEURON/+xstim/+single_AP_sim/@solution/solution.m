@@ -18,7 +18,7 @@ classdef  solution < sl.obj.handle_light
     properties
         cell_locations   %[n x 3]
         thresholds       %[1 x n]
-        solve_dates      %
+        solve_dates      %[1 x n]
         predictor_types  %[1 x n]
         ranges           %[n x 2]
     end
@@ -53,12 +53,13 @@ classdef  solution < sl.obj.handle_light
             %
             
             new_obj = NEURON.xstim.single_AP_sim.solution([]);
+            
             new_obj.cell_locations   = obj.cell_locations(I,:);
             new_obj.thresholds       = obj.thresholds(I);
             new_obj.solve_dates      = obj.solve_dates(I);
             new_obj.predictor_types  = obj.predictor_types(I);
             new_obj.ranges           = obj.ranges(I,:);
-            new_obj.hash = now;  
+            new_obj.hash             = now;  
         end
         function appplied_stim_obj = getAppliedStimulusObject(obj,xstim_obj)
            %
@@ -105,7 +106,7 @@ classdef  solution < sl.obj.handle_light
             %
             %   OUTPUTS
             %   ===========================================================
-            %   match_result : Class : NEURON.xstim.single_AP_sim.solution.match_result
+            %   match_result: NEURON.xstim.single_AP_sim.solution.match_result
             %
             %   INPUTS
             %   ===========================================================
@@ -113,16 +114,33 @@ classdef  solution < sl.obj.handle_light
             %
             %   See Also:
             %   NEURON.xstim.single_AP_sim.solution.match_result
-            %
             
             if ~isempty(obj.cell_locations)
-                [mask,loc]   = ismember(new_cell_locations,obj.cell_locations,'rows');
+                [mask,loc] = ismember(new_cell_locations,obj.cell_locations,'rows');
             else
                 n_rows = size(new_cell_locations,1);
                 mask = false(n_rows,1);
                 loc  = zeros(n_rows,1);
             end
             match_result = NEURON.xstim.single_AP_sim.solution.match_result(obj,mask,loc,new_cell_locations(~mask,:));
+        end
+        function flag = issorted(obj)
+           flag = issorted(obj.cell_locations,'rows'); 
+        end
+    end
+    
+    methods
+        function sorted_obj = getSortedObject(obj)
+           %getSortedObject
+           %    
+           %    sorted_obj = getSortedObject(obj)
+           %
+           %    NOTE: This should be used with caution because it
+           %    creates a new object. This was written for a static
+           %    
+           
+           [~,I] = sortrows(obj.cell_locations);
+           sorted_obj = obj.getPartialObject(I);
         end
     end
     

@@ -49,9 +49,9 @@ function adjustBoundsGivenMaxScale(obj,max_scale)
 %       - I also need to only test the extremes in the position and grow
 %       along the max gradient, or for simplicity, the limiting point
 %       - in other words, if the limit is the following for a side
-%       - 1 2 1 
+%       - 1 2 1
 %         2 3 2         Then we should only test the middle value out
-%         1 2 1         until we max, then run this current approach 
+%         1 2 1         until we max, then run this current approach
 %                       after that point
 %   2) In higher level function after getting thresholds ensure that we
 %   never observed reverse recruitment order as this would invalidate
@@ -62,7 +62,7 @@ function adjustBoundsGivenMaxScale(obj,max_scale)
 %   right stimuli this is technically possible to accomplish, so an error
 %   checking mechanism should be in place.
 %       min_shells = min(...) %Would need to finish code
-%       Where is the center? 
+%       Where is the center?
 %       center can be defined as the minimum
 %       if any(diff(min_shells) > 0)
 %           error
@@ -101,17 +101,21 @@ while ~done
     if cur_index == 3  %NOTE: For right now we'll only run this once ...
         for iSide = 1:4
             if too_small(iSide)
-                %NOTE: This could be improved ...
-                %We are only using two points
-                new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'linear','extrap');
-                
-                %DEBUG PLOTTING ...
-%                 plot(min_history_all(1:3,iSide),bounds_all(1:3,iSide),'-o')
-%                 hold all
-%                 plot(max_scale,new_bound,'-o');
-%                 hold off
-                
-                obj.setBoundValue(iSide,new_bound);
+                if abs(min_history_all(3,iSide) > min_history_all(2,iSide))
+                    %NOTE: This could be improved ...
+                    %We are only using two points
+                    new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'linear','extrap');
+                    
+                    %DEBUG PLOTTING ...
+                    %                 plot(min_history_all(1:3,iSide),bounds_all(1:3,iSide),'-o')
+                    %                 hold all
+                    %                 plot(max_scale,new_bound,'-o');
+                    %                 hold off
+                    
+                    obj.setBoundValue(iSide,new_bound);
+                else
+                    obj.growBounds(iSide);
+                end
             end
         end
     else
@@ -120,21 +124,21 @@ while ~done
     
     [too_small,min_abs_value_per_side] = obj.checkBounds(max_scale);
     
-    %NOTE: This is where I was thinking of putting in some logic that 
+    %NOTE: This is where I was thinking of putting in some logic that
     %looked for where the minimum might be, and then only testing in that
     %area instead of testing the entire side
     %-----------------------------------------------------------------------
-%     %Crap we need to take into account only reshaping some dimensions ...
-%     i.e. xsides will grow if y changes
-%
-%    2:end-1 if both y's a reshaped
-%    1:end-1 if only top (bottom?) is changed
-%    2:end  if ...
-%     
-%     thresh_diff = cell(1,4);
-%     for iSide = 1:4
-%        thresh_diff = thresh2{iSide}(2:end-1,:) - thresh{iSide};
-%     end
+    %     %Crap we need to take into account only reshaping some dimensions ...
+    %     i.e. xsides will grow if y changes
+    %
+    %    2:end-1 if both y's a reshaped
+    %    1:end-1 if only top (bottom?) is changed
+    %    2:end  if ...
+    %
+    %     thresh_diff = cell(1,4);
+    %     for iSide = 1:4
+    %        thresh_diff = thresh2{iSide}(2:end-1,:) - thresh{iSide};
+    %     end
     
     fprintf('Current min: %0.1f\n',min(min_abs_value_per_side));
     

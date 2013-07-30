@@ -37,10 +37,7 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
        %.getStimulusMatches()
        d1 = '---- Populate with applyStimulusMatchInfo ----'
        match_info_computed = false
-       
-       
-       
-       
+
        redundant_new_indices__with_old_source
        old_index_sources
        
@@ -63,6 +60,20 @@ classdef applied_stimulus_matcher < sl.obj.handle_light
         end
         function reset(obj)
            obj.match_info_computed = false;
+           %Yes, some rely on being empty!
+           
+           %TODO: Create method that copies
+           %from the default values with the ability to ignore
+           %copying certain properties ...
+           
+           obj.redundant_new_indices__with_old_source = [];
+           obj.old_index_sources = [];
+           obj.redundant_new_indices__with_new_source = [];
+           obj.new_index_sources  = [];
+           obj.unique_old_indices = [];
+           obj.unique_new_indices = [];
+           
+           
            %Reset other properties ????
         end
         function applyStimulusMatchesCallback(obj)

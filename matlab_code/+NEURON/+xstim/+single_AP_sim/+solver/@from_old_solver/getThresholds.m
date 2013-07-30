@@ -28,11 +28,13 @@ new_stim_obj = obj.stimulus_manager.new_stimuli;
 
 [ispresent,loc] = ismember(new_stim_obj.stimulus,sd.applied_stimulus_matrix,'rows');
 
-thresholds = sd.threshold_values(loc(ispresent));
-ranges = [thresholds(:)-ACC thresholds(:)+ACC]; %
-ranges(ranges < 0) = 0.0001;
+if any(ispresent)
+    thresholds = sd.threshold_values(loc(ispresent));
+    ranges = [thresholds(:)-ACC thresholds(:)+ACC]; %
+    ranges(ranges < 0) = 0.0001;
 
-addSolutionResults(obj,find(ispresent),thresholds,1,ranges)
+    addSolutionResults(obj,find(ispresent),thresholds,1,ranges)
+end
 
 if all(ispresent)
    return 
@@ -40,7 +42,7 @@ end
 
 
 %I don't like the code duplication but I'm not sure if this will ever
-%really run ...
+%really run. This is also temporary code ...
 
 
 

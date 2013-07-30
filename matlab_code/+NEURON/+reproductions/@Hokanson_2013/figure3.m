@@ -13,6 +13,8 @@ import NEURON.reproductions.*
 EL_LOCATIONS = {[0 -50 -200; 0 50 200]      [-200 0 0;200 0 0]};
 TITLE_STRINGS = {'Longitudinal pairings'    'Transverse pairings'};
 
+P.XLIM = [0 6e8];
+
 C.MAX_STIM_AMPLITUDE_DEFAULT = 30; %For 0.2 ms width ...
 C.FIBER_DIAMETER           = 15;
 C.STIM_WIDTHS_ALL          = [0.050 0.100 0.2 0.40 1 2];
@@ -20,8 +22,8 @@ C.DEFAULT_WIDTH_INDEX = find(C.STIM_WIDTHS_ALL  == 0.2);
 C.STIM_START_TIME   = 0.1;
 C.PHASE_AMPLITUDES  = [-1 0.5];
 n_stim_widths              = length(C.STIM_WIDTHS_ALL);
-C.MERGE_SOLVERS  = true;
-C.USE_NEW_SOLVER = false;
+C.MERGE_SOLVERS  = false;
+C.USE_NEW_SOLVER = true;
 C.QUICK_TEST     = false;
 
 %We might make a separate function that examines reproducing
@@ -34,7 +36,7 @@ obj = NEURON.reproductions.Hokanson_2013;
 avr = Hokanson_2013.activation_volume_requestor(obj);
 avr.fiber_diameter = C.FIBER_DIAMETER;
 avr.quick_test     = C.QUICK_TEST ;
-%avr.merge_solvers = C.MERGE_SOLVERS;
+avr.merge_solvers  = C.MERGE_SOLVERS;
 avr.use_new_solver = C.USE_NEW_SOLVER;
 
 max_stim_amplitudes_by_width = helper__getMaxStimulusAmplitudesByWidth(obj,C);
@@ -68,9 +70,10 @@ for iPair = 1:2
     final_strings = sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
         
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
-    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair});
+    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair},'x_by_single_volume',true);
     legend(final_strings)
     title(TITLE_STRINGS{iPair})
+    set(gca,'Xlim',P.XLIM);
 end
 
 

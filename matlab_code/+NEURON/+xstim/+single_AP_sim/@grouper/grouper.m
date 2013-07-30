@@ -34,7 +34,8 @@ classdef grouper < sl.obj.handle_light
        %   1) stimulus_manager
        %   2) new_data - only work with unsolved points (non-redundant)
        %    Anything else????
-       
+       opt__max_non_rand_size = 10000 %Maximum # of points before
+       %just using random points ...
        opt__min_group_size  = 20
        opt__n_bins          = 20  %This is the target size. If the # of 
        %entries in a group is less than .opt__min_group_size then

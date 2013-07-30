@@ -46,14 +46,15 @@ classdef solver < sl.obj.handle_light
         
         grouper %NEURON.xstim.single_AP_sim.grouper.initialize
         binary_search_adjuster   %NEURON.xstim.single_AP_sim.binary_search_adjuster
-        predicter
+        predicter %NEURON.xstim.single_AP_sim.predicter
     end
     
     properties (Dependent)
-        all_done %References the new_data object ...
-        dim_reduction_options    %NEURON.xstim.single_AP_sim.dim_reduction_options
+        all_done    %References the new_data object ...
+        dim_reduction_options %NEURON.xstim.single_AP_sim.dim_reduction_options
     end
     
+    %Dependent Methods ====================================================
     methods
         function value = get.all_done(obj)
             value = obj.new_data.all_done;
@@ -79,11 +80,11 @@ classdef solver < sl.obj.handle_light
                     error('Solver type not recognized')
             end
             
-            s.xstim       = xstim_obj;
-            s.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(s);
+            s.xstim = xstim_obj;
             
-            s.predicter                = NEURON.xstim.single_AP_sim.predicter(s);
-            s.grouper                  = NEURON.xstim.single_AP_sim.grouper(s);
+            s.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(s);
+            s.predicter        = NEURON.xstim.single_AP_sim.predicter(s);
+            s.grouper          = NEURON.xstim.single_AP_sim.grouper(s);
             s.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(s);
             
         end
