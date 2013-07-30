@@ -71,17 +71,17 @@ clc
 %==========================================================================
 % Even Better training data???
 
-x = 1:2:9;
-y = 1:2:9;
-z = 1:2:9;
+x = 1:3:12;
+y = 1:3:12;
+z = 1:3:12;
 
 [X,Y,Z] = ndgrid(x,y,z);
 
 T = 2*X(:)+ Y(:) + 4*Z(:).^2 + 5;
 
-xn3 = 0:10;
-yn3 = 0:10;
-zn3 = 0:10;
+xn3 = 0:13;
+yn3 = 0:13;
+zn3 = 0:13;
 
 tn3 = gridN(X(:),Y(:),Z(:),T(:),xn3,yn3,zn3);
 
@@ -100,7 +100,32 @@ title('Real(b) and Predicted(g) values w/ even better training?')
 grid on
 
 subplot(2,1,2)
-err3 = 100*abs(treal3 - tn3)/treal3;
+err3 = 100*abs(treal3 - tn3)/treal3; %check this is developed right...
 plot(err3,'r')
 title('Percent error for values above')
 grid on
+
+%==========================================================================
+%Visulaization
+%==========================================================================
+
+figure
+scatter3(Xr3(:),Yr3(:),Zr3(:), [], tn3(:), 'filled')
+
+%--------------------------------------------------------------------------
+figure
+
+t = reshape(tn3, length(xn3), length(yn3), length(zn3));
+slice(t, [], [], 1:size(t,3))
+shading flat
+%--------------------------------------------------------------------------
+for k = 1:4
+figure
+
+imagesc(t(:,:,k))
+end
+
+
+
+
+

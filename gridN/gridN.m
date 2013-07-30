@@ -13,13 +13,14 @@ function [ out ] = gridN( x,y,z,t,xnodes,ynodes,znodes, varargin )
 % http://www.mathworks.com/matlabcentral/fileexchange/8998-surface-fitting-using-gridfit
 % 7/9/2013
 
-params.interp = 'linear';
 params.regularizer = 'gradient';
 params.xscale = 1;
 params.yscale = 1;
 params.zscale = 1;
 
-% setParams( params, varargin(:) );
+in.interp = 'tetrahedral';
+in = sl.in.processVarargin(in, varargin); %for now...
+params.interp = in.interp;
 
 % check lengths of the data
 n = length(x);
@@ -30,7 +31,7 @@ if n<3
     error 'Insufficient data for surface estimation.'
 end
 
-% verify the nodes are distinct %WHY was this needed?
+% verify the nodes are distinct 
 if any(diff(xnodes)<=0) || any(diff(ynodes)<=0) || any(diff(znodes)<=0)
     error 'xnodes and ynodes must be monotone increasing'
 end
@@ -84,8 +85,8 @@ S = [S;P*(NA/NR)];
 %Solve
 rhs = t;
 rhs = [rhs;zeros(temp,1)];
-%out = S\rhs;
-out = reshape(S\rhs,nx,ny,nz);          %syntax?
+out = S\rhs;
+%out = reshape(S\rhs,nx,ny,nz);          %syntax?
 end
 
 
@@ -137,37 +138,43 @@ ty = min(1,max(0,(y - ynodes(indy))./dy(indy)));
 tz = min(1,max(0,(z - znodes(indz))./dz(indz)));
 
 switch(interp)
-    case 'tetrahedral' %needs testing!!!
+    case 'tetrahedral' 
         indMat1 = repmat((1:n),1,4);
-        [~, maxt] = max(tx,ty,tz);
-        [~, mint] = min(tx,ty,tz);
-        temp = [1, dx, dy*dx];
-        delta = [temp(maxt), temp(mint)];
+        tMat = [tx';ty';tz'];
+        [~, maxt] = max(tMat);
+        mxind = sub2ind([3,n],maxt,1:n);
+        tMat(mxind) = nan; %ignore the max values when finding min
+        [~, mint] = min(tMat); %max cannot be the min...
+        temp = [1, nx, ny.*nx];
+        delta = [temp(maxt'); temp(mint')];
         indMat2 = [ind, ind+delta(1), ind+delta(2), ind+(ny*nx)+nx+1];
-        %V =  1; %so this is not necessary...
-        %hardcoded for now... :P
-        temp = [tx, ty, tz];
-        delta = [temp(maxt), temp(mint)];
-        maxsp = sparse(1:n,maxt,delta(1),n,3);
-        minsp = sparse(1:n,mint,delta(2),n,3);
-        % I need to find a better way of finding the determinant w/o this
-        % hardcoded nonsense XP
-        v1 = ; %not sure yet;
-        v2 = (tx.*minsp(2,:)+tz.*minsp(1,:)+ty.*minsp(3,:)) - (tz.*minsp(2,:)+ty.*minsp(1,:)+tx.*minsp(3,:));
-        v3 = (tx.*maxsp(2,:)+tz.*maxsp(1,:)+ty.*maxsp(3,:)) - (tz.*maxsp(2,:)+ty.*maxsp(1,:)+tx.*maxsp(3,:));
+     
+        maxsp = sparse(1:n,maxt,ones(n,1),n,3);
+        minsp = sparse(1:n,mint,ones(n,1),n,3);
         
-        v4 = (tz.*maxsp(1,:).*minsp(2,:) + ty.*maxsp(3,:).*minsp(1,:) + ...
-              tx.*maxsp(2,:).*minsp(3,:)) - ...
-             (tx.*maxsp(3,:).*minsp(2,:) + tx.*maxsp(2,:).*minsp(1,:) + ...
-              ty.*maxsp(1,:).*minsp(3,:));
-        dstMat  = (1/6)*[v1,v2,v3,v4];
+        % I need to find a better way of finding the determinant w/o this
+        % hardcoded nonsense XP. ie using det()... :P
+        v1 = (maxsp(:,1)-tx).*(minsp(:,2)-ty) + (maxsp(:,3)-tz).*(minsp(:,1)-tx) + ...
+             (maxsp(:,2)-ty).*(minsp(:,3)-tz) - ...
+            ((maxsp(:,3)-tz).*(minsp(:,2)-ty) + (maxsp(:,2)-ty).*(minsp(:,1)-tx) + ...
+             (maxsp(:,1)-tx).*(minsp(:,3)-tz)); 
+          
+        v2 = (tx.*minsp(:,2)+tz.*minsp(:,1)+ty.*minsp(:,3)) - (tz.*minsp(:,2)+ty.*minsp(:,1)+tx.*minsp(:,3));
+        v3 = (tx.*maxsp(:,2)+tz.*maxsp(:,1)+ty.*maxsp(:,3)) - (tz.*maxsp(:,2)+ty.*maxsp(:,1)+tx.*maxsp(:,3));
+        
+        v4 = (tz.*maxsp(:,1).*minsp(:,2) + ty.*maxsp(:,3).*minsp(:,1) + ...
+              tx.*maxsp(:,2).*minsp(:,3)) - ...
+             (tx.*maxsp(:,3).*minsp(:,2) + tx.*maxsp(:,2).*minsp(:,1) + ...
+              ty.*maxsp(:,1).*minsp(:,3));
+        dstMat  = [v1; v2; v3; v4];
+        
     case 'nearest' % nearest neighbor interpolation in a cell
         k = round(1-tx) + round(1-ty)*nx + round(1-tz)*nx*ny;
         indMat1 = (1:n)';       %row indices
         indMat2 = ind+k;        %col indices 
         dstMat  = ones(n,1);    %corresponding values.
         
-    case 'linear' %uses linear/bilinear/trilinear interpolation
+    case 'linear' %uses trilinear interpolation
         cmb = 2^var; % cmb == 8...
         indMat1 = repmat((1:n)',1,cmb);
         indMat2 = [ind,    ind+1,    ind+nx,    ind+nx+1,...
@@ -255,45 +262,15 @@ function Areg = helper__regularMatrix(params, nx, ny, nz, dx, dy, dz)
 %            and values. here It is needed for .regularizer and the scales
 %   nx, ny, nz: lengths of x,y,z vectors (from main function) respectively
 %   dx, dy, dz: first differnce of x,y,z nodes from main function.
-%   input_3 : (default -1),
 %
 
 ngrid = nx*ny*nz;
 
 switch(params.regularizer)
-    case 'laplacian' %??? needs testing
-        % X gradient regularization
-        [i,j,k] = ndgrid(2:(nx-1),1:ny,1:nz);
-        ind = i(:) + nx*(j(:)-1) + ny*nx*(k(:)-1);
-        dx1 = dx(i(:)-1)/params.xscale;
-        dx2 = dx(i(:))/params.xscale;
-        
-        Areg = sparse(repmat(ind,1,3),[ind-1,ind,ind+1], ...
-            [-2./(dx1.*(dx1+dx2)), ...
-            2./(dx1.*dx2), -2./(dx2.*(dx1+dx2))],ngrid,ngrid);
-        
-        % Addition of Y gradient regularization
-        [i,j,k] = ndgrid(1:nx,2:(ny-1),1:nz);
-        ind = i(:) + nx*(j(:)-1) + ny*nx*(k(:)-1);
-        dy1 = dy(j(:)-1)/params.yscale;
-        dy2 = dy(j(:))/params.yscale;
-        
-        Areg = Areg + sparse(repmat(ind,1,3),[ind-nx,ind,ind+nx], ...
-            [-2./(dy1.*(dy1+dy2)), ...
-            2./(dy1.*dy2), -2./(dy2.*(dy1+dy2))],ngrid,ngrid);
-        
-        % Addition of Z gradient regularization
-        [i,j,k] = ndgrid(1:nx,1:ny,2:(nz-1));
-        ind = i(:) + nx*(j(:)-1) + ny*nx*(k(:)-1);
-        dz1 = dz(k(:)-1)/params.zscale;
-        dz2 = dz(k(:))/params.zscale;
-        
-        Areg = Areg + sparse(repmat(ind,1,3),[ind-(nx*ny),ind,ind+(nx*ny)], ...
-            [-2./(dz1.*(dz1+dz2)), ...
-            2./(dz1.*dz2), -2./(dz2.*(dz1+dz2))],ngrid,ngrid);
         
     case 'gradient'
-    %In what order should these be developed???
+    %In what order should these be developed??? and this doesn't always
+    %work well... It needs more testing...
         % X gradient regularization
         [i,j,k] = ndgrid(2:(nx-1),1:ny,1:nz);
         ind = i(:) + nx*(j(:)-1) + ny*nx*(k(:)-1);
