@@ -5,10 +5,10 @@ classdef Hokanson_2013
     %   See Also:
     %   NEURON.reproductions.Hokanson_2013.activation_volume_requestor
     %   NEURON.reproductions.Hokanson_2013.activation_volume_results
-        
+    
     properties (Constant)
         %MRG Diameters:
-        %[5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;]; %These are all the 
+        %[5.7, 7.3, 8.7, 10, 11.5, 12.8, 14, 15, 16;]; %These are all the
         %discrete diameters implemented in the original model.
         ALL_DIAMETERS = [5.7, 7.3 8.7, 10, 12.8, 15];
         ALL_ELECTRODE_PAIRINGS = {
@@ -56,9 +56,11 @@ classdef Hokanson_2013
         figure1()
         figure2()
         figure3()
+        figure7()
         respondsAtHighStimulusTest()
         accuracyTest()
         refractoryPeriodTest()
+        p_cell = gridfit_test()
     end
     
     %In other files
@@ -69,7 +71,7 @@ classdef Hokanson_2013
     
     methods
     end
-        
+    
     methods (Hidden)
         function xstim = instantiateXstim(obj,electrode_locations)
             %
@@ -79,127 +81,163 @@ classdef Hokanson_2013
                 'electrode_locations',electrode_locations,...
                 'tissue_resistivity',obj.TISSUE_RESISTIVITY};
             xstim = NEURON.simulation.extracellular_stim.create_standard_sim(options{:});
-        end 
+        end
     end
     methods (Access = private,Hidden)
         function final_strings = getElectrodeSeparationStrings(obj,electrode_locations)
-           %If the dimension to use is empty, use all, if not 
-           
-           if ~iscell(electrode_locations)
-               electrode_locations = cell(electrode_locations);
-           end
-           
-           if any(cellfun(@(x) size(x,1) ~= 2,electrode_locations))
-              error('Code only supports two electrodes') 
-           end
-           
-           %The goal is to go from an element like:
-           %[0 100 200; 0 -100 200] to
-           %'200 y, 400 z'
-           
-           dx = cellfun(@(x) abs(x(1,1) - x(2,1)),electrode_locations);
-           dy = cellfun(@(y) abs(y(1,2) - y(2,2)),electrode_locations);
-           dz = cellfun(@(z) abs(z(1,3) - z(2,3)),electrode_locations);
-           
-           sx = arrayfun(@(x) sprintf('%d x',x),dx,'un',0);
-           sy = arrayfun(@(y) sprintf('%d y',y),dy,'un',0);
-           sz = arrayfun(@(z) sprintf('%d z',z),dz,'un',0);
-           
-           sx(dx == 0) = {''};
-           sy(dy == 0) = {''};
-           sz(dz == 0) = {''};
-           
-           final_strings = cellfun(@(x,y,z) sl.cellstr.join({x y z},'d',', ','remove_empty',true),sx,sy,sz,'un',0);
-           
-           
-        end
-        function plotSlices(obj,rs,rd,titles)
-           %
-           %    cell array of objects of type:
-           %    NEURON.reproductions.Hokanson_2013.activation_volume_results
-           %    rs
-           %    rd
-           %
+            %If the dimension to use is empty, use all, if not
             
-           in.one_by_two = true; %Two columns
-           in.same_clim  = true; %If true all plots will have
-           %the same clim, otherwise only the pair will (single and double)
-           %for a current setting
-           in.clim_increment = 5; %Round up to the next
-           %multiple of some value for display ...
-           
-           in = sl.in.processVarargin();
-           
-           if in.one_by_two
-               m = 1;
-               n = 2;
-           else
-               m = 2;
-               n = 1;
-           end
-           
-           ax = zeros(length(rs),2);
-           for iSet = 1:n_sets
-              cur_rs = rs{iSet}; 
-              cur_rd = rd{iSet};
-              
-              ax(iSet,1) = subplot(m,n,1);
-              keyboard
-              ax(iSet,2) = subplot(m,n,2);
-              
-           end
+            if ~iscell(electrode_locations)
+                electrode_locations = cell(electrode_locations);
+            end
+            
+            if any(cellfun(@(x) size(x,1) ~= 2,electrode_locations))
+                error('Code only supports two electrodes')
+            end
+            
+            %The goal is to go from an element like:
+            %[0 100 200; 0 -100 200] to
+            %'200 y, 400 z'
+            
+            dx = cellfun(@(x) abs(x(1,1) - x(2,1)),electrode_locations);
+            dy = cellfun(@(y) abs(y(1,2) - y(2,2)),electrode_locations);
+            dz = cellfun(@(z) abs(z(1,3) - z(2,3)),electrode_locations);
+            
+            sx = arrayfun(@(x) sprintf('%d x',x),dx,'un',0);
+            sy = arrayfun(@(y) sprintf('%d y',y),dy,'un',0);
+            sz = arrayfun(@(z) sprintf('%d z',z),dz,'un',0);
+            
+            sx(dx == 0) = {''};
+            sy(dy == 0) = {''};
+            sz(dz == 0) = {''};
+            
+            final_strings = cellfun(@(x,y,z) sl.cellstr.join({x y z},'d',', ','remove_empty',true),sx,sy,sz,'un',0);
+            
+            
+        end
+        function plotSlices(obj,rs,rd,titles,varargin)
+            %
+            %    cell array of objects of type:
+            %    NEURON.reproductions.Hokanson_2013.activation_volume_results
+            %    rs
+            %    rd
+            %
+            
+            in.one_by_two = true; %Two columns
+            in.same_clim  = true; %If true all plots will have
+            %the same clim, otherwise only the pair will (single and double)
+            %for a current setting
+            in.clim_increment = 5; %Round up to the next
+            %multiple of some value for display ...
+            
+            in = sl.in.processVarargin(in,varargin);
+            
+            if in.one_by_two
+                m = 1;
+                n = 2;
+            else
+                m = 2;
+                n = 1;
+            end
+            
+            n_sets   = length(rs);
+            max_clim = zeros(n_sets,2);
+            
+            for iSet = 1:n_sets
+                cur_rs = rs{iSet};
+                cur_rd = rd{iSet};
+                max_clim(iSet,1) = max(cur_rs.replicated_slice.max_threshold);
+                max_clim(iSet,2) = max(cur_rd.slice.max_threshold);
+            end
+            
+            %Improvements:
+            %---------------------------------------------------------------
+            %1) Need to be able to limit dimensions ..., i.e. only
+            %    go over y from -300 to 300 - ideally we could set this
+            %    off the extremes ...
+            %   clims will need to be adjusted accordingly ...
+            %2) Remove hardcoded values ...
+            %3) Add display of electrodes ...
+            
+            
+            if in.same_clim
+                max_clim_use = sl.array.roundToPrecision(max(max_clim(:)),in.clim_increment);
+                max_clim_use = 30;
+                max_clim_use = max_clim_use*ones(n_sets,1);
+            else
+                max_clim_use = sl.array.roundToPrecision(max(max_clim,[],2),in.clim_increment);
+            end
+            
+            ax = zeros(n_sets,2);
+            for iSet = 1:n_sets
+                figure
+                cur_rs = rs{iSet};
+                cur_rd = rd{iSet};
+                
+                ax(iSet,1) = subplot(m,n,1);
+                plot(cur_rs.replicated_slice)
+                set(gca,'Clim',[0 max_clim_use(iSet)],'Xlim',[-1000 1000],'Ylim',[-300 300]);
+                colorbar
+                title(titles{iSet,1},'FontSize',18)
+                ax(iSet,2) = subplot(m,n,2);
+                plot(cur_rd.slice)
+                set(gca,'Clim',[0 max_clim_use(iSet)],'Xlim',[-1000 1000],'Ylim',[-300 300]);
+                colorbar
+                title(titles{iSet,2},'FontSize',18)
+                linkaxes(ax(iSet,:),'xy')
+            end
         end
         function plotVolumeRatio(obj,rs,rd,varargin)
-           %
-           %    INPUTS
-           %    ==========================================
-           %    Class: NEURON.reproductions.Hokanson_2013.activation_volume_results
-           %    rs : cell array of objects
-           %    rd : cell array of objects ...
-           %
-           %    Crap, how to determine overlap for 2 electrodes ...
-           %
-           %    This turns out to be really tricky and is probably
-           %    best done by hand ...
-           
-           in.x_by_single_volume = false;
-           in = sl.in.processVarargin(in,varargin);
-           
-           FONT_SIZE = 18;
+            %
+            %    INPUTS
+            %    ==========================================
+            %    Class: NEURON.reproductions.Hokanson_2013.activation_volume_results
+            %    rs : cell array of objects
+            %    rd : cell array of objects ...
+            %
+            %    Crap, how to determine overlap for 2 electrodes ...
+            %
+            %    This turns out to be really tricky and is probably
+            %    best done by hand ...
             
-           n_sets = length(rs);
-           
-           hold all
-           for iSet = 1:n_sets
-              cur_rs = rs{iSet};
-              cur_rd = rd{iSet};
-              
-              stim_rs = cur_rs.stimulus_amplitudes;
-              stim_rd = cur_rd.stimulus_amplitudes;
-              
-              if ~isequal(stim_rs,stim_rd)
-                  error('Stimulus amplitude mismatch found')
-              end
-              
-              vol_ratio = cur_rd.counts./cur_rs.counts;
-              
-              if in.x_by_single_volume
-                 plot(cur_rs.counts,vol_ratio,'Linewidth',3)
-              else
-                 plot(stim_rs,vol_ratio,'Linewidth',3) 
-              end
-           end
-
-           set(gca,'FontSize',FONT_SIZE)
-           if in.x_by_single_volume
-               xlabel('1 um voxels','FontSize',FONT_SIZE)
-           else
-               xlabel('Stimulus Amplitude (uA)','FontSize',FONT_SIZE)
-           end
-           ylabel('Volume Ratio','FontSize',FONT_SIZE)
+            in.x_by_single_volume = false;
+            in = sl.in.processVarargin(in,varargin);
+            
+            FONT_SIZE = 18;
+            
+            n_sets = length(rs);
+            
+            hold all
+            for iSet = 1:n_sets
+                cur_rs = rs{iSet};
+                cur_rd = rd{iSet};
+                
+                stim_rs = cur_rs.stimulus_amplitudes;
+                stim_rd = cur_rd.stimulus_amplitudes;
+                
+                if ~isequal(stim_rs,stim_rd)
+                    error('Stimulus amplitude mismatch found')
+                end
+                
+                vol_ratio = cur_rd.counts./cur_rs.counts;
+                
+                if in.x_by_single_volume
+                    plot(cur_rs.counts,vol_ratio,'Linewidth',3)
+                else
+                    plot(stim_rs,vol_ratio,'Linewidth',3)
+                end
+            end
+            
+            set(gca,'FontSize',FONT_SIZE)
+            if in.x_by_single_volume
+                xlabel('1 um voxels','FontSize',FONT_SIZE)
+            else
+                xlabel('Stimulus Amplitude (uA)','FontSize',FONT_SIZE)
+            end
+            ylabel('Volume Ratio','FontSize',FONT_SIZE)
         end
         function [xz_amp,xz_value] = getLimitAmplitudes(rs,rd,y_values)
-           
+            
             keyboard
             
         end

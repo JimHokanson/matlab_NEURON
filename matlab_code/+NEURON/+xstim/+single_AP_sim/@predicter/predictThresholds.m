@@ -81,7 +81,7 @@ elseif n_known < 5000
         
         I_NaN = find(isnan(predicted_thresholds));
         if ~isempty(I_NaN)
-            predicted_thresholds(I_NaN) = obj.getDefaultPrediction(obj,length(I_NaN));
+            predicted_thresholds(I_NaN) = obj.getDefaultPrediction(length(I_NaN));
         end
     end
 else

@@ -3,16 +3,31 @@ classdef predicter < sl.obj.handle_light
     %   Class:
     %   NEURON.xstim.single_AP_sim.predicter
     %
+    %   The goal of this class is to take a set of new data points and 
+    %   to predict stimulus threshold values. Specifically it must have
+    %   a method predictThresholds() which takes in new indices and outputs
+    %   predicted threshold values.
+    %
+    %   The current class uses a low dimensional representation of the
+    %   stimulus to predict 
+    %
+    %   Initialization of the object
     
     properties
-        s
-        opt__min_prediction_size = 20; %Minimum # of elements
-        %that must be known before we attempt to do prediction ...
-        opt__default_prediction_magnitude = 1; %When we can't 
+        s %NEURON.xstim.single_AP_sim.solver
     end
     
     properties
-        initialized = false
+        opt__min_prediction_size = 20; %Minimum # of elements
+        %that must be known before we attempt to do prediction. If
+        %prediction is not done, then a default value is used.
+        opt__default_prediction_magnitude = 1; %This is the default value
+        %used when the predicter feels it doesn't have enough value to make
+        %a prediction.
+    end
+    
+    properties
+        initialized = false %Local 
         old_low_d_stimulus  %Unique full set
         old_thresholds      
         new_low_d_stimulus  %Full set, we'll decimate as necessary

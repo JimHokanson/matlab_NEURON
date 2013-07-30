@@ -12,17 +12,20 @@ function figure1()
 
 import NEURON.reproductions.*
 
+P.Y_LIM = [1 4];
+
 C.MAX_STIM_TEST_LEVEL      = 30;
 C.FIBER_DIAMETER           = 15;
 
 TITLE_STRINGS = {'Longitudinal pairings' 'Transverse pairings'};
 EL_INDICES    = {15:-1:9    8:-1:2};
+SLICE_DIMS    = {'zy' 'xz'};
 
 obj = Hokanson_2013;
 avr = Hokanson_2013.activation_volume_requestor(obj);
 avr.fiber_diameter = C.FIBER_DIAMETER;
 
-avr.quick_test     = true;
+avr.quick_test     = false;
 %avr.merge_solvers  = true;
 avr.use_new_solver = true;
 
@@ -33,7 +36,7 @@ rd_all = cell(1,2);
 for iPair = 1:2
     electrode_locations_test = obj.ALL_ELECTRODE_PAIRINGS(EL_INDICES{iPair});
     
-    avr.slice_dim = iPair; %Long slice on x, trans on y
+    avr.slice_dims = SLICE_DIMS{iPair};
     
     rs_all{iPair}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL,...
         'single_with_replication',true);
@@ -41,10 +44,16 @@ for iPair = 1:2
 end
 
 keyboard
+
+%Temporary code I'm working on ...
+% cur_rs = rd_all{1}{4};
+% IJK = sl.xyz.locationsToIndices(cur_rs.electrode_locations,cur_rs.xyz_used);
+% [a,b,c] = NEURON.reproductions.Hokanson_2013.minPathValue(cur_rs.raw_abs_thresholds, IJK(1,:), IJK(2,:));
+
 %Plotting results
 %--------------------------------------------------------------------------
 for iPair = 1:2
-    
+    subplot(1,2,iPair)
     electrode_locations_test = obj.ALL_ELECTRODE_PAIRINGS(EL_INDICES{iPair});
     
     final_strings = obj.getElectrodeSeparationStrings(electrode_locations_test);
@@ -53,6 +62,7 @@ for iPair = 1:2
     obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair});
     legend(final_strings)
     title(TITLE_STRINGS{iPair})
+    set(gca,'YLim',P.Y_LIM);
 end
 
 end

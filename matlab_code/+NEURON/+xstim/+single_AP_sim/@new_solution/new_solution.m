@@ -35,6 +35,11 @@ classdef new_solution < sl.obj.handle_light
     %   NEURON.xstim.single_AP_sim.request_handler
     %   NEURON.xstim.single_AP_sim.predictor
     
+    %Set by solver on a cell to setSystemTester
+    properties
+       system_testing = false;
+    end
+    
     properties
         file_save_path
         stim_sign
@@ -225,7 +230,7 @@ classdef new_solution < sl.obj.handle_light
             %
             %    FULL PATH:
             %    NEURON.xstim.single_AP_sim.new_solution.updateSolutions
-            
+
             if any(obj.solved(indices))
                 %This will eventually be allowed by not yet and perhaps
                 %not by this method ...
@@ -239,9 +244,18 @@ classdef new_solution < sl.obj.handle_light
             obj.prediction_types(indices) = type_or_types;
             obj.ranges(indices,:)         = range_data;
             
+            %This needs to be here, not above
+            if obj.system_testing
+               return 
+            end
+            
             obj.saveToDisk();
         end
         function saveToDisk(obj)
+            
+            if obj.system_testing
+               return 
+            end
             
             s = sl.obj.toStruct(obj,{'will_solve_later' 'will_solve_later_fh'});  %#ok<NASGU>
             %NOTE: We will only reload from disk for merging with old data.
@@ -288,6 +302,10 @@ classdef new_solution < sl.obj.handle_light
             %
             %
             %
+            
+            if obj.system_testing
+               return 
+            end
             
             mask = obj.solved;  %Only pass in solved entries ...
 

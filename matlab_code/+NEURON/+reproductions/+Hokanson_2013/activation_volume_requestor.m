@@ -11,11 +11,11 @@ classdef activation_volume_requestor < sl.obj.handle_light
     
     properties
         stim_resolution  = 0.1
-        slice_dims  = 'xz' %x by z %This should be two elements long
-        slice_value = 0
-        quick_test  = false %If true we get junk results on the integration
+        slice_dims     = 'xz' %x by z %This should be two elements long
+        slice_value    = 0
+        quick_test     = false %If true we get junk results on the integration
         %which can be useful for testing the workflow
-        merge_solvers = false
+        merge_solvers  = false
         use_new_solver = false
     end
     
@@ -100,7 +100,8 @@ classdef activation_volume_requestor < sl.obj.handle_light
                     %NEURON.simulation.extracellular_stim.results.activation_volume
                     
                     if obj.use_new_solver
-                        r = xstim.sim__getSingleAPSolver('solver','from_old_solver');
+                        %r = xstim.sim__getSingleAPSolver('solver','from_old_solver');
+                        r = xstim.sim__getSingleAPSolver('solver','default');
                         act_obj   = xstim.sim__getActivationVolume('request_handler',r);
                     else
                         act_obj   = xstim.sim__getActivationVolume();

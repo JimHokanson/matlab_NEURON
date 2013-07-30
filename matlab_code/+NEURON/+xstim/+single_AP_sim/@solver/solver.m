@@ -31,6 +31,18 @@ classdef solver < sl.obj.handle_light
     %solver Options
     %-----------------------------------------------------
     
+    %Set via setSystemTester
+    properties (SetAccess = private)
+       system_testing = false %Indicates that we are just testing the system
+       %performance. Currently this class uses this flag
+       %to do a switch on the method:
+       %.getThresholdsFromSimulation()
+       %
+       system_tester  = [] %Object referece to type:
+       %NEURON.xstim.single_AP_sim.system_tester if system_testing is true
+       %
+    end
+    
     %Properties for subclass to use =======================================
     properties
         stim_sign    %Sign to solve for, we need to ensure that we never
@@ -46,14 +58,15 @@ classdef solver < sl.obj.handle_light
         
         grouper %NEURON.xstim.single_AP_sim.grouper.initialize
         binary_search_adjuster   %NEURON.xstim.single_AP_sim.binary_search_adjuster
-        predicter
+        predicter %NEURON.xstim.single_AP_sim.predicter
     end
     
     properties (Dependent)
-        all_done %References the new_data object ...
-        dim_reduction_options    %NEURON.xstim.single_AP_sim.dim_reduction_options
+        all_done    %References the new_data object ...
+        dim_reduction_options %NEURON.xstim.single_AP_sim.dim_reduction_options
     end
     
+    %Dependent Methods ====================================================
     methods
         function value = get.all_done(obj)
             value = obj.new_data.all_done;
@@ -79,13 +92,12 @@ classdef solver < sl.obj.handle_light
                     error('Solver type not recognized')
             end
             
-            s.xstim       = xstim_obj;
+            s.xstim = xstim_obj;
+            
             s.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(s);
-            
-            s.predicter                = NEURON.xstim.single_AP_sim.predicter(s);
-            s.grouper                  = NEURON.xstim.single_AP_sim.grouper(s);
+            s.predicter        = NEURON.xstim.single_AP_sim.predicter(s);
+            s.grouper          = NEURON.xstim.single_AP_sim.grouper(s);
             s.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(s);
-            
         end
     end
     
@@ -116,7 +128,11 @@ classdef solver < sl.obj.handle_light
             obj.stimulus_manager.initialize(obj.xstim,new_data,obj.old_data)
             obj.grouper.reset();
             obj.predicter.reset();
-
+        end
+        function setSystemTester(obj,system_tester)
+           obj.system_testing = true;
+           obj.system_tester  = system_tester;
+           obj.new_data.system_testing = true;
         end
         function predictor_info = getThresholdSolutions(obj)
             %
