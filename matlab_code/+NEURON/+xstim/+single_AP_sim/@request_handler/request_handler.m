@@ -52,7 +52,7 @@ classdef request_handler
         function obj = request_handler(xstim,default_stim_sign,varargin)
             %request_handler
             %
-            %   obj = request_handler(parent,default_stim_sign)
+            %   obj = NEURON.xstim.single_AP_sim.request_handler(xstim,default_stim_sign)
             %
             %   See Also:
             %   NEURON.simulation.extracellular_stim.get...???
@@ -145,13 +145,13 @@ classdef request_handler
                 xyz = cell_locations;
             end
             
-            logged_data = NEURON.xstim.single_AP_sim.logged_data(in.stim_sign,obj.xstim_ID);
-            
+            logged_data = NEURON.xstim.single_AP_sim.logged_data(in.stim_sign,obj.xstim_ID,false);
+                     
             %This line checks to see if the requested locations were
             %previously request and solved ...
             match_result = logged_data.checkIfSolved(xyz);
             %NEURON.xstim.single_AP_sim.solution.match_result
-            
+
             if match_result.is_complete_match
                 solution = match_result.getFullSolution();
                 solution = helper__reshapeOutput(solution,in.reshape_output,cell_locations_input);
@@ -182,12 +182,52 @@ classdef request_handler
             if match_result.is_complete_match
                 obj.solution       = match_result.getFullSolution();
                 obj.solution_found = true;
-                solution = obj.solution;
-                solution = helper__reshapeOutput(solution,in.reshape_output,cell_locations_input);
+                solution           = obj.solution;
+                solution           = helper__reshapeOutput(solution,in.reshape_output,cell_locations_input);
                 return
             else
                 error('The predictor failed to populate all solutions')
             end
+        end
+        function predictor_info = runTester(obj,tester_object,varargin)
+            %
+            %   INPUTS
+            %   ==========================================
+            %   tester_object : NEURON.xstim.single_AP_sim.system_tester
+            
+            in.stim_sign      = obj.default_stim_sign; %We use the default
+            %that is specified as an input to the constructor ...
+            in = sl.in.processVarargin(in,varargin); 
+            
+            stim_sign = in.stim_sign;
+            
+            logged_data = NEURON.xstim.single_AP_sim.logged_data(stim_sign,obj.xstim_ID,false);
+
+            tester_object.initialize(logged_data,obj.xstim);
+
+            new_cell_locations = tester_object.unknown_locations();
+            
+            new_data = NEURON.xstim.single_AP_sim.new_solution(stim_sign,obj.xstim_ID,new_cell_locations);
+            
+            %NEURON.xstim.single_AP_sim.solver.initializeSuperProps
+            s = obj.solver;
+            s.initializeSuperProps(logged_data,new_data,in.stim_sign);
+            s.initializeSubclassProps();
+            
+            %setSystemTesting
+            s.setSystemTester(tester_object);
+
+            predictor_info = s.getThresholdSolutions();
+        end
+        function logged_data_object = getLoggedDataObject(obj,varargin)
+           %This can be useful for seeing what it is that we know ...
+           
+            in.stim_sign      = obj.default_stim_sign; %We use the default
+            %that is specified as an input to the constructor ...
+            in = sl.in.processVarargin(in,varargin); 
+           
+           
+           logged_data_object = NEURON.xstim.single_AP_sim.logged_data(in.stim_sign,obj.xstim_ID,true);
         end
     end
 end

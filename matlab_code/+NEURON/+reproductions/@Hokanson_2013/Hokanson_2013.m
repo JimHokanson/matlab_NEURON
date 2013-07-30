@@ -60,6 +60,7 @@ classdef Hokanson_2013
         respondsAtHighStimulusTest()
         accuracyTest()
         refractoryPeriodTest()
+        gridfit_test()
     end
     
     %In other files

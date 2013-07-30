@@ -10,6 +10,14 @@ function threshold_simulation_results = getThresholdsFromSimulation(obj,new_indi
 %   FULL PATH:
 %   NEURON.xstim.single_AP_sim.predictor.threshold_simulation_results
 
+
+%Possible short circuit
+if obj.system_testing
+   threshold_simulation_results = obj.system_tester.getThresholdsFromSimulation(new_indices,predicted_thresholds);
+   return
+end
+
+
 %TODO: We should also check the bounds ...
 %That we don't exceed the min and max bounds ...
 if any(sign(predicted_thresholds) ~= obj.stim_sign)

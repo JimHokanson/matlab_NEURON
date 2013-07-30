@@ -30,6 +30,7 @@ classdef logged_data < sl.obj.handle_light
     end
     
     properties
+        system_testing = false
         file_path %Path to mat file ...
         stim_sign
         xstim_ID  %NEURON.logger.ID
@@ -42,7 +43,7 @@ classdef logged_data < sl.obj.handle_light
     end
     
     methods
-        function obj = logged_data(stim_sign,xstim_ID)
+        function obj = logged_data(stim_sign,xstim_ID,system_testing)
             %logged_data
             %
             %   obj = logged_data(stim_sign,xstim_ID)
@@ -51,6 +52,8 @@ classdef logged_data < sl.obj.handle_light
             %   ===========================================================
             %   stim_sign :
             %   xstim_ID  : NEURON.logger.ID
+            
+            obj.system_testing = system_testing;
             
             base_path = obj.getBasePath(stim_sign);
             file_name = xstim_ID.getSaveString;
@@ -66,6 +69,17 @@ classdef logged_data < sl.obj.handle_light
             %If the new solution object has anything logged on disk
             %we'll merge at this time
             NEURON.xstim.single_AP_sim.new_solution.getNewSolutionData(obj.stim_sign,obj,xstim_ID);
+        end
+        function changeKnownData(obj,indices_to_keep)
+           %
+           %    This is basically used to set training data
+           %
+           %    Written for the system tester
+           %
+           %    changeKnownData(obj,indices_to_keep)
+           
+           obj.solution = obj.solution.getPartialObject(indices_to_keep);
+           
         end
         function loadData(obj,xstim_ID)
             %
@@ -99,11 +113,16 @@ classdef logged_data < sl.obj.handle_light
             %
             %    saveData(obj)
             
-            s.VERSION  = obj.VERSION;
-            s.solution = obj.solution.getStruct();
-            s.VERSION  = obj.VERSION;
-            s.xstim_ID = obj.xstim_ID.getStruct(); %#ok<STRNU>
-            save(obj.file_path,'s')
+            %??? When is this called ????
+            %.addEntries()
+            
+            if ~obj.system_testing
+                s.VERSION  = obj.VERSION;
+                s.solution = obj.solution.getStruct();
+                s.VERSION  = obj.VERSION;
+                s.xstim_ID = obj.xstim_ID.getStruct(); %#ok<STRNU>
+                save(obj.file_path,'s')
+            end
         end
         function match_result = checkIfSolved(obj,new_cell_locations)
             %NOTE: We should also return a solution object
@@ -126,10 +145,11 @@ classdef logged_data < sl.obj.handle_light
             %
             %   This is basically a pass through to the solution.
             
-            %TODO: replace with varargin
-            
-            obj.solution.addToEntry(solve_dates,new_locations,new_thresholds,predictor_types,ranges);
-            obj.saveData();
+            if ~obj.system_testing
+                %NEURON.xstim.single_AP_sim.solution
+                obj.solution.addToEntry(solve_dates,new_locations,new_thresholds,predictor_types,ranges);
+                obj.saveData();
+            end
         end
     end
     
@@ -138,7 +158,17 @@ classdef logged_data < sl.obj.handle_light
             %
             %   NEURON.xstim.single_AP_sim.logged_data.sortData(sign)
             %
+            %   This sorts every saved data file so that future 
+            %   requests are a lot quicker 
+            %
             %   This is a hack ... :/
+            
+            %NOTE: I forget why I had to hack this together ...
+            %I should document this ...
+            %
+            %I think it had something to do with the xstim_id determining
+            %how the data was saved and requiring the xstim_id as an input 
+            %but alas I forget and don't want to look at it right now ...
             
             base_path = NEURON.xstim.single_AP_sim.logged_data.getBasePath(sign);
             d = sl.dir.getFilesInFolder(base_path,'ext','.mat');

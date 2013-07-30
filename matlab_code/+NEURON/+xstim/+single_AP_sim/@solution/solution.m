@@ -87,11 +87,6 @@ classdef  solution < sl.obj.handle_light
             %   See Also:
             %   NEURON.xstim.single_AP_sim.solution.addToEntry
             
-            %TODO: Sort this ...
-% % % %             temp = [obj.cell_locations;  new_locations];
-% % % %             
-% % % %             [obj.cell_locations,I]  = sortrows(temp);
-            
             obj.solve_dates     = [obj.solve_dates      solve_dates];
             obj.cell_locations  = [obj.cell_locations;  new_locations];
             obj.thresholds      = [obj.thresholds       new_thresholds];
@@ -137,7 +132,7 @@ classdef  solution < sl.obj.handle_light
            %
            %    NOTE: This should be used with caution because it
            %    creates a new object. This was written for a static
-           %    
+           %    method in logged_data
            
            [~,I] = sortrows(obj.cell_locations);
            sorted_obj = obj.getPartialObject(I);
