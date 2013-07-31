@@ -18,7 +18,7 @@ params.xscale = 1;
 params.yscale = 1;
 params.zscale = 1;
 
-in.interp = 'tetrahedral';
+in.interp = 'linear';
 in = sl.in.processVarargin(in, varargin); %for now...
 params.interp = in.interp;
 
@@ -85,7 +85,10 @@ S = [S;P*(NA/NR)];
 %Solve
 rhs = t;
 rhs = [rhs;zeros(temp,1)];
-out = S\rhs;
+%toc;
+% out = S\rhs; %JK way too slow
+[out, ~] = lsqr(S,rhs,1e-4, temp);
+%toc;
 %out = reshape(S\rhs,nx,ny,nz);          %syntax?
 end
 
@@ -100,8 +103,6 @@ function S = helper__interpMatrix(x,y,z,xnodes,ynodes,znodes,interp)
 %   x, y, z : training data
 %   xnodes, ynodes, znodes: nodes on the grid for interpolation
 %   interp: string, Interpolation method. Default = linear
-
-
 var = 3; %number of independent variables
 
 % determine which cell in the array each point lies in
@@ -304,11 +305,9 @@ switch(params.regularizer)
 end
 end
 
-function setParams(params, varargin)
-% edits parameters for gridN
-if nargin == 1
-    return
-end
-
-
-end
+% function setParams(params, varargin)
+% % edits parameters for gridN
+% if nargin == 1
+%     return
+% end
+% end
