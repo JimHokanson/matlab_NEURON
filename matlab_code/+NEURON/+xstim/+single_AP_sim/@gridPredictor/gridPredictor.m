@@ -92,7 +92,11 @@ classdef gridPredictor < sl.obj.handle_light
             if ~obj.initialized
                 obj.initialize(); 
             end
-            obj.new_locations  = obj.s.new_data.cell_locations(new_indices,:); % can we be sure these are ordered?
+            
+            [learned_locations,known_thresholds] = getLearnedLocationsAndThresholds(obj);
+            
+            new_data_local = obj.s.new_data;
+            obj.new_locations  = new_data_local.cell_locations(new_indices,:); % can we be sure these are ordered?
             
             %What you really want, is the given grid when you first request
             %to predict thresholds. but this might do...  :P
@@ -116,15 +120,14 @@ classdef gridPredictor < sl.obj.handle_light
 %             
 %             trainer = solved_locs(ind);  %FIX ME!!!!!
             
-               
-            %tic;      
-            new_thresholds = gridN(obj.old_locations(:,1), obj.old_locations(:,2), obj.old_locations(:,3),...
-                                   obj.old_thresholds, xloc_new, yloc_new, zloc_new);
-            %toc;
-            %don't replace/repeat known values!
-%             xi = obj.new_locations(:,1);
-%             yi = obj.new_locations(:,2);
-%             zi = obj.new_locations(:,3);
+              
+            new_thresholds = gridN(learned_locations(:,1), learned_locations(:,2), learned_locations(:,3),...
+                                   known_thresholds, xloc_new, yloc_new, zloc_new);
+            
+%             
+%             new_thresholds = gridN(obj.old_locations(:,1), obj.old_locations(:,2), obj.old_locations(:,3),...
+%                                    obj.old_thresholds, xloc_new, yloc_new, zloc_new);
+           
             nx = length(xloc_new);
             ny = length(yloc_new);
             reformed_indices = xi + nx*(yi-1) + nx*ny*(zi-1);
@@ -135,7 +138,7 @@ classdef gridPredictor < sl.obj.handle_light
     
     
     
-    function [learned_low_d_stimuli,known_thresholds] = getLearnedLowDStimuliAndThresholds(obj)
+    function [learned_locations,known_thresholds] = getLearnedLocationsAndThresholds(obj)
             %This is a merger of the old stimuli
             %along with new stimuli for which we have threshold values
 
@@ -144,18 +147,18 @@ classdef gridPredictor < sl.obj.handle_light
             learned_new_indices = new_data_local.getIndicesOfUniqueStimuliWithKnownThresholds();
             
             if isempty(learned_new_indices) && isempty(obj.old_thresholds)
-                learned_low_d_stimuli = [];
-                known_thresholds            = [];
+                learned_locations = [];
+                known_thresholds  = [];
             elseif isempty(learned_new_indices)
-                learned_low_d_stimuli = obj.old_low_d_stimulus;
-                known_thresholds            = obj.old_thresholds;
+                learned_locations = obj.old_locations;
+                known_thresholds  = obj.old_thresholds;
             elseif isempty(obj.old_thresholds)
-                learned_low_d_stimuli = obj.new_low_d_stimulus(learned_new_indices,:);
-                known_thresholds            = new_data_local.thresholds(learned_new_indices);
+                learned_locations = new_data_local.cell_locations(learned_new_indices,:);
+                known_thresholds  = new_data_local.thresholds(learned_new_indices);
             else
-                learned_low_d_stimuli = [obj.old_low_d_stimulus; ...
-                        obj.new_low_d_stimulus(learned_new_indices,:)];
-                known_thresholds            = [obj.old_thresholds ...
+                learned_locations = [obj.old_locations; ...
+                        new_data_local.cell_locations(learned_new_indices,:)];
+                known_thresholds  = [obj.old_thresholds ...
                     new_data_local.thresholds(learned_new_indices)];
             end
         end
