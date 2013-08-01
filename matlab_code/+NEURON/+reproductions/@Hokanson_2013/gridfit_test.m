@@ -28,8 +28,8 @@ rh  = NEURON.xstim.single_AP_sim.request_handler(xstim,STIM_SIGN);
 %Step 3: Initialize system tester
 %----------------------------------------------
 st = NEURON.xstim.single_AP_sim.system_tester;
-
-%This can be used to pass in specific data points ...
+st.m1_pct = .01;
+%This can be us1d to pass in specific data points ...
 ldo = rh.getLoggedDataObject;
 
 %NOTE: We can edit st to use different training locations
@@ -44,9 +44,9 @@ for iApproach = 1:n_approaches
     switch iApproach
         case 1           
         case 2
-           rh.solver.predicter =  NEURON.xstim.single_AP_sim.gridPredictor(rh.solver);
+           rh.solver.predicter =  NEURON.xstim.single_AP_sim.scatteredPredictor(rh.solver);
         case 3            
-           rh.solver.grouper =  NEURON.xstim.single_AP_sim.gridPredictor(rh.solver);
+           rh.solver.predicter =  NEURON.xstim.single_AP_sim.gridPredictor(rh.solver);
     end
     rng(1) %This should be an input
     p_cell{iApproach} = rh.runTester(st);
@@ -75,4 +75,23 @@ plot(temp3,'g','Linewidth',2)
 set(gca, 'FontSize', 18 )
 xlabel('Threshold Index','FontSize', 18)
 ylabel('Percent Error', 'FontSize', 18)
+
+p1t = abs(p1.threshold_prediction_error);
+p2t = abs(p2.threshold_prediction_error);
+p3t = abs(p3.threshold_prediction_error);
+
+bins = 0:0.05:5;
+ax(1) = subplot(3,1,1);
+hist(p1t(p1t < 5),bins)
+ax(2) = subplot(3,1,2);
+hist(p2t(p2t < 5),bins)
+ax(3) = subplot(3,1,3);
+hist(p3t(p3t < 5),bins)
+
+linkaxes(ax,'xy')
+
+
+
+keyboard
+
 
