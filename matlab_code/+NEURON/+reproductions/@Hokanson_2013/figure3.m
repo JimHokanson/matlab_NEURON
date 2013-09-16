@@ -64,6 +64,8 @@ keyboard
 %                           Plotting results
 %--------------------------------------------------------------------------
 
+final_strings = sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
+
 %1) Standard, vs amplitude ...
 for iPair = 1:2
     subplot(1,2,iPair)
@@ -74,85 +76,45 @@ for iPair = 1:2
     legend(final_strings)
     title(TITLE_STRINGS{iPair})
     set(gca,'Xlim',P.XLIM);
+    
+    %Indicates max stimulus amplitude shown in figure ...
+    %cur_rs = rs_all{iPair}{3}1
+    %I_max_shown = interp1(cur_rs.counts,cur_rs.stimulus_amplitudes,P.XLIM(2))
 end
 
-
-
-
-
-%Result 1: normalized by amplitude
-%Result 2: normalized by charge
-%Result 3: normalized by original volume
-
-width_labels = arrayfun(@(x) sprintf('%g ms',x),STIM_WIDTHS_ALL,'un',0);
-
-%Varying Stimulus Amplitude
-%==========================================================================
-%Normalized by amplitude ...
-%---------------------------------------
-figure
-subplot(1,3,1)
-hold all
-for iWidth = 1:n_stim_widths
-    plot(stim_amps_all{iWidth},ratio_all{iWidth},'linewidth',3)
+%2) 
+for iPair = 1:2
+    subplot(1,2,iPair)
+    final_strings = sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
+        
+    %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
+    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair},'x_by_single_volume',true,'normalize',true);
+    legend(final_strings)
+    title(TITLE_STRINGS{iPair})
+    set(gca,'Xlim',P.XLIM);
+    set(gca,'ylim',[0 1])
+    
+    %Indicates max stimulus amplitude shown in figure ...
+    %cur_rs = rs_all{iPair}{3}1
+    %I_max_shown = interp1(cur_rs.counts,cur_rs.stimulus_amplitudes,P.XLIM(2))
 end
-legend(width_labels)
-xlabel('Stimulus Amplitude (uA)','FontSize',FONT_SIZE)
-set(gca,'FontSize',FONT_SIZE)
 
-%Normalized by charge
-%----------------------------------------
-subplot(1,3,2)
-hold all
-for iWidth = 1:n_stim_widths
-    plot(stim_amps_all{iWidth}*STIM_WIDTHS_ALL(iWidth),ratio_all{iWidth},'linewidth',3)
+%Contour plots
+for iPair = 1:2
+    figure
+    if iPair == 1
+        target = 1e8;
+    else
+        target = 1.5e8;
+    end
+    
+    obj.plotContours(rs_all{iPair},rd_all{iPair},target,'use_counts',true)
+    legend(final_strings)
+    title(TITLE_STRINGS{iPair})
 end
-legend(width_labels)
-xlabel('Stimulus Charge (nC)','FontSize',FONT_SIZE)
-set(gca,'FontSize',FONT_SIZE)
-
-%Normalized by effectiveness
-%------------------------------------------
-subplot(1,3,3)
-cla
-hold all
-
-volume_single = cell(1,n_stim_widths);
-volume_dual   = cell(1,n_stim_widths);
-
-for iWidth = 1:n_stim_widths
-    x_plot = single_counts_all{1,iWidth}.^(1/3);
-    plot(x_plot,ratio_all{iWidth},'linewidth',3)    
-end
-legend(width_labels)
-xlabel('Cubed Root Original Recruitment Volume (um^3)^(1/3)','FontSize',FONT_SIZE)
-set(gca,'FontSize',FONT_SIZE)
-
-%Contours for the same spatial recruitment
-% % % % % figure
-% % % % % contour_value = [550 550];
-% % % % % color_order = get(gca,'ColorOrder');
-% % % % % ax = zeros(1,2);
-% % % % % for iWidth = 1:n_stim_widths
-% % % % %    ax(1) = subplot(1,2,1);
-% % % % %    hold all
-% % % % %    cur_xyz  = extras.single_slice_xyz{iWidth};
-% % % % %    cur_data = squeeze(volume_single{iWidth});
-% % % % %    [~,h] = contour(cur_xyz{1},cur_xyz{3},cur_data',contour_value);
-% % % % %    set(h,'Color',color_order(iWidth,:));
-% % % % %
-% % % % %    ax(2) = subplot(1,2,2);
-% % % % %    hold all
-% % % % %    cur_xyz  = extras.dual_slice_xyz{iWidth};
-% % % % %    cur_data = squeeze(volume_dual{iWidth});
-% % % % %    [~,h] = contour(cur_xyz{1},cur_xyz{3},cur_data',contour_value);
-% % % % %    set(h,'Color',color_order(iWidth,:));
-% % % % % end
-% % % % % linkaxes(ax)
-% % % % % legend(width_labels)
-
 
 end
+
 
 function max_stim_amplitudes_by_width = helper__getMaxStimulusAmplitudesByWidth(obj,C)
 %

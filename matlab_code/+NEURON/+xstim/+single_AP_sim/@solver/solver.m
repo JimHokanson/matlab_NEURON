@@ -4,14 +4,9 @@ classdef solver < sl.obj.handle_light
     %   NEURON.xstim.single_AP_sim.solver
     %
     %   This in general will be an abstract class with some helper
-    %   methods that other classes can use ...
-    %
-    %   QUESTIONS
-    %   ===================================================================
-    %   1) ??? What's the main call that will return the thresholds ???
-    %       - i.e. here we are concerned with solving unknowns, not
-    %       necessarily with fufilling the user request ...
-    %
+    %   methods that other classes can use. This class is responsible for
+    %   returning "solved" thresholds for a set of cell locations given a
+    %   particular extracellular stimulus configuration.
     %
     %   See Also:
     %   NEURON.xstim.single_AP_sim.request_handler
@@ -31,7 +26,7 @@ classdef solver < sl.obj.handle_light
     %solver Options
     %-----------------------------------------------------
     
-    %Set via setSystemTester
+    %Set via .setSystemTester()
     properties (SetAccess = private)
        system_testing = false %Indicates that we are just testing the system
        %performance. Currently this class uses this flag
@@ -39,8 +34,9 @@ classdef solver < sl.obj.handle_light
        %.getThresholdsFromSimulation()
        %
        system_tester  = [] %Object referece to type:
-       %NEURON.xstim.single_AP_sim.system_tester if system_testing is true
+       %    NEURON.xstim.single_AP_sim.system_tester
        %
+       %    When .system_testing is true.
     end
     
     %Properties for subclass to use =======================================
@@ -96,6 +92,7 @@ classdef solver < sl.obj.handle_light
             
             s.stimulus_manager = NEURON.xstim.single_AP_sim.applied_stimulus_manager(s);
             s.predicter        = NEURON.xstim.single_AP_sim.predicter(s);
+            %s.predicter        = NEURON.xstim.single_AP_sim.gridPredictor(s);
             s.grouper          = NEURON.xstim.single_AP_sim.grouper(s);
             s.binary_search_adjuster   = NEURON.xstim.single_AP_sim.binary_search_adjuster(s);
         end
