@@ -40,6 +40,7 @@ classdef scatteredPredictor < sl.obj.handle_light
                 obj.old_locations       = old_data_local.cell_locations(unique_old_indices,:);
             end
             
+            
             new_data_obj = obj.s.new_data;
             solved_mask = new_data_obj.solution_available;
             
@@ -59,7 +60,8 @@ classdef scatteredPredictor < sl.obj.handle_light
             threshold_interp = scatteredInterpolant(learned_locations(:,1), learned_locations(:,2), learned_locations(:,3),...
                                    known_thresholds(:));
                                
-            predicted_thresholds = threshold_interp(obj.new_locations);
+            %arbitrarily flips the sign                   
+            predicted_thresholds = obj.s.stim_sign*abs(threshold_interp(obj.new_locations));
         
         end
          function [learned_locations,known_thresholds] = getLearnedLocationsAndThresholds(obj)
