@@ -1,17 +1,32 @@
 function threshold_simulation_results = getThresholdsFromSimulation(obj,new_indices,predicted_thresholds)
 %
+%   
+%   threshold_simulation_results = getThresholdsFromSimulation(obj,new_indices,predicted_thresholds)
+%
 %
 %   This method runs the actual NEURON simulations to compute thresholds.
 %
+%   OUTPUTS
+%   =======================================================================
+%   threshold_simulation_results : NEURON.xstim.single_AP_sim.threshold_simulation_results
+%   
 %   INPUTS
 %   =======================================================================
 %   new_indices : indices from obj.new_data to solve thresholds for
 %
+%
+%   See Also:
+%   NEURON.xstim.single_AP_sim.solver.default.
+%
 %   FULL PATH:
-%   NEURON.xstim.single_AP_sim.predictor.threshold_simulation_results
+%   NEURON.xstim.single_AP_sim.solver.threshold_simulation_results
 
 
 %Possible short circuit
+%--------------------------------------------------------------------------
+%If we are testing than we pass the request to the system_tester object
+%which must 
+
 if obj.system_testing
    threshold_simulation_results = obj.system_tester.getThresholdsFromSimulation(obj,new_indices,predicted_thresholds);
    return

@@ -57,6 +57,7 @@ classdef Hokanson_2013
         figure2()
         figure3()
         figure7()
+        figure8()
         respondsAtHighStimulusTest()
         accuracyTest()
         refractoryPeriodTest()
@@ -187,55 +188,7 @@ classdef Hokanson_2013
                 linkaxes(ax(iSet,:),'xy')
             end
         end
-        function plotVolumeRatio(obj,rs,rd,varargin)
-            %
-            %    INPUTS
-            %    ==========================================
-            %    Class: NEURON.reproductions.Hokanson_2013.activation_volume_results
-            %    rs : cell array of objects
-            %    rd : cell array of objects ...
-            %
-            %    Crap, how to determine overlap for 2 electrodes ...
-            %
-            %    This turns out to be really tricky and is probably
-            %    best done by hand ...
-            
-            in.x_by_single_volume = false;
-            in = sl.in.processVarargin(in,varargin);
-            
-            FONT_SIZE = 18;
-            
-            n_sets = length(rs);
-            
-            hold all
-            for iSet = 1:n_sets
-                cur_rs = rs{iSet};
-                cur_rd = rd{iSet};
-                
-                stim_rs = cur_rs.stimulus_amplitudes;
-                stim_rd = cur_rd.stimulus_amplitudes;
-                
-                if ~isequal(stim_rs,stim_rd)
-                    error('Stimulus amplitude mismatch found')
-                end
-                
-                vol_ratio = cur_rd.counts./cur_rs.counts;
-                
-                if in.x_by_single_volume
-                    plot(cur_rs.counts,vol_ratio,'Linewidth',3)
-                else
-                    plot(stim_rs,vol_ratio,'Linewidth',3)
-                end
-            end
-            
-            set(gca,'FontSize',FONT_SIZE)
-            if in.x_by_single_volume
-                xlabel('1 um voxels','FontSize',FONT_SIZE)
-            else
-                xlabel('Stimulus Amplitude (uA)','FontSize',FONT_SIZE)
-            end
-            ylabel('Volume Ratio','FontSize',FONT_SIZE)
-        end
+        
         function [xz_amp,xz_value] = getLimitAmplitudes(rs,rd,y_values)
             
             keyboard

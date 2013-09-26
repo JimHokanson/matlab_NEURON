@@ -46,13 +46,16 @@ n_resist    = length(RESISTIVITY);
 rs_all = cell(n_resist,2);
 rd_all = cell(n_resist,2);
 for iRes  = 1:n_resist
+    fprintf(2,'Current resist: %d\n', iRes);
 for iPair = 1:2
+    fprintf(2,'Current pair: %d\n', iPair);
     electrode_locations_test = EL_LOCATIONS{iPair};
     temp_cell = cell(2,n_diameters);
     avr.custom_setup_function = @(x,y) helper__changeResistivity(x,y,RESISTIVITY{iRes});
     avr.slice_dims = SLICE_DIMS{iPair}; %Long slice on x, trans on y
 
     for iDiameter = 1:n_diameters
+        fprintf(2,'Current diameter: %d\n', iDiameter);
         avr.fiber_diameter = C.FIBER_DIAMETERS(iDiameter);
         temp_cell{1,iDiameter}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL,...
             'single_with_replication',true);

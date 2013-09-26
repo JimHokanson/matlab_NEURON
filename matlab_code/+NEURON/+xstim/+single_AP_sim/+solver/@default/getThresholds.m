@@ -3,12 +3,15 @@ function predictor_info = getThresholds(obj)
 %
 %   predictor_info = getThresholds(obj)
 %
-%   This is a specific implementation for getting threshold data. The main 
+%   This is a specific implementation for getting threshold data.
 %
 %   OUTPUTS
 %   =======================================================================
-%   predictor_info : Currently empty []. Not sure what I want to pass back to
-%                    the user yet.
+%   predictor_info : Currently of type:
+%           NEURON.xstim.single_AP_sim.threshold_simulation_results
+%
+%       This might change as there is information missing about execution
+%   time of other components.
 %       
 %   This implementation:
 %   -----------------------------------------------------------------------
@@ -46,16 +49,18 @@ cur_sim_index = 0;
 
 %TODO: Change time for maximum stimulus here to avoid warning messing
 %things up ...
+%This would involve a call to NEURON.simulation.props (or something like
+%that, I don't remember for sure)
 
 all_threshold_results = [];
 
 while ~isempty(indices)
     
-    fprintf('%s %d:%d =>',datestr(now,'HH:MM:SS'),cur_sim_index+1,cur_sim_index+n_indices) 
+    fprintf('%s %d:%d =>',datestr(now,'HH:MM'),cur_sim_index+1,cur_sim_index+n_indices) 
     %NEURON.xstim.single_AP_sim.predicter.predictThresholds
     predicted_thresholds = p_local.predictThresholds(indices);
     
-    fprintf('Prediction: %0.1fs, ',toc(t_group))
+    fprintf('Pred.: %0.1fs, ',toc(t_group))
     
     threshold_result_obj = obj.getThresholdsFromSimulation(indices,predicted_thresholds);
     %Class: NEURON.xstim.single_AP_sim.threshold_simulation_results
@@ -69,8 +74,8 @@ while ~isempty(indices)
     end
     
 
-    fprintf('Last Index: %d, group avg time: %0.3g, error: %0.3g\n',...
-        cur_sim_index,toc(t_group)/n_indices,threshold_result_obj.avg_error);
+    fprintf('group avg: %0.3gs, avg error: %0.3g\n',...
+        toc(t_group)/n_indices,threshold_result_obj.avg_error);
     
     cur_sim_index = cur_sim_index + n_indices;
 
