@@ -85,7 +85,7 @@ classdef gridPredictor < sl.obj.handle_light
             obj.initialized = true;
         end
         
-        %this code would not need call the grouper. In theory after certain
+        %This code would not need call the grouper. In theory after certain
         %groups were learned, you would just call this to learn the rest.
         function predicted_thresholds = predictThresholds(obj, new_indices)
             
@@ -103,35 +103,16 @@ classdef gridPredictor < sl.obj.handle_light
             [xloc_new, ~, xi] = unique(obj.new_locations(:,1));
             [yloc_new, ~, yi] = unique(obj.new_locations(:,2));            
             [zloc_new, ~, zi] = unique(obj.new_locations(:,3));
-            
-%             % From our old_data and our recently solved values we dont want
-%             % to use any point that is not within the range of the above 
-%             % values...
-%             solved_ind = obj.s.new_data.solved();
-%             solved_locs_new = obj.s.new_data.cell_locations(solved_ind); %Fix me too!
-%             solved_thrs_new = obj.s.new_data.thresholds(solved_ind);
-%             solved_locs = obj.s.old_data.cell_locations;
-%             solved_thrs = obj.s.old_data.thresholds; %logic?
-%             
-%             %hmmmmmm :P
-%             solved_locs = [solved_locs; solved_locs_new];
-%             solved_thrs = [solved_thrs; solved_thrs_new];
-%            
-%             
-%             trainer = solved_locs(ind);  %FIX ME!!!!!
-            
+         
               
             new_thresholds = gridN(learned_locations(:,1), learned_locations(:,2), learned_locations(:,3),...
                                    known_thresholds, xloc_new, yloc_new, zloc_new);
             
-%             
-%             new_thresholds = gridN(obj.old_locations(:,1), obj.old_locations(:,2), obj.old_locations(:,3),...
-%                                    obj.old_thresholds, xloc_new, yloc_new, zloc_new);
-           
+          
             nx = length(xloc_new);
             ny = length(yloc_new);
             reformed_indices = xi + nx*(yi-1) + nx*ny*(zi-1);
-            predicted_thresholds = new_thresholds(reformed_indices);
+            predicted_thresholds = obj.s.stim_sign*abs(new_thresholds(reformed_indices));
             
         end
     
