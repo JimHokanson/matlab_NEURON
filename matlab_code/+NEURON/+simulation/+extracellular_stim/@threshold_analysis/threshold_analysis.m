@@ -117,7 +117,7 @@ classdef threshold_analysis < handle_light
             %   FULL PATH:
             %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
             
-            BASE_VOLTAGE_ADDED_VALUE = 5;
+            BASE_VOLTAGE_ADDED_VALUE = 10;
             
             t_info = obj.threshold_info;
             if isempty(t_info)
@@ -171,10 +171,22 @@ classdef threshold_analysis < handle_light
                 
                %TODO: Clean this code up ...
                
-               %< 0 indicates newer voltage is greater than older voltage,
-               %i.e. growth, and we also check that we are significantly
-               %above baseline
-               continue_test = (@(vm) any(vm(end-1,:) - vm(end,:) < 0) && any(vm(end,:) > vm(1,:) + BASE_VOLTAGE_ADDED_VALUE));
+               %NOTE: We might want to merge these two
+               %I saw one weird example of a very long hyperpolarization
+               %potential which was growing back to baseline and for
+               %some reason the sides were already above baseline (and were
+               %falling) which meant that:
+               %1) growth was occuring - (the center most points)
+               %2) points were above baseline - (the sides)
+               %
+               %If the masks from 1 & 2 were linked, we might get a more
+               %stable result ??
+               
+               
+               %< 0 indicates newer voltage is greater than older voltage, i.e. growth,
+               continue_test = (@(vm) any(vm(end-1,:) - vm(end,:) < 0) && ...
+                   ... %This is a test for being above baseline
+                   any(vm(end,:) > vm(1,:) + BASE_VOLTAGE_ADDED_VALUE)); 
                
                if continue_test(vm)
                   sim_ext_options = obj.parent.sim_ext_options_obj;

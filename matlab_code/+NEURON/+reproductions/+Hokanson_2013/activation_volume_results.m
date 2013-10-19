@@ -16,6 +16,7 @@ classdef activation_volume_results < sl.obj.handle_light
         counts
         stimulus_amplitudes
         raw_abs_thresholds
+        replicated_thresholds
         internode_length
         z_saturation_amplitude
         xyz_used

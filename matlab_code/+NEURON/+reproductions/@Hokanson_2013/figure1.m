@@ -15,11 +15,13 @@ import NEURON.reproductions.*
 P.Y_LIM = [1 4];
 
 C.MAX_STIM_TEST_LEVEL      = 30;
-C.FIBER_DIAMETER           = 15;
+C.FIBER_DIAMETER           = 10;
 
-TITLE_STRINGS = {'Longitudinal pairings' 'Transverse pairings'};
-EL_INDICES    = {15:-1:9    8:-1:2};
-SLICE_DIMS    = {'zy' 'xz'};
+TITLE_STRINGS = {'Longitudinal pairings' 'Transverse pairings' 'Utah Array Long'};
+%EL_INDICES    = {15:-1:9    8:-1:2};
+%EL_INDICES    = {23:-1:17    8:-1:2};
+EL_INDICES    = {[23:-1:17 24]  [8:-1:2 25] [15:-1:9 26]};
+SLICE_DIMS    = {'xz' 'xz' 'xz'};
 
 obj = Hokanson_2013;
 avr = Hokanson_2013.activation_volume_requestor(obj);
@@ -31,9 +33,9 @@ avr.use_new_solver = true;
 
 %Data retrieval
 %--------------------------------------------------------------------------
-rs_all = cell(1,2);
-rd_all = cell(1,2);
-for iPair = 1:2
+rs_all = cell(1,3);
+rd_all = cell(1,3);
+for iPair = 1:3
     electrode_locations_test = obj.ALL_ELECTRODE_PAIRINGS(EL_INDICES{iPair});
     
     avr.slice_dims = SLICE_DIMS{iPair};
@@ -52,8 +54,8 @@ keyboard
 
 %Plotting results
 %--------------------------------------------------------------------------
-for iPair = 1:2
-    subplot(1,2,iPair)
+for iPair = 1:3
+    subplot(1,3,iPair)
     electrode_locations_test = obj.ALL_ELECTRODE_PAIRINGS(EL_INDICES{iPair});
     
     final_strings = obj.getElectrodeSeparationStrings(electrode_locations_test);

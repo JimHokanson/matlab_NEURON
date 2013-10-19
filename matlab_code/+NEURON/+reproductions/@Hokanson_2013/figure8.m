@@ -3,14 +3,12 @@ function figure8()
 %   NEURON.reproductions.Hokanson_2013.figure8
 %
 %   =======================================================================
-%           Different electrode configurations, diagonal and 4
+%           Different electrode configurations, diagonal, 3 and 4
 %   =======================================================================
 %
 %   The goal here is to explore the effect of different fiber diameters on
 %   the volume ratio.
 %
-%   This is tentatively:
-%       NEW FIGURE 2
 
 import NEURON.reproductions.*
 
@@ -18,22 +16,20 @@ import NEURON.reproductions.*
 
 %PLOTTING OPTIONS
 %---------------------------------------------
-P.Y_LIM = [1 3];
-
-
+P.Y_LIM = [1 8];
 
 C.MAX_STIM_TEST_LEVEL = 30;
 
 obj = Hokanson_2013;
 avr = Hokanson_2013.activation_volume_requestor(obj);
-avr.quick_test     = false;
+avr.quick_test      = true;
 %avr.merge_solvers  = true;
-avr.use_new_solver = true;
+avr.use_new_solver  = true;
 
 %Titles need to be changed ...
-TITLE_STRINGS = {'Longitudinal pairings'    'Transverse pairings'};
+TITLE_STRINGS = {'2 electrodes diagonal' '3 electrodes' '4 electrodes'};
 SLICE_DIMS    = {'zy' 'xz'};
-EL_LOCATIONS = {[-200 -50 -200; 200 50 200] [-200 -50 -200; 200 -50 -200; -200 50 200; 200 50 200]};
+EL_LOCATIONS = {[-200 -50 -200; 200 50 200;] [-200 -50 -200; 200 50 200; -200 50 200;] [-200 -50 -200; 200 -50 -200; -200 50 200; 200 50 200]};
 
 C.MAX_STIM_TEST_LEVEL     = 30;
 C.STIM_WIDTH              = {[0.2 0.4]};

@@ -154,6 +154,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
                     r.replicated_slice =  NEURON.reproductions.Hokanson_2013.activation_volume_slice(...
                         act_obj,max_stim_level,xyz_info,slice_dim,obj.slice_value,...
                         'replication_points',replication_points);
+                    r.replicated_thresholds = extras.threshold_extras.replication_extras.electrode_thresholds;
                 end
 
                 r.is_single              = in.single_with_replication;

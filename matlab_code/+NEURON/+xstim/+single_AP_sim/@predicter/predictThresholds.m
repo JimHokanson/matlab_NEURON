@@ -24,6 +24,15 @@ n_unknown = length(new_indices_predict);
 %NEURON.xstim.single_AP_sim.predicter.getLearnedLowDStimuliAndThresholds
 [known_inputs,known_thresholds] = obj.getLearnedLowDStimuliAndThresholds();
 
+%Yikes, ran into the following problem ...
+%
+%a = [1 5];
+%b = 1:10
+%c = b(a)
+%c = [1 5]
+
+known_thresholds = known_thresholds(:);
+
 n_known    = length(known_thresholds);
 dim_inputs = size(known_inputs,2);
 
@@ -97,7 +106,7 @@ else
     thresh_local = known_thresholds(I_1(idx));
     c_thresh_local    = cumsum(thresh_local,2);
     m_thresh_local    = bsxfun(@rdivide,c_thresh_local,1:20);
-    thresh_local_diff = bsxfun(@minus,m_thresh_local,known_thresholds(I_2)');
+    thresh_local_diff = bsxfun(@minus,m_thresh_local,known_thresholds(I_2));
     
     avg_error_vs_number_of_nn = mean(abs(thresh_local_diff));
     

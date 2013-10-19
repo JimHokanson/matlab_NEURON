@@ -3,6 +3,8 @@ function figure_boundsIllustration()
 %
 %   NEURON.reproductions.Hokanson_2013.figure_boundsIllustration
 %   
+%   This currently only shows the solutions in z-repeating
+%
 %
 %1) Within range bounds
 %2) z-limit bounds
@@ -32,23 +34,57 @@ INL   = xstim.cell_obj.getAverageNodeSpacing;
 r = xstim.sim__getThresholdsMulipleLocations(XYZ,...
     'merge_solvers',C.merge_solvers,'use_new_solver',C.use_new_solver);
 
+xstim = obj.instantiateXstim([0 0 -800; 0 0 800]);
+
+r2 = xstim.sim__getThresholdsMulipleLocations(XYZ,...
+    'merge_solvers',C.merge_solvers,'use_new_solver',C.use_new_solver);
+
+
+xstim = obj.instantiateXstim([0 0 -225; 0 0 225]);
+
+r3 = xstim.sim__getThresholdsMulipleLocations(XYZ,...
+    'merge_solvers',C.merge_solvers,'use_new_solver',C.use_new_solver);
+
 keyboard
 
 
 %Plotting results
 %-------------------------------------------------
-imagesc(X_VECTOR,Z_VECTOR,squeeze(r)');
+
+r_both = {r r2 r3};
+figure(1)
+for iPair = 1:3
+
+    subplot(1,3,iPair)
+    cla
+    cur_r = r_both{iPair};
+imagesc(X_VECTOR,Z_VECTOR,squeeze(cur_r)');
 colorbar;
 axis equal
 hold on
-scatter(0,0,100,'w','filled')
+if iPair == 1
+    scatter(0,0,100,'w','filled')
+elseif iPair == 2
+    scatter([0 0],[-800 800],100,'w','filled')
+else
+    scatter([0 0],[-225 225],100,'w','filled')
+end
 
 %Axon plotting
 line([X_AXON X_AXON],[Z_VECTOR(1) Z_VECTOR(end)],'Color','k','Linewidth',3)
 scatter(X_AXON*ones(1,3),[-INL 0 INL],100,'r','filled')
 hold off
+axis equal
+set(gca,'clim',[0 25])
+end
 
-temp = sl.plot.postp.imageToPatch(gcf,'ignore_colorbars',false);
+%temp = sl.plot.postp.imageToPatch(gcf,'ignore_colorbars',false);
+
+%Value of interest
+%min(r(1,1,:))
+
+
+
 
 %--------------------------------------------------------------------------
 %-------                    X limit bounds               ----------------

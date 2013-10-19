@@ -7,16 +7,24 @@ function figure3
 %   =======================================================================
 %
 %   This is currently NEW FIGURE 3
-
+%
+%   Diffs in volume ratio when max for 2ms
+%   7.3 - 0.72, 0.55
+%   10  - 0.69  0.65
+%   15  - 0.87, 0.77
+%
+%
 import NEURON.reproductions.*
 
-EL_LOCATIONS = {[0 -50 -200; 0 50 200]      [-200 0 0;200 0 0]};
+%EL_LOCATIONS = {[0 -50 -200; 0 50 200]      [-200 0 0;200 0 0]};
+EL_LOCATIONS = {[0 0 -200; 0 0 200]      [-200 0 0;200 0 0]};
 TITLE_STRINGS = {'Longitudinal pairings'    'Transverse pairings'};
 
-P.XLIM = [0 6e8];
+P.YLIM = [1 4];
+P.XLIM = {[0 5e8] [0 8e8]};
 
 C.MAX_STIM_AMPLITUDE_DEFAULT = 30; %For 0.2 ms width ...
-C.FIBER_DIAMETER           = 15;
+C.FIBER_DIAMETER           = 15; %10; %7.3; %15;
 C.STIM_WIDTHS_ALL          = [0.050 0.100 0.2 0.40 1 2];
 C.DEFAULT_WIDTH_INDEX = find(C.STIM_WIDTHS_ALL  == 0.2);
 C.STIM_START_TIME   = 0.1;
@@ -47,6 +55,7 @@ for iPair = 1:2
     electrode_locations_test = EL_LOCATIONS{iPair};
     temp_cell = cell(2,n_stim_widths);
     for iWidth = 1:n_stim_widths
+        fprintf('%d/%d\n',iWidth,n_stim_widths);
         cur_max_stim       = max_stim_amplitudes_by_width(iWidth);
         cur_stim_width     = C.STIM_WIDTHS_ALL(iWidth);
         avr.stim_widths    = [cur_stim_width 2*cur_stim_width];
@@ -57,6 +66,11 @@ for iPair = 1:2
     rs_all{iPair} = temp_cell(1,:);
     rd_all{iPair} = temp_cell(2,:);
 end
+%--------------------------------------------------------------------------
+%END OF SIMULATION CODE
+%--------------------------------------------------------------------------
+
+
 
 keyboard
 
@@ -66,23 +80,41 @@ keyboard
 
 final_strings = sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
 
-%1) Standard, vs amplitude ...
+%1) Vs. Effectivness
 for iPair = 1:2
     subplot(1,2,iPair)
-    final_strings = sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
         
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
-    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair},'x_by_single_volume',true);
-    legend(final_strings)
+    obj.plotVolumeRatio(rs_all{iPair}(end:-1:1),rd_all{iPair}(end:-1:1),'x_by_single_volume',true);
+    legend(final_strings(end:-1:1))
     title(TITLE_STRINGS{iPair})
-    set(gca,'Xlim',P.XLIM);
+    set(gca,'Xlim',P.XLIM{iPair},'ylim',P.YLIM)
     
     %Indicates max stimulus amplitude shown in figure ...
     %cur_rs = rs_all{iPair}{3}1
     %I_max_shown = interp1(cur_rs.counts,cur_rs.stimulus_amplitudes,P.XLIM(2))
 end
 
-%2) 
+%What about at max and end?
+
+%TARGET_SIZES = 
+
+diff_vr = zeros(1,2);
+for iPair = 1:2
+    
+    counts_small = rs_all{iPair}{1}.counts;
+    counts_large = rs_all{iPair}{end}.counts;
+    vr_small = rd_all{iPair}{1}.counts./rs_all{iPair}{1}.counts;
+    vr_large = rd_all{iPair}{end}.counts./rs_all{iPair}{end}.counts;
+    
+    [max_vr_large,I] = max(vr_large);
+    vr_small_at_max_large = interp1(counts_small,vr_small,counts_large(I));
+    diff_vr(iPair) = max_vr_large - vr_small_at_max_large;
+end
+
+
+%2) Normalized (Not used)
+%{
 for iPair = 1:2
     subplot(1,2,iPair)
     final_strings = sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
@@ -98,6 +130,20 @@ for iPair = 1:2
     %cur_rs = rs_all{iPair}{3}1
     %I_max_shown = interp1(cur_rs.counts,cur_rs.stimulus_amplitudes,P.XLIM(2))
 end
+%}
+
+%Where is this for 200 us?
+
+I = find(C.STIM_WIDTHS_ALL == 0.2);
+
+[~,long_min_I] = min(abs(rs_all{1}{I}.counts - P.XLIM{1}(2)));
+amp_long = rs_all{1}{I}.stimulus_amplitudes(long_min_I);
+
+[~,trans_min_I] = min(abs(rs_all{2}{I}.counts - P.XLIM{2}(2)));
+amp_trans = rs_all{1}{I}.stimulus_amplitudes(trans_min_I);
+
+fprintf(2,'Max 200 us amp shown for long: %0.2f\n',amp_long)
+fprintf(2,'Max 200 us amp shown for trans: %0.2f\n',amp_trans)
 
 %Contour plots
 for iPair = 1:2
@@ -137,6 +183,7 @@ thresholds_current_distance = zeros(n_x_dist_test,n_stim_widths);
 
 fprintf('Running current vs distance tests for stim width normalizaton\n')
 for iStim = 1:n_stim_widths
+    
     cur_widths = [C.STIM_WIDTHS_ALL(iStim) 2*C.STIM_WIDTHS_ALL(iStim)];
     
     %TODO: make this a class method that is exposed ...

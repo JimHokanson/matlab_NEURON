@@ -62,6 +62,7 @@ while ~isempty(indices)
     
     fprintf('Pred.: %0.1fs, ',toc(t_group))
     
+    %NEURON.xstim.single_AP_sim.solver.getThresholdsFromSimulation
     threshold_result_obj = obj.getThresholdsFromSimulation(indices,predicted_thresholds);
     %Class: NEURON.xstim.single_AP_sim.threshold_simulation_results
 

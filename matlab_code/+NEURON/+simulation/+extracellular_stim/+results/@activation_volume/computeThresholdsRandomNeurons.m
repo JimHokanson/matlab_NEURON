@@ -6,6 +6,8 @@ function estimated_thresholds = computeThresholdsRandomNeurons(obj,xyz_neurons,m
 %
 %This function should compute the threshold for a randomly placed set
 %of neurons.
+%
+%   NEURON.simulation.extracellular_stim.results.activation_volume.computeThresholdsRandomNeurons
 
 in.replication_points = [];
 in.replication_center = [0 0 0];

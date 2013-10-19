@@ -50,8 +50,36 @@ classdef activation_volume_slice < sl.obj.handle_light
             obj.slice_dim   = slice_dim;
             obj.slice_value = slice_value;
         end
-        function plot(obj)
-           imagesc(obj.xyz{1},obj.xyz{2},obj.thresholds');
+        function plot(obj,varargin)
+            
+           in.lim_dim1 = [];
+           in = sl.in.processVarargin(in,varargin);
+            
+           
+           dim1 = obj.xyz{1};
+           if ~isempty(in.lim_dim1)
+              
+              I1 = find(dim1 >= in.lim_dim1(1),1);
+              I2 = find(dim1 <= in.lim_dim1(2),1,'last');
+              dim1 = dim1(I1:I2);
+           else
+              I1 = 1;
+              I2 = length(dim1);
+           end
+           
+           
+           imagesc(dim1,obj.xyz{2},obj.thresholds(I1:I2,:)');
+
+           
+           axis equal
+        end
+        function contour(obj,stim_amps)
+           
+           if length(stim_amps) == 1 
+              contour(obj.xyz{1},obj.xyz{2},obj.thresholds',[stim_amps stim_amps]); 
+           else
+              contour(obj.xyz{1},obj.xyz{2},obj.thresholds',stim_amps);  
+           end
            axis equal
         end
     end

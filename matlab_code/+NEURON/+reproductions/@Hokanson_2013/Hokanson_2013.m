@@ -28,6 +28,16 @@ classdef Hokanson_2013
             [0    -50  -200; 0   50  200]    %14
             [0    -25  -100; 0   25  100]    %15
             [-200 -50  -200; 200 50 200]     %Diagonal pairing
+            [0    0 -700; 0   0 700]    %17  Longitudinal pairing
+            [0    0 -600; 0   0 600]    %18
+            [0    0 -500; 0   0 500]    %19
+            [0    0 -400; 0   0 400]    %20
+            [0    0  -300; 0   0  300]  %21
+            [0    0  -200; 0   0  200]  %22
+            [0    0  -100; 0   0  100]  %23
+            [0    0 -800; 0    0 800]   %24
+            [-800   0   0;  800  0   0] %25
+            [0    -200 -800; 0   200 800] %26
             }
         STANDARD_ELECTRODES_X = {[-200   0   0;  200  0   0]}
         STANDARD_ELECTRDOES_Z = {[0    -50  -200; 0   50  200]}
@@ -50,15 +60,23 @@ classdef Hokanson_2013
     end
     
     methods (Static)
+        figure_showSingleStimulusMerger()
         figure_boundsIllustration
+        figure_boundeIllustrationPart2()
         run()
+        all_voltages = addVoltage()
+        figure3_new()
         figure0()
         figure1()
         figure2()
         figure3()
         figure7()
+        figure7_part2()
         figure8()
+        figure_vr_walkthrough()
+        figure_humpsExplained()
         respondsAtHighStimulusTest()
+        figure_populationResponseVariability
         accuracyTest()
         refractoryPeriodTest()
         p_cell = gridfit_test()

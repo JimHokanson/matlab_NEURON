@@ -81,6 +81,8 @@ min_history_all = zeros(10,4); %10 is a guess of how many times we expand
 bounds_all      = zeros(10,4);
 cur_index       = 0;
 
+MAX_SCALE_FUDGE_FACTOR = 0.5;
+
 [too_small,min_abs_value_per_side] = obj.checkBounds(max_scale);
 
 min_history_all(1,:) = min_abs_value_per_side;
@@ -104,7 +106,12 @@ while ~done
                 if abs(min_history_all(3,iSide) > min_history_all(2,iSide))
                     %NOTE: This could be improved ...
                     %We are only using two points
-                    new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'linear','extrap');
+                    
+                    %This is severly overestimating ...
+                    
+                    %new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),max_scale,'linear','extrap');
+                    
+                    new_bound = interp1(min_history_all(1:3,iSide),bounds_all(1:3,iSide),MAX_SCALE_FUDGE_FACTOR*max_scale,'linear','extrap');
                     
                     %DEBUG PLOTTING ...
                     %                 plot(min_history_all(1:3,iSide),bounds_all(1:3,iSide),'-o')
