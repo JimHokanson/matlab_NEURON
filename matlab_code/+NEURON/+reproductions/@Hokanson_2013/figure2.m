@@ -176,6 +176,7 @@ for iPair = 1:2
     end 
 end
 
+I = find(C.FIBER_DIAMETERS == 5.7);
 
 
 %X_LIMITS = {[-400 400] [-400 400]; [-500 500] [-500 500]};

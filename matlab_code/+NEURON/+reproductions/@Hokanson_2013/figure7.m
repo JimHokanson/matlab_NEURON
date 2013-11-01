@@ -28,8 +28,8 @@ NEW_MODEL_RESIST = 4; %should point to 1211 1211 175
 % RESISTIVITY   = {[500 500 500] [1211 1211 350] [1211 1211 87.5] [1211 1211 175]};
 % RESIST_STRINGS = {'500 iso' '1211 trans, 350 long' '1211 trans, 87.5 long' '1211 trans, 175 long'};
 
-RESISTIVITY   = { [1211 1211 350] [1211 1211 87.5] [1211 1211 175]};
-RESIST_STRINGS = {'1211 trans, 350 long' '1211 trans, 87.5 long' '1211 trans, 175 long'};
+RESISTIVITY   = { [1211 1211 350] [1211 1211 87.5] [1211 1211 175] [1411 1411 175] [1011 1011 175]};
+RESIST_STRINGS = {'1211 trans, 350 long' '1211 trans, 87.5 long' '1211 trans, 175 long' '1411 trans, 175 long' '1011 trans, 175 long'};
 
 
 

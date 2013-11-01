@@ -85,7 +85,7 @@ classdef DRG_AD < NEURON.neural_cell & NEURON.cell.extracellular_stim_capable
         end
     end
     
-    %CHANGING METHODS ========================================================
+    %CHANGING METHODS =====================================================
     methods
         function setEventManagerObject(obj,ev_man_obj)
            obj.ev_man_obj = ev_man_obj;
@@ -101,7 +101,7 @@ classdef DRG_AD < NEURON.neural_cell & NEURON.cell.extracellular_stim_capable
         end
     end
 
-    %INFO FOR OTHERS
+    %INFO FOR OTHERS   ====================================================
     methods
         function node_spacing = getNodeSpacing(obj)
            %What a mess ...

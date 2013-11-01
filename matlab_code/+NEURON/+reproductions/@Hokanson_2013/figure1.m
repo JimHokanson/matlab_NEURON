@@ -12,10 +12,10 @@ function figure1()
 
 import NEURON.reproductions.*
 
-P.Y_LIM = [1 4];
+P.Y_LIM = [0.5 4];
 
 C.MAX_STIM_TEST_LEVEL      = 30;
-C.FIBER_DIAMETER           = 10;
+C.FIBER_DIAMETER           = 15;
 
 TITLE_STRINGS = {'Longitudinal pairings' 'Transverse pairings' 'Utah Array Long'};
 %EL_INDICES    = {15:-1:9    8:-1:2};

@@ -44,6 +44,8 @@ classdef neural_cell < handle
                   obj = NEURON.cell.axon.generic(cell_location);
                case 'generic_unmyelinated'
                   obj = NEURON.cell.axon.generic_unmyelinated(cell_location);
+               case 'drg_ad'
+                  obj = NEURON.cell.DRG_AD(cell_location);
                otherwise
                   error('Unrecognized cell type: %s',cell_type)
            end

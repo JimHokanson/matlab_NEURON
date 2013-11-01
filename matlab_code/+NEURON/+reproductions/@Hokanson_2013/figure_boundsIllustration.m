@@ -45,6 +45,9 @@ xstim = obj.instantiateXstim([0 0 -225; 0 0 225]);
 r3 = xstim.sim__getThresholdsMulipleLocations(XYZ,...
     'merge_solvers',C.merge_solvers,'use_new_solver',C.use_new_solver);
 
+%Minimum encompassed
+%min(r(1,1,:))
+
 keyboard
 
 

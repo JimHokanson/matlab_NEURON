@@ -170,7 +170,13 @@ figure(6)
 clf
 %           Longitudinal                  Transverse
 %           Simultaneous   Independent    Simultaneous   Independent
+%For 10
 amps_plot = [2.2    7    3.5    8.9;    7    11.5    14.3     17.2];
+
+%For 5.7
+%amps_plot = [0.5    2.8    0.5    5.8;     6.4    9.9  3.9   7];
+
+
 
 I = 1;
 plot_indices3 = [1 2; 3 4];
