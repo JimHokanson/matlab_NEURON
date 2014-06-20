@@ -12,9 +12,17 @@ At this point the majority of code focuses on modeling extracellular stimulation
 1. Bidirectional interface between NEURON and Matlab.
 2. Extracellular stimulation using point source electrodes and homogenous tissue (isotropic or anisotropic)
 
+## Installation ##
+
+1. Make sure NEURON is installed
+2. Copy the Example_Options.txt over into a new file options.txt (same directory) and change the values for your system. Eventually I'd like to have a GUI which helps with this.
+3. Run the initialization script 'intialize.m'. I put this in my startup.m script. Example: run('C:\repos\matlab_git\matlab_NEURON\initialize.m')
+4. Compile NEURON mechanisms
+4. TODO: Finish this ...
+
 ## Current Issues ##
 
-1. Installation in Matlab takes a bit of effort. I have plans to clean this up.
+1. Matlab keeps local information regarding properties rather than dynamically reading and writing them to NEURON. This saves times but also means one needs to be careful about values getting stale if set elsewhere
 
 ## Requirements ##
 

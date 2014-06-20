@@ -21,4 +21,6 @@ if ~exist('RNEL_LIBRARY.txt','file')
     addpath(fullfile(matlab_code_path,'RNEL_functions','permanent'))
 end
 
+NEURON.s.init_system;
+
 end

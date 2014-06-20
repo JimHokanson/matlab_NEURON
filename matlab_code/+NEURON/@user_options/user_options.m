@@ -5,7 +5,8 @@ classdef user_options < handle_light
     %   Class:
     %   NEURON.user_options
     %
-    %   SINGLETON: Use NEURON.user_options.getInstance
+    %   SINGLETON: 
+    %       Use NEURON.user_options.getInstance
     %
     %   OPTION DEFINITIONS
     %   ===================================================================
@@ -152,11 +153,10 @@ classdef user_options < handle_light
             
             d_struct = dir(options_file);
             if isempty(d_struct)
-                if missing_file_ok
-                    options_file_filepath = fullfile(options_dir,obj.DEFAULT_FILE_NAME);
-                else
+                options_file_filepath = fullfile(options_dir,obj.DEFAULT_FILE_NAME);
+                if ~missing_file_ok
                     %TODO: launch GUI
-                    error('options file needed, currently manual creation required')
+                    error('options file needed, currently manual creation required at: %s',options_file_filepath)
                 end
             elseif length(d_struct) ~= 1
                 error('Expecting singular match for options* in repository root')
