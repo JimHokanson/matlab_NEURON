@@ -1,4 +1,4 @@
-classdef props < handle_light
+classdef props < NEURON.sl.obj.handle_light
     %props
     %
     %   CLASS: NEURON.cell.axon.MRG.props

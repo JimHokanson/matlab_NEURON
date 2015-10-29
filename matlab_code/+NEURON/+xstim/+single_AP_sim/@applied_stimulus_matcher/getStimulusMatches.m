@@ -29,7 +29,7 @@ n_total  = n_old + n_new;
 %
 %This is important below when we determine if a point
 %came from the old or new data
-u = sl.array.unique_rows([old_stim; new_stim]);
+u = NEURON.sl.array.unique_rows([old_stim; new_stim]);
 
 is_new_mask = true(1,n_total);
 is_new_mask(1:n_old) = false;

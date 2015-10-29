@@ -1,4 +1,4 @@
-classdef threshold_options < handle_light
+classdef threshold_options < NEURON.sl.obj.handle_light
     %
     %   Class: 
     %       NEURON.simulation.extracellular_stim.threshold_options
@@ -95,7 +95,7 @@ classdef threshold_options < handle_light
            %
            in.scaling   = 2;
            in.n_guesses = length(obj.guess_amounts);
-           in = processVarargin(in,varargin);
+           in = NEURON.sl.in.processVarargin(in,varargin);
            
            obj.guess_amounts = abs(guess_unit)*in.scaling.^(1:in.n_guesses);
         end

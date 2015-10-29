@@ -1,4 +1,4 @@
-classdef user_options < handle_light
+classdef user_options < NEURON.sl.obj.handle_light
     %
     %   This class is meant to handle parsing of user defined variables.
     %
@@ -28,10 +28,10 @@ classdef user_options < handle_light
         %For mac, point to nrniv path
     end
     
-    properties (Hidden)
-        %NOTE: It is important that this location is maintained.
-        required_properties  %Populated dynamically based on position.
-    end
+%     properties (Hidden)
+%         %NOTE: It is important that this location is maintained.
+%         required_properties  %Populated dynamically based on position.
+%     end
     
     %======================================================================
     %Class Required Properties   %=========================================
@@ -55,11 +55,11 @@ classdef user_options < handle_light
         %function handle. See NEURON.s.editHoc
     end
     
-    properties (Hidden)
-        defined_properties  %When implemented properly this will be used
-        %in conjunction with the meta class ?, to grab all properties above
-        %and save their current values to file
-    end
+%     properties (Hidden)
+%         defined_properties  %When implemented properly this will be used
+%         %in conjunction with the meta class ?, to grab all properties above
+%         %and save their current values to file
+%     end
     
     properties (Hidden,Constant)
        DEFAULT_FILE_NAME = 'options.txt'
@@ -84,76 +84,96 @@ classdef user_options < handle_light
     methods (Hidden)
         function initialize(obj)
             
-            %Getting required properties
-            %---------------------------------------------------------------
-            temp_meta  = ?NEURON.user_options;
-            p          = temp_meta.PropertyList;
-            prop_names = {p.Name};
-            I = find(strcmp(prop_names,'required_properties'),1);
-            obj.required_properties = prop_names(1:I-1);
+            options_data = NEURON.sl.io.readDelimitedFile(obj.getFilePath,obj.FILE_DELIMITER);
+
+            keys = strtrim(options_data(:,1));
+            values = strtrim(options_data(:,2));
             
-            %Getting filepath
-            %---------------------------------------------------------------
-            options_file_filepath = obj.getFilePath;
+            m = containers.Map(keys,values);
             
-            %Reading filepath
-            %---------------------------------------------------------------
-            file_data = getPropFileAsStruct(options_file_filepath,obj.FILE_DELIMITER);
+            obj.neuron_exe_path = m('neuron_exe_path');
             
-            %Assignment of properties
-            %---------------------------------------------------------------
-            fn          = fieldnames(file_data);
+            scratch_path = m('scratch_path');
             
-            keep_fields_mask = ismember(fn,fieldnames(obj));
-            bad_fields_I     = find(~keep_fields_mask);
-            good_fields_I    = find(keep_fields_mask);
-            
-            for iField = good_fields_I(:)'
-                cur_field_name = fn{iField};
-                obj.(cur_field_name) = file_data.(cur_field_name);
+            if ~exist(scratch_path,'dir')
+                error('The scratch path must already exist')
             end
             
-            %Other stuff
-            %---------------------------------------------------------------
-            obj.defined_properties = fn(good_fields_I);
-            
-            is_present = ismember(obj.required_properties,obj.defined_properties);
-            
-            if ~all(is_present)
-                %Currently this requires manual fixing
-                %TODO: provide GUI for fixing this
-                missing_properties = obj.required_properties(~is_present);
-                error(['Not all required properties are specified in the options text\n' ...
-                    'missing properties include:\n%s\n'],cellArrayToString(missing_properties,'\n'))
-            end
-            
-            %TODO - if not empty display more info
-            if ~isempty(bad_fields_I)
-                bad_field_names = fn(bad_fields_I); %#ok<NASGU>
-                fprintf(2,'Bad fields are presents in the NEURON options file\n');
-            end
+            fh = @NEURON.sl.dir.createFolderIfNoExist;
+            obj.temp_data_base_path = fh(scratch_path,'temp_folder__ok_to_delete');
+            obj.sim_logger_root_path = fh(scratch_path,'sim_logger_results');
+            obj.xstim_results_base_path = fh(scratch_path,'xstim_results');
+                        
+% % % % %             %Getting required properties
+% % % % %             %---------------------------------------------------------------
+% % % % %             temp_meta  = ?NEURON.user_options;
+% % % % %             p          = temp_meta.PropertyList;
+% % % % %             prop_names = {p.Name};
+% % % % %             I = find(strcmp(prop_names,'required_properties'),1);
+% % % % %             obj.required_properties = prop_names(1:I-1);
+% % % % %             
+% % % % %             %Getting filepath
+% % % % %             %---------------------------------------------------------------
+% % % % %             options_file_filepath = obj.getFilePath;
+% % % % %             
+% % % % %             %Reading filepath
+% % % % %             %---------------------------------------------------------------
+% % % % %             file_data = getPropFileAsStruct(options_file_filepath,obj.FILE_DELIMITER);
+% % % % %             
+% % % % %             %Assignment of properties
+% % % % %             %---------------------------------------------------------------
+% % % % %             fn          = fieldnames(file_data);
+% % % % %             
+% % % % %             keep_fields_mask = ismember(fn,fieldnames(obj));
+% % % % %             bad_fields_I     = find(~keep_fields_mask);
+% % % % %             good_fields_I    = find(keep_fields_mask);
+% % % % %             
+% % % % %             for iField = good_fields_I(:)'
+% % % % %                 cur_field_name = fn{iField};
+% % % % %                 obj.(cur_field_name) = file_data.(cur_field_name);
+% % % % %             end
+% % % % %             
+% % % % %             %Other stuff
+% % % % %             %---------------------------------------------------------------
+% % % % %             obj.defined_properties = fn(good_fields_I);
+% % % % %             
+% % % % %             is_present = ismember(obj.required_properties,obj.defined_properties);
+% % % % %             
+% % % % %             if ~all(is_present)
+% % % % %                 %Currently this requires manual fixing
+% % % % %                 %TODO: provide GUI for fixing this
+% % % % %                 missing_properties = obj.required_properties(~is_present);
+% % % % %                 error(['Not all required properties are specified in the options text\n' ...
+% % % % %                     'missing properties include:\n%s\n'],cellArrayToString(missing_properties,'\n'))
+% % % % %             end
+% % % % %             
+% % % % %             %TODO - if not empty display more info
+% % % % %             if ~isempty(bad_fields_I)
+% % % % %                 bad_field_names = fn(bad_fields_I); %#ok<NASGU>
+% % % % %                 fprintf(2,'Bad fields are presents in the NEURON options file\n');
+% % % % %             end
         end
     end
     
     methods (Hidden, Static)
-        function options_file_filepath = getFilePath(obj,missing_file_ok)
+        function options_file_filepath = getFilePath(missing_file_ok)
             %
             %
-            %   options_file_filepath = getFilePath(obj,*missing_file_ok)
+            %   options_file_filepath = getFilePath(*missing_file_ok)
             %
             
             if ~exist('missing_file_ok','var')
                missing_file_ok = false; 
             end
             
-            options_dir  = filepartsx(getMyPath,3);
+            options_dir  = NEURON.sl.dir.filepartsx(NEURON.sl.stack.getMyBasePath(),3);
             
             %Change to wildcard on extension
             options_file = fullfile(options_dir,'options*');
             
             d_struct = dir(options_file);
             if isempty(d_struct)
-                options_file_filepath = fullfile(options_dir,obj.DEFAULT_FILE_NAME);
+                options_file_filepath = fullfile(options_dir,NEURON.user_options.DEFAULT_FILE_NAME);
                 if ~missing_file_ok
                     %TODO: launch GUI
                     error('options file needed, currently manual creation required at: %s',options_file_filepath)

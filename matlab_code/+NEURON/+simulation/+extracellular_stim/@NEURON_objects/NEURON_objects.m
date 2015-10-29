@@ -1,4 +1,4 @@
-classdef NEURON_objects < handle_light
+classdef NEURON_objects < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.simulation.extracellular_stim.NEURON_objects

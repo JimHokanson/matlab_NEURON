@@ -1,4 +1,4 @@
-classdef ID < handle_light
+classdef ID < NEURON.sl.obj.handle_light
     %
     %
     %   Class:
@@ -8,7 +8,7 @@ classdef ID < handle_light
     %   NEURON.logger
     %   NEURON.logger.getID
     
-    properties (SetAccess = {?sl.struct.toObject})
+    properties (SetAccess = {?NEURON.sl.struct.toObject})
         class_type    %(char) string to uniquely identify class
         type          %(numeric), used for comparing subclass types
         %Unfortunately right now it is up to the user to manage
@@ -48,7 +48,7 @@ classdef ID < handle_light
             obj.creation_date = creation_date;
         end
         function s = getStruct(obj)
-           s = sl.obj.toStruct(obj); 
+           s = NEURON.sl.obj.toStruct(obj); 
         end
         function flag = isValid(obj)
             flag = ~isnan(obj.trial_row);         
@@ -65,7 +65,7 @@ classdef ID < handle_light
 %            in.include_class = false;
 %            in.include_date  = false;
 %            in.ext           = '.mat';
-%            in = sl.in.processVarargin(in,varargin);
+%            in = NEURON.sl.in.processVarargin(in,varargin);
            
             file_name = sprintf('ID_%d_%d.mat',obj.type,obj.trial_row);
         end
@@ -89,7 +89,7 @@ classdef ID < handle_light
         function obj = fromStruct(s)
            %NOTE: We could do version updating here ...
            obj = NEURON.logger.ID;
-           sl.struct.toObject(obj,s);
+           NEURON.sl.struct.toObject(obj,s);
         end
     end
 end

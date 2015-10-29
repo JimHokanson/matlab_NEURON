@@ -81,7 +81,7 @@ classdef java_comm_obj < NEURON.comm_obj
                 %
                 %It is equivalent to putting quotes around the executable
                 %and its arguments
-                cmd_array = {paths_obj.win_bash_exe_path '-c' [getCygwinPath(paths_obj.exe_path) ' -nobanner']};
+                cmd_array = {paths_obj.win_bash_exe_path '-c' [NEURON.sl.dir.getCygwinPath(paths_obj.exe_path) ' -nobanner']};
             else % here i'm assuming mac and unix behave the same, if there's an issue with unix, fix this
                 cmd_array = [paths_obj.exe_path obj.cmd_options_unix];
             end
@@ -183,7 +183,7 @@ classdef java_comm_obj < NEURON.comm_obj
             %
             %   Returns path to 
             
-            my_path       = getMyPath;
+            my_path       = NEURON.sl.stack.getMyBasePath();
             java_bin_path = fullfile(my_path,'private','java_code','bin');
         end
         function init_system_setup

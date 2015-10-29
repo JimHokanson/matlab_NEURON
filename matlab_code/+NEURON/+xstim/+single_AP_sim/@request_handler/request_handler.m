@@ -69,7 +69,7 @@ classdef request_handler
             %   and should probably be avoided ...
             in.testing = false; %Not yet fully implemented. If testing
             %
-            in = sl.in.processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
             
             obj.xstim             = xstim;
             obj.default_stim_sign = default_stim_sign;
@@ -128,7 +128,7 @@ classdef request_handler
             in.reshape_output = true; %If true, and the cell
             in.stim_sign      = obj.default_stim_sign; %We use the default
             %that is specified as an input to the constructor ...
-            in = sl.in.processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
             
             stim_sign = in.stim_sign;
             
@@ -139,7 +139,7 @@ classdef request_handler
             %XYZ Handling ...
             %--------------------------------------------------------------
             if iscell(cell_locations)
-                xyz = sl.xyz.cellToMatrix(cell_locations);
+                xyz = NEURON.sl.xyz.cellToMatrix(cell_locations);
             else
                 assert(size(cell_locations,2) == 3,'# of columns for cell locations must be 3')
                 xyz = cell_locations;
@@ -197,7 +197,7 @@ classdef request_handler
             
             in.stim_sign      = obj.default_stim_sign; %We use the default
             %that is specified as an input to the constructor ...
-            in = sl.in.processVarargin(in,varargin); 
+            in = NEURON.sl.in.processVarargin(in,varargin); 
             
             stim_sign = in.stim_sign;
             
@@ -224,7 +224,7 @@ classdef request_handler
            
             in.stim_sign      = obj.default_stim_sign; %We use the default
             %that is specified as an input to the constructor ...
-            in = sl.in.processVarargin(in,varargin); 
+            in = NEURON.sl.in.processVarargin(in,varargin); 
            
            
            logged_data_object = NEURON.xstim.single_AP_sim.logged_data(in.stim_sign,obj.xstim_ID,true);
@@ -253,7 +253,7 @@ function solution = helper__reshapeOutput(solution,reshape_output,cell_locations
 %   cell_locations_input :
 
 if reshape_output && iscell(cell_locations_input)
-    solution.thresholds = sl.xyz.vectorToMatrixByCell(solution.thresholds,cell_locations_input);
+    solution.thresholds = NEURON.sl.xyz.vectorToMatrixByCell(solution.thresholds,cell_locations_input);
 end
 
 end

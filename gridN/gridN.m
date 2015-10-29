@@ -19,7 +19,7 @@ params.yscale = 1;
 params.zscale = 1;
 
 in.interp = 'linear';
-in = sl.in.processVarargin(in, varargin); %for now...
+in = NEURON.sl.in.processVarargin(in, varargin);
 params.interp = in.interp;
 
 % check lengths of the data

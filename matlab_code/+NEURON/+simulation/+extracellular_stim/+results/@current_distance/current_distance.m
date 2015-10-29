@@ -1,4 +1,4 @@
-classdef current_distance < handle_light
+classdef current_distance < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.simulation.extracellular_stim.results.current_distance

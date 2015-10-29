@@ -1,4 +1,4 @@
-classdef single_sim < handle_light
+classdef single_sim < NEURON.sl.obj.handle_light
     %
     %   Class: 
     %       NEURON.simulation.extracellular_stim.results.single_sim;
@@ -83,7 +83,7 @@ classdef single_sim < handle_light
             mesh(1:n_space_points,time_vector,vm_local)
             
 % % %             in.font_size = 18;
-% % %             in = processVarargin(in,varargin);
+% % %             in = NEURON.sl.in.processVarargin(in,varargin);
 % % %             %TODO: Reference this to some plotting method of the cell
 % % %             %This functionaly could be useful elsewhere ...
 % % %             

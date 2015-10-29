@@ -1,4 +1,4 @@
-classdef match_result < sl.obj.handle_light
+classdef match_result < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.solution.match_result

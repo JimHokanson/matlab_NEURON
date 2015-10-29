@@ -28,7 +28,7 @@ new_data_obj = s.new_data;
 solved_mask = new_data_obj.solution_available;
 
 if n_points > obj.opt__max_non_rand_size
-    fixed_indices = sl.array.shuffle(find(~solved_mask)); %#ok<FNDSB>
+    fixed_indices = NEURON.sl.array.shuffle(find(~solved_mask)); %#ok<FNDSB>
     
     %Method, not sure what to call it 
     %We basically grab in equal sized bins except for the last bin
@@ -45,7 +45,7 @@ else
     %We'll need to adjust indices later on ...
     input_data = new_stim(~solved_mask,:);
     
-    imd = sci.cluster.iterative_max_distance(input_data,...
+    imd = NEURON.sci.cluster.iterative_max_distance(input_data,...
         'previous_data',old_stim);
     
     obj.imd = imd;
@@ -61,7 +61,7 @@ else
     
     %Translate indices back to unsolved indices ...
     %TODO: Rewrite function ...
-    fixed_indices = sl.indices.new_to_old.getOldIndices__oldKeepMask__newIndices(~solved_mask,imd.index_order);
+    fixed_indices = NEURON.sl.array.indices.new_to_old.getOldIndices__oldKeepMask__newIndices(~solved_mask,imd.index_order);
     
     %Using this information to form groups
     %======================================================================
@@ -89,9 +89,9 @@ else
     N      = histc(norm_dist_contributions,edges);
 end
 
-r = sl.array.enforce_minimum_counts_by_regrouping(N,obj.opt__min_group_size);
+r = NEURON.sl.array.enforce_minimum_counts_by_regrouping(N,obj.opt__min_group_size);
 
-obj.groups_of_indices_to_run = sl.array.toCellArrayByCounts(fixed_indices,r.counts_out);
+obj.groups_of_indices_to_run = NEURON.sl.array.toCellArrayByCounts(fixed_indices,r.counts_out);
 
 
 obj.max_index = length(obj.groups_of_indices_to_run);

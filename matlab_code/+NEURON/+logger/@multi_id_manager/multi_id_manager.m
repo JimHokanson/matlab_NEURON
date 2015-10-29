@@ -1,4 +1,4 @@
-classdef multi_id_manager < sl.obj.handle_light
+classdef multi_id_manager < NEURON.sl.obj.handle_light
     %
     %
     %   Class:
@@ -64,7 +64,7 @@ classdef multi_id_manager < sl.obj.handle_light
             obj.loadObject();
         end
         function saveObject(obj)
-            s = sl.obj.toStruct(obj); %#ok<NASGU>
+            s = NEURON.sl.obj.toStruct(obj); %#ok<NASGU>
 
             save(obj.save_path,'s');
         end
@@ -77,7 +77,7 @@ classdef multi_id_manager < sl.obj.handle_light
                     error('Code needs to be updated to handle data change')
                 end
                 
-                result = sl.struct.toObject(obj,s); %#ok<NASGU>
+                result = NEURON.sl.struct.toObject(obj,s); %#ok<NASGU>
             end
         end
     end

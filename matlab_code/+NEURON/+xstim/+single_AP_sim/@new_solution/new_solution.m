@@ -1,4 +1,4 @@
-classdef new_solution < sl.obj.handle_light
+classdef new_solution < NEURON.sl.obj.handle_light
     %
     %
     %   Class:
@@ -46,7 +46,7 @@ classdef new_solution < sl.obj.handle_light
     end
     
     %??? Make some of these access private?????
-    properties (SetAccess = {?sl.struct.toObject})
+    properties (SetAccess = {?NEURON.sl.struct.toObject})
         d1 = '---- Do not access these properties, for debugging only ----'
         solved %[1 x n], This should be set if values are learned or
         %predicted. In this case threshold values should be available.
@@ -78,7 +78,7 @@ classdef new_solution < sl.obj.handle_light
         %    2)
     end
     
-    properties (SetAccess = {?sl.struct.toObject})
+    properties (SetAccess = {?NEURON.sl.struct.toObject})
         d2 = '----  Fine to access directly for now ----'
         cell_locations   %(numeric, [n x 3])
         thresholds       %(numeric, [1 x n]), default NaN
@@ -257,7 +257,7 @@ classdef new_solution < sl.obj.handle_light
                return 
             end
             
-            s = sl.obj.toStruct(obj,{'will_solve_later' 'will_solve_later_fh'});  %#ok<NASGU>
+            s = NEURON.sl.obj.toStruct(obj,'fields_to_remove',{'will_solve_later' 'will_solve_later_fh'});  %#ok<NASGU>
             %NOTE: We will only reload from disk for merging with old data.
             
             save(obj.file_save_path,'s');
@@ -295,7 +295,7 @@ classdef new_solution < sl.obj.handle_light
             else
                 sign_folder = 'neg';
             end
-            save_path = sl.dir.createFolderIfNoExist(true,base_path,sign_folder,file_name);
+            save_path = NEURON.sl.dir.createFolderIfNoExist(true,base_path,sign_folder,file_name);
         end
         function mergeResultsWithOld(obj,logged_data_obj)
             %
@@ -360,7 +360,7 @@ classdef new_solution < sl.obj.handle_light
                 h = load(obj.file_save_path);
                 s = h.s;
                 %The file_save_path is already loaded ...
-                sl.struct.toObject(obj,s,'fields_ignore','file_save_path');
+                NEURON.sl.struct.toObject(obj,s,'fields_ignore','file_save_path');
             end
         end
         

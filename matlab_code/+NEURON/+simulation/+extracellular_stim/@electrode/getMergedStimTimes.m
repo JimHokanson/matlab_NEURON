@@ -52,7 +52,7 @@ else
     
     %NOTE: Use of unique2 allows an efficient way of knowing which
     %electrodes contributed to each unique time
-    [t_vec,uI] = unique2(allTimes_v);
+    [t_vec,uI] = NEURON.sl.array.uniqueWithGroupIndices(allTimes_v);
     
     %uI - a cell array which indicates for each unique time, which indices
     %in the original have this unique time

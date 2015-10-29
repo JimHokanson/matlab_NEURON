@@ -9,6 +9,6 @@ function file_path = createNeuronPath(file_path)
 
 
 if ispc
-    file_path = getCygwinPath(file_path);
+    file_path = NEURON.sl.dir.getCygwinPath(file_path);
 end
 end

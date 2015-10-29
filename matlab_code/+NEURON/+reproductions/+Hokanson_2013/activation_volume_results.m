@@ -1,4 +1,4 @@
-classdef activation_volume_results < sl.obj.handle_light
+classdef activation_volume_results < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.reproductions.Hokanson_2013.activation_volume_results

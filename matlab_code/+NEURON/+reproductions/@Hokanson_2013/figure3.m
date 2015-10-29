@@ -78,7 +78,7 @@ keyboard
 %                           Plotting results
 %--------------------------------------------------------------------------
 
-final_strings = sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
+final_strings = NEURON.sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
 
 %1) Vs. Effectivness
 for iPair = 1:2
@@ -117,7 +117,7 @@ end
 %{
 for iPair = 1:2
     subplot(1,2,iPair)
-    final_strings = sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
+    final_strings = NEURON.sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
         
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
     obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair},'x_by_single_volume',true,'normalize',true);

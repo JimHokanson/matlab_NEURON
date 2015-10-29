@@ -82,7 +82,7 @@ for iPair = 1:2
     c1 = temp_s.counts;
     c2 = temp_d.counts;
     
-    final_strings = sl.cellstr.sprintf('%5.2f - um',DIAMETER_USE);
+    final_strings = NEURON.sl.cellstr.sprintf('%5.2f - um',DIAMETER_USE);
     
     subplot(2,2,plot_indices2(iPair,1))
     plot(s,c1,s,c2)
@@ -128,7 +128,7 @@ for iPair = 1:2
     dc1 = filtfilt(B,1,dc1);
     dc2 = filtfilt(B,1,dc2);
     subplot(3,2,plot_indices2(iPair,1))
-    final_strings = sl.cellstr.sprintf('%5.2f - um',DIAMETER_USE);
+    final_strings = NEURON.sl.cellstr.sprintf('%5.2f - um',DIAMETER_USE);
         
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
     obj.plotVolumeRatio(rs_all{iPair}(end:-1:1),rd_all{iPair}(end:-1:1));

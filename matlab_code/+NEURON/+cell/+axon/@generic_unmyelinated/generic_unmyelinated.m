@@ -52,7 +52,7 @@ classdef generic_unmyelinated < NEURON.cell.axon & NEURON.cell.extracellular_sti
             obj = obj@NEURON.cell.axon;
             
             in.v_ap_threshold       = 0;
-            in = processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
             obj.threshold_info_obj = NEURON.cell.threshold_info;
             obj.threshold_info_obj.v_ap_threshold = in.v_ap_threshold;
             

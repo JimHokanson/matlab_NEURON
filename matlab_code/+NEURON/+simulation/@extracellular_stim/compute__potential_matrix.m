@@ -55,7 +55,7 @@ function potential_matrix = compute__potential_matrix(obj,x_y_z,varargin)
 in.remove_zero_stim_option = 1;
 in.returned_data_format    = 0;
 in.change_inf_value        = NaN;
-in = process_varargin(in,varargin);
+in = NEURON.sl.in.process_varargin(in,varargin);
 
 
 %Compute x,y,z in grid then linearize for input to computeStimulus

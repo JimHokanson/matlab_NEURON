@@ -19,7 +19,7 @@ in.x_by_single_volume = false; %If true we'll plot the counts for the single
 in.normalize            = false;
 in.normalization_index  = 1;
 in.normalization_method = 'subtract'; %divide
-in = sl.in.processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 FONT_SIZE = 18;
 

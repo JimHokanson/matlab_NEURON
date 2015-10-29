@@ -7,14 +7,14 @@ function plot(obj,varargin)
 %PLOT 2 - spatial layout of all electrodes ...
 
 in.stimulus_amplitude = 1;
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 
 % % % in.half_square_size = 400;
 % % % in.step_size        = 5;
 % % % in.plot_centered    = false;
 % % % in.CLim             = [];
-% % % in = processVarargin(in,varargin);
+% % % in = NEURON.sl.in.processVarargin(in,varargin);
 % % % 
 % % % rho = extrac_stim_obj.resistivity;
 % % % 

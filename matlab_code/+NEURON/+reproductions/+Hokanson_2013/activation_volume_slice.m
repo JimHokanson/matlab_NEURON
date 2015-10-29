@@ -1,4 +1,4 @@
-classdef activation_volume_slice < sl.obj.handle_light
+classdef activation_volume_slice < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.reproductions.Hokanson_2013.activation_volume_slice
@@ -28,7 +28,7 @@ classdef activation_volume_slice < sl.obj.handle_light
         function obj = activation_volume_slice(act_obj,max_stim_level,xyz_info,slice_dim,slice_value,varargin)
             
             in.replication_points = [];
-            in = sl.in.processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
             
             obj.slice_dim   = slice_dim;
             obj.slice_value = slice_value;
@@ -53,7 +53,7 @@ classdef activation_volume_slice < sl.obj.handle_light
         function plot(obj,varargin)
             
            in.lim_dim1 = [];
-           in = sl.in.processVarargin(in,varargin);
+           in = NEURON.sl.in.processVarargin(in,varargin);
             
            
            dim1 = obj.xyz{1};
@@ -73,12 +73,12 @@ classdef activation_volume_slice < sl.obj.handle_light
            
            axis equal
         end
-        function contour(obj,stim_amps)
+        function [c,h] = contour(obj,stim_amps)
            
            if length(stim_amps) == 1 
-              contour(obj.xyz{1},obj.xyz{2},obj.thresholds',[stim_amps stim_amps]); 
+              [c,h] = contour(obj.xyz{1},obj.xyz{2},obj.thresholds',[stim_amps stim_amps]); 
            else
-              contour(obj.xyz{1},obj.xyz{2},obj.thresholds',stim_amps);  
+              [c,h] = contour(obj.xyz{1},obj.xyz{2},obj.thresholds',stim_amps);  
            end
            axis equal
         end

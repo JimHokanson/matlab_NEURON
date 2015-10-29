@@ -1,4 +1,4 @@
-classdef (Hidden) loggable < sl.obj.handle_light
+classdef (Hidden) loggable < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.loggable

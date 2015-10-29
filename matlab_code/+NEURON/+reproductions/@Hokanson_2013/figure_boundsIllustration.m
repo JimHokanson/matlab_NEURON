@@ -81,7 +81,7 @@ axis equal
 set(gca,'clim',[0 25])
 end
 
-%temp = sl.plot.postp.imageToPatch(gcf,'ignore_colorbars',false);
+%temp = NEURON.sl.plot.postp.imageToPatch(gcf,'ignore_colorbars',false);
 
 %Value of interest
 %min(r(1,1,:))

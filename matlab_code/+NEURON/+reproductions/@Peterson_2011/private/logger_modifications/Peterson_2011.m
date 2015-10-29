@@ -1,4 +1,4 @@
-classdef Peterson_2011 < handle_light
+classdef Peterson_2011 < NEURON.sl.obj.handle_light
     %UNTITLED Summary of this class goes here
     %   Detailed explanation goes here
     

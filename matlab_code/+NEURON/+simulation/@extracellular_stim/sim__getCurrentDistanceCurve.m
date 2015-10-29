@@ -31,7 +31,7 @@ in.starting_value = 1; %Starting stimulus scale, SIGN is important, applies
 in.base_xyz       = [0 0 0]; %Base location of the electrode ...
 in.dim_move       = 2;
 in.sim_logger_options = {};
-in = sl.in.processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 elec_obj_local   = obj.elec_objs;
 thresh_opt_local = obj.threshold_options_obj;

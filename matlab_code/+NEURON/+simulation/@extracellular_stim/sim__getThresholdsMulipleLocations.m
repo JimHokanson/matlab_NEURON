@@ -42,7 +42,7 @@ in.use_new_solver     = false; %NO LONGER USED
 %and tried to merge them, i.e. if the stimulus was from 1 or 10 electrodes,
 %as long as the appplied voltage was the same, the results would be the same,
 %this ended up being a bit too memory intensive
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 % if in.use_new_solver
     r  = obj.sim__getSingleAPSolver('solver','default');

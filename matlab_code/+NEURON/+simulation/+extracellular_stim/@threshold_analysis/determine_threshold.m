@@ -39,7 +39,7 @@ function result_obj = determine_threshold(obj,starting_value)
 AUTO_EXPAND_SIM_TIME = true;
 
 %in.throw_error = true;
-%in = processVarargin(in,varargin);
+%in = NEURON.sl.in.processVarargin(in,varargin);
 
 %What about if there is:
 %1) No applied stimulus 

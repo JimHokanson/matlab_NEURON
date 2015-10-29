@@ -1,4 +1,4 @@
-classdef event_manager < handle_light
+classdef event_manager < NEURON.sl.obj.handle_light
     %event_manager
     %
     %   The goal of this class is to have a place that clearly lays out and keeps 

@@ -1,4 +1,4 @@
-classdef dim_reduction_options < sl.obj.handle_light
+classdef dim_reduction_options < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.dim_reduction_options

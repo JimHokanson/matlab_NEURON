@@ -1,4 +1,4 @@
-classdef results_path_manager < sl.obj.handle_light
+classdef results_path_manager < NEURON.sl.obj.handle_light
     %
     %
     %
@@ -50,7 +50,7 @@ classdef results_path_manager < sl.obj.handle_light
                     error('class: %s, not yet handled',class_name)
             end
             
-            sl.dir.createFolderIfNoExist(base_path);
+            NEURON.sl.dir.createFolderIfNoExist(base_path);
             
         end
     end

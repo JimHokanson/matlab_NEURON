@@ -1,4 +1,4 @@
-classdef threshold_analysis < handle_light
+classdef threshold_analysis < NEURON.sl.obj.handle_light
     %
     %   Class: 
     %       NEURON.simulation.extracellular_stim.threshold_analysis

@@ -1,4 +1,4 @@
-classdef volume_counts < sl.obj.handle_light
+classdef volume_counts < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.simulation.extracellular_stim.results.activation_volume.volume_counts

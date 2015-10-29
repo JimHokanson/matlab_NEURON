@@ -1,4 +1,4 @@
-classdef  solution < sl.obj.handle_light
+classdef  solution < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.solution
@@ -43,7 +43,7 @@ classdef  solution < sl.obj.handle_light
                 if s.VERSION ~= obj.VERSION
                     error('Write some update code')
                 end
-                sl.struct.toObject(obj,s);
+                NEURON.sl.struct.toObject(obj,s);
             end
         end
         function new_obj = getPartialObject(obj,I)
@@ -72,7 +72,7 @@ classdef  solution < sl.obj.handle_light
            appplied_stim_obj = NEURON.xstim.single_AP_sim.applied_stimuli(xstim_obj,obj.cell_locations); 
         end
         function s = getStruct(obj)
-            s = sl.obj.toStruct(obj);
+            s = NEURON.sl.obj.toStruct(obj);
         end
         function addToEntry(obj,solve_dates,new_locations,new_thresholds,predictor_types,ranges)
             %

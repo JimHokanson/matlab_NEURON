@@ -1,4 +1,4 @@
-classdef gridPredictor < sl.obj.handle_light
+classdef gridPredictor < NEURON.sl.obj.handle_light
 
     properties
         s

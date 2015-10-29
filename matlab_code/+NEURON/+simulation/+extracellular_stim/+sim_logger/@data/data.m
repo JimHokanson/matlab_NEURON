@@ -1,4 +1,4 @@
-classdef data < handle_light
+classdef data < NEURON.sl.obj.handle_light
     %
     %   Class: 
     %       NEURON.simulation.extracellular_stim.sim_logger.data

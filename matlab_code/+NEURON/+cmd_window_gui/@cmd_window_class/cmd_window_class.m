@@ -1,4 +1,4 @@
-classdef (Hidden) cmd_window_class < handle_light
+classdef (Hidden) cmd_window_class < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.cmd_window_gui.cmd_window_class

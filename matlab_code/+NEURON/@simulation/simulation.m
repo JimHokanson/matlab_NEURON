@@ -1,4 +1,4 @@
-classdef simulation < handle_light
+classdef simulation < NEURON.sl.obj.handle_light
     %
     %   CLASS: 
     %       NEURON.simulation
@@ -213,11 +213,11 @@ classdef simulation < handle_light
             if opt.display_time_change_warnings
                 if t_diff < 0
                     %Need more time ...
-                    formattedWarning('Changing simulation time from %0g to %0g, to account for event at %0g',...
+                    NEURON.sl.warning.formatted('Changing simulation time from %0g to %0g, to account for event at %0g',...
                         old_tstop,new_tstop,lastEventTime)
                 else
                     %Trying to save time ...
-                    formattedWarning('Changing simulation time from %0g to %0g, to save time, last event at %0g',...
+                    NEURON.sl.warning.formatted('Changing simulation time from %0g to %0g, to save time, last event at %0g',...
                         old_tstop,new_tstop,lastEventTime)
                 end
             end

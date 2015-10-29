@@ -1,4 +1,4 @@
-classdef logger < sl.obj.handle_light
+classdef logger < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.logger
@@ -17,7 +17,7 @@ classdef logger < sl.obj.handle_light
     %   1) Needs significant documentation updates
     %   2) Remove long names ...
     %   3) Change name of find to be more appropriate
-    %   4) Remove dynamicprops => sl.obj.handle_light
+    %   4) Remove dynamicprops => NEURON.sl.obj.handle_light
     %
     %   See Also:
     %   NEURON.logger.auto_logger
@@ -114,7 +114,7 @@ classdef logger < sl.obj.handle_light
             %   NEURON.logger.ID_logger.find
             
             in.new_ok = true;
-            in = sl.in.processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
 
             ID = obj.find(in.new_ok);
         end
@@ -199,7 +199,7 @@ classdef logger < sl.obj.handle_light
         %                     s = obj.update(s);
         %                 end
         %
-        %                 result = sl.struct.toObject(obj,s); %#ok<NASGU>
+        %                 result = NEURON.sl.struct.toObject(obj,s); %#ok<NASGU>
         %                 %NOTE: result will eventually be a class that dictactes
         %                 %what happens, since the input class is a handle, the props
         %                 %are assigned in the function, and we don't need to do
@@ -252,11 +252,11 @@ classdef logger < sl.obj.handle_light
             %specified data logging base path ...
             %
             %   i.e. see NEURON.user_options
-            base_path        = sl.dir.getMyBasePath('',3);
+            base_path        = NEURON.sl.stack.getMyBasePath('','n_dirs_up',3);
             
             class_name_parts = regexp(class(obj),'\.','split');
             
-            save_base_path   = sl.dir.createFolderIfNoExist(base_path,'data',class_name_parts{2:end});
+            save_base_path   = NEURON.sl.dir.createFolderIfNoExist(base_path,'data',class_name_parts{2:end});
         end
         function file_path = getSaveDataPath(obj)
             file_path = fullfile(obj.getClassPath,'data.mat');

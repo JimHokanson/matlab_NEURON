@@ -1,4 +1,4 @@
-classdef (Hidden) comm_obj < handle_light
+classdef (Hidden) comm_obj < NEURON.sl.obj.handle_light
     %
     %   Abstract class for NEURON communication ...
     %

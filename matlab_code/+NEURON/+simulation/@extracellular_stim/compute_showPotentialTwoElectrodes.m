@@ -19,7 +19,7 @@ in.padding = 400;
 %?? - how to handle all times????
 %1 - movie
 %2 - single time frame - implement for now ...
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 %INPUT HANDLING
 all_dims = 'xyz';

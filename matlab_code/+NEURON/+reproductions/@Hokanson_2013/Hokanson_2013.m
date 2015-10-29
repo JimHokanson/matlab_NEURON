@@ -130,7 +130,7 @@ classdef Hokanson_2013
             sy(dy == 0) = {''};
             sz(dz == 0) = {''};
             
-            final_strings = cellfun(@(x,y,z) sl.cellstr.join({x y z},'d',', ','remove_empty',true),sx,sy,sz,'un',0);
+            final_strings = cellfun(@(x,y,z) NEURON.sl.cellstr.join({x y z},'d',', ','remove_empty',true),sx,sy,sz,'un',0);
             
             
         end
@@ -149,7 +149,7 @@ classdef Hokanson_2013
             in.clim_increment = 5; %Round up to the next
             %multiple of some value for display ...
             
-            in = sl.in.processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
             
             if in.one_by_two
                 m = 1;
@@ -180,11 +180,11 @@ classdef Hokanson_2013
             
             
             if in.same_clim
-                max_clim_use = sl.array.roundToPrecision(max(max_clim(:)),in.clim_increment);
+                max_clim_use = NEURON.sl.array.roundToPrecision(max(max_clim(:)),in.clim_increment);
                 max_clim_use = 30;
                 max_clim_use = max_clim_use*ones(n_sets,1);
             else
-                max_clim_use = sl.array.roundToPrecision(max(max_clim,[],2),in.clim_increment);
+                max_clim_use = NEURON.sl.array.roundToPrecision(max(max_clim,[],2),in.clim_increment);
             end
             
             ax = zeros(n_sets,2);
@@ -212,7 +212,23 @@ classdef Hokanson_2013
             keyboard
             
         end
-        function plotLimits(obj,xz_amp,xz_value)
+        %When did this get introduced????
+% % %         function plotLimits(obj,xz_amp,xz_value)
+% % %             chars    = 'xzXZ';
+% % %             colors   = 'rgbc';
+% % %             symbol   = 'ospd';
+% % %             %X_OFFSET =
+% % %             %TODO: Add dots at points instead of letters for better
+% % %             %resolution
+% % %             hold on
+% % %             for iVal = 1:4
+% % %                 h = scatter(x_points(iVal),y_points(iVal),300,colors(iVal),'filled',symbol(iVal));
+% % %                 s = text(x_points(iVal),y_points(iVal),chars(iVal));
+% % %                 set(s,'FontSize',18)
+% % %                 
+% % %             end
+% % %         end
+        function plotLimits(obj,x_points,y_points)
             chars    = 'xzXZ';
             colors   = 'rgbc';
             symbol   = 'ospd';
@@ -226,6 +242,40 @@ classdef Hokanson_2013
                 set(s,'FontSize',18)
                 
             end
+        end
+        function [x_lim__amp,z_lim__amp,x_lim__y_val,z_lim__y_val] = ...
+                getLimitInfo(obj,stim_amps,y_values,threshold_matrix,xyz,internode_length)
+            %
+            %    [x_lim__amp,z_lim__amp,x_lim__y_val,z_lim__y_val] = ...
+            %            getLimitInfo(obj,stim_amps,y_values,threshold_matrix,xyz,internode_length)
+            %
+            
+            %NOTE: We need to get the threshold values at the internode
+            %spacing, not at the bounds of the inputs ...
+            
+            %TODO: Clean this up
+            %The inputs should really be 3d unless y = 0 is the value
+            %passed in
+            %In the current code it is, but this is very sloppy
+            
+            %Assume y = 0 ...
+            %Squeeze results ...
+            
+            %TODO: Run
+            z_max   = floor(internode_length/2);
+            z_range = -z_max:z_max;
+            
+            %Get minimum at x = 0
+            %i.e. what is the lowest threshold where the x-limit comes into
+            %play
+            x_lim__amp = min(interpn(xyz{1},xyz{3},squeeze(threshold_matrix),0,z_range));
+            
+            %Get minimum at z = z_max
+            z_lim__amp = min(interpn(xyz{1},xyz{3},squeeze(threshold_matrix),xyz{1},z_max));
+            
+            x_lim__y_val = interp1(stim_amps,y_values,x_lim__amp);
+            z_lim__y_val = interp1(stim_amps,y_values,z_lim__amp);
+            
         end
     end
     

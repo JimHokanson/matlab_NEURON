@@ -1,4 +1,4 @@
-classdef super < handle_light
+classdef super < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.super

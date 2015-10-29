@@ -1,4 +1,4 @@
-classdef threshold_simulation_results < sl.obj.handle_light
+classdef threshold_simulation_results < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.threshold_simulation_results

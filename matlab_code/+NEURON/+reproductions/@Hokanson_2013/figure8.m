@@ -69,7 +69,7 @@ keyboard
 %1) Standard, vs amplitude ...
 for iPair = 1:2
     subplot(1,2,iPair)
-    final_strings = sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
+    final_strings = NEURON.sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
         
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
     obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair});
@@ -80,8 +80,8 @@ end
 
 for iPair = 1:2
     
-    single_strings = sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Independent',C.FIBER_DIAMETERS);
-    double_strings = sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Simultaneous',C.FIBER_DIAMETERS);
+    single_strings = NEURON.sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Independent',C.FIBER_DIAMETERS);
+    double_strings = NEURON.sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Simultaneous',C.FIBER_DIAMETERS);
     
     titles = [single_strings(:) double_strings(:)];
     

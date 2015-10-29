@@ -63,7 +63,7 @@ extras = struct;
 
 in.stim_resolution = 0.1;
 in.custom_setup    = '';  %Not yet implemented 
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 in.stim_resolution = abs(in.stim_resolution);
 

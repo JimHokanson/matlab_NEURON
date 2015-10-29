@@ -75,7 +75,7 @@ classdef generic < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
             %in.v_rest               = -70;
             %in.v_rough_threshold    = -50;
             in.v_ap_threshold       = 0;
-            in = processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
             obj.threshold_info_obj = NEURON.cell.threshold_info;
             %obj.threshold_info_obj.v_rest = in.v_rest;
            % obj.threshold_info_obj.v_rough_threshold = in.v_rough_threshold;

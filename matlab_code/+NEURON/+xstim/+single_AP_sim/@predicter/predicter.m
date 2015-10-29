@@ -1,4 +1,4 @@
-classdef predicter < sl.obj.handle_light
+classdef predicter < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.predicter

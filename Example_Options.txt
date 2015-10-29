@@ -1,4 +1,2 @@
-temp_data_base_path  = C:\Data\NEURON\neuron_prog_data
-sim_logger_root_path = C:\Data\NEURON\SimulationData
-neuron_exe_path      = C:\nrn73\bin\nrniv.exe 
-xstim_results_base_path = C:\Data\NEURON\xstim_data
+scratch_path = C:\D\SimulationData
+neuron_exe_path = C:\nrn73\bin\nrniv.exe 

@@ -1,4 +1,4 @@
-classdef threshold_predictor < handle_light
+classdef threshold_predictor < NEURON.sl.obj.handle_light
     %
     %
     %   CLASS:

@@ -1,4 +1,4 @@
-classdef grouper < sl.obj.handle_light
+classdef grouper < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.grouper

@@ -46,7 +46,7 @@ classdef intracellular_stim < NEURON.simulation
             in.istim_options = NEURON.simulation.intracellular_stim.options;
             
             
-            in = processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
             
             obj = NEURON.simulation.intracellular_stim(in.istim_options);
             

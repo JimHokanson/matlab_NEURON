@@ -1,4 +1,4 @@
-classdef data_transfer < handle_light
+classdef data_transfer < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.simulation.extracellular_stim.data_transfer

@@ -1,4 +1,4 @@
-classdef predictor_info < sl.obj.handle_light
+classdef predictor_info < NEURON.sl.obj.handle_light
     %
     %
     %   Class:

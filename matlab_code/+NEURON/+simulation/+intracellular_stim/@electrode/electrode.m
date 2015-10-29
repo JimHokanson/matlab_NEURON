@@ -1,4 +1,4 @@
-classdef electrode < handle_light
+classdef electrode < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.simulation.intracellular_stim.electrode

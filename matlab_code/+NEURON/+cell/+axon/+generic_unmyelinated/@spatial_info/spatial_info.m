@@ -1,4 +1,4 @@
-classdef spatial_info < handle_light
+classdef spatial_info < NEURON.sl.obj.handle_light
     
      %   Class: NEURON.cell.axon.generic_unmyelinated.spatial_info
      

@@ -1,4 +1,4 @@
-classdef binary_search_adjuster < sl.obj.handle_light
+classdef binary_search_adjuster < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.binary_search_adjuster

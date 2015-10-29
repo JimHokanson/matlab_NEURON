@@ -1,4 +1,4 @@
-classdef activation_volume_requestor < sl.obj.handle_light
+classdef activation_volume_requestor < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.reproductions.Hokanson_2013.activation_volume_requestor
@@ -59,7 +59,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
             
             in.single_with_replication = false;
             in.single_output = true;
-            in = sl.in.processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
             
             if ~iscell(electrode_locations)
                 electrode_locations = {electrode_locations};
@@ -75,7 +75,7 @@ classdef activation_volume_requestor < sl.obj.handle_light
                 all_replication_sets = {[]};
             end
             
-            xyz_info  = sl.xyz.str.parsed(obj.slice_dims);
+            xyz_info  = NEURON.sl.xyz.str.parsed(obj.slice_dims);
             slice_dim = find(xyz_info.missing_mask);
             
             %Loop over all locations ...

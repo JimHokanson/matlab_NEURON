@@ -1,4 +1,4 @@
-classdef paths < handle_light
+classdef paths < NEURON.sl.obj.handle_light
     %
     %   Class: NEURON.paths
     %
@@ -50,7 +50,7 @@ classdef paths < handle_light
             %
             
             %matlab_code\NEURON\paths -> three directories that we need to go up
-            root_toolbox_directory  = filepartsx(getMyPath,3);
+            root_toolbox_directory  = NEURON.sl.dir.filepartsx(NEURON.sl.stack.getMyBasePath,3);
             
             obj.hoc_code_root       = fullfile(root_toolbox_directory,'HOC_CODE');
             obj.hoc_code_model_root = fullfile(obj.hoc_code_root,'models');

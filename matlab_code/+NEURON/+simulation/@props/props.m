@@ -1,4 +1,4 @@
-classdef props < handle_light 
+classdef props < NEURON.sl.obj.handle_light 
     %
     %   Class: 
     %       NEURON.simulation.props
@@ -112,7 +112,7 @@ classdef props < handle_light
            in.celsius = obj.celsius;
            in.tstop   = []; %NULL VALUE
            in.dt      = obj.dt;
-           in = processVarargin(in,varargin);
+           in = NEURON.sl.in.processVarargin(in,varargin);
             
            if isempty(in.tstop)
                in.tstop = obj.tstop;

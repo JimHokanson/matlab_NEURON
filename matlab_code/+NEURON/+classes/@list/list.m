@@ -1,4 +1,4 @@
-classdef list < handle_light
+classdef list < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.classes.list

@@ -99,7 +99,7 @@ end
 %1) Standard, vs amplitude ...
 for iPair = 1:2
     subplot(1,2,iPair)
-    %final_strings = sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
+    %final_strings = NEURON.sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
         
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
     obj.plotVolumeRatio(rs2_all(:,iPair),rd2_all(:,iPair));
@@ -114,7 +114,7 @@ end
 figure(iDiameter+1)
 cla
 hold all
-final_strings = sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
+final_strings = NEURON.sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
 for iDiameter = 1:length(C.FIBER_DIAMETERS)
    temp_old = rs_all{OLD_MODEL_RESIST}{iDiameter};
    temp_new = rs_all{NEW_MODEL_RESIST}{iDiameter};

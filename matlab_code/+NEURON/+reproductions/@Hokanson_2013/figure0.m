@@ -50,7 +50,7 @@ obj          = NEURON.reproductions.Hokanson_2013;
 current_pair = obj.ALL_ELECTRODE_PAIRINGS{C.PAIRING_USE};
 
 
-temp_struct = helper__getRecruitmentData(obj,C);
+temp_struct = helper__getRecruitmentData(obj,C,current_pair);
 
 threshold_counts_double = temp_struct.threshold_counts_double;
 extras_double           = temp_struct.extras_double;
@@ -69,7 +69,7 @@ xyz_used_double      = extras_double.xyz_cell;
 
 %Plotting Results
 %--------------------------------------------------------------------------
-avg_node_spacing      = xstim_obj.cell_obj.getAverageNodeSpacing;
+avg_node_spacing      = temp_struct.xstim_obj.cell_obj.getAverageNodeSpacing;
 half_avg_node_spacing = avg_node_spacing/2;
 
 %NOTE: The output of the volume counts will give us this info ...
@@ -90,12 +90,12 @@ line_props{2} = 'k';
 x_line        = @()(line([0 0],C.X_MERGE_Y_LIMS,line_props{:}));
 
 
-figure
+figure()
 %scatter(0,0,100,'w','filled','^')
 %hold on
 tcs_non_replicated = squeeze(thresholds_single_non_rep(:,1,:))';    
 h = imagesc(C.XYZ_MESH_SINGLE{1},C.XYZ_MESH_SINGLE{3},tcs_non_replicated);
-PLOT_imagescToPatch(h);
+%PLOT_imagescToPatch(h);
 axis equal
 % scatter(0,0,100,'w','filled','^')
 % hold off
@@ -103,12 +103,12 @@ colorbar
 set(gca,'CLim',C.C_LIM);
 
 
-figure
+figure()
 %NOTE: This looks better if the figure is magnified first ...
 subplot(1,3,1)
 set(gca,'FontSize',C.FONT_SIZE)
 h = imagesc(xyz_single_temp{1},xyz_single_temp{3},thresholds_single_2d');
-PLOT_imagescToPatch(h);
+%PLOT_imagescToPatch(h);
 axis equal
 hold on
 scatter(current_pair(:,1),current_pair(:,3),100,'w','filled','^')
@@ -127,7 +127,7 @@ ylabel('Z - main neuron axis')
 subplot(1,3,2)
 set(gca,'FontSize',C.FONT_SIZE)
 h = imagesc(C.XYZ_MESH_DOUBLE{1},C.XYZ_MESH_DOUBLE{3},thresholds_double_2d');
-PLOT_imagescToPatch(h);
+%PLOT_imagescToPatch(h);
 hold all
 scatter(current_pair(:,1),current_pair(:,3),100,'w','filled','^')
 hold off
@@ -175,9 +175,9 @@ title(sprintf('Volume Ratio %0.2f, %d uA threshold',...
 %==========================================================================
 %==========================================================================
 
-internode_length = xstim_obj.cell_obj.getAverageNodeSpacing;
+internode_length = temp_struct.xstim_obj.cell_obj.getAverageNodeSpacing;
 
-[temp,xyz_single_temp_g] = act_obj_single.getSliceThresholds(C.MAX_THRESHOLD,2,0,'replication_points',current_pair);                        
+[temp,xyz_single_temp_g] = temp_struct.act_obj_single.getSliceThresholds(C.MAX_THRESHOLD,2,0,'replication_points',current_pair);                        
      
 thresholds_single_2d_g = squeeze(temp);
 
@@ -199,6 +199,8 @@ plot(x_new,dy,'Linewidth',3)
 [X_lim__amp,Z_lim__amp,X_lim__y_val,Z_lim__y_val] = ...
                 getLimitInfo(obj,x_new(:),dy(:,1),thresholds_double_2d,C.XYZ_MESH_DOUBLE,internode_length);
 
+            
+%plotLimits(obj,xz_amp,xz_value)            
 obj.plotLimits([x_lim__amp,z_lim__amp,X_lim__amp,Z_lim__amp],[x_lim__y_val,z_lim__y_val,X_lim__y_val,Z_lim__y_val])
 ylabel('Derivatives')
 
@@ -207,7 +209,6 @@ set(gca,'FontSize',18);
 plot(stim_amplitudes_used,threshold_counts_double./threshold_counts_single,'Linewidth',3);
 ylabel('Volume Ratio')
 xlabel('Stimulus Amplitudes')
-keyboard
 
 %==========================================================================
 %==========================================================================
@@ -228,15 +229,13 @@ xyz(:,1) = 2*(rand(1,n_xyz_total)-0.5)*xyz_used_double{1}(end);
 xyz(:,2) = 2*(rand(1,n_xyz_total)-0.5)*xyz_used_double{2}(end);
 xyz(:,3) = 2*(rand(1,n_xyz_total)-0.5)*half_avg_node_spacing;
 
-estimated_thresholds_single = act_obj_single.computeThresholdsRandomNeurons(xyz,C.MAX_THRESHOLD,'replication_points',current_pair);
-estimated_thresholds_dual   = act_obj_dual.computeThresholdsRandomNeurons(xyz,C.MAX_THRESHOLD);
+estimated_thresholds_single = temp_struct.act_obj_single.computeThresholdsRandomNeurons(xyz,C.MAX_THRESHOLD,'replication_points',current_pair);
+estimated_thresholds_dual   = temp_struct.act_obj_dual.computeThresholdsRandomNeurons(xyz,C.MAX_THRESHOLD);
 
 estimated_thresholds_single_r = reshape(estimated_thresholds_single,[C.N_SIMS n_neurons]);
 estimated_thresholds_dual_r   = reshape(estimated_thresholds_dual,[C.N_SIMS n_neurons]);
 
 %Thresholds to n
-
-keyboard
 
 n_single = histc(estimated_thresholds_single_r,[0 stim_amplitudes_used],2);
 n_double = histc(estimated_thresholds_dual_r,[0 stim_amplitudes_used],2);
@@ -269,6 +268,7 @@ vol_ratio_inverse = n_single_c./n_double_c;
 
 mean_vol_ratio = 1./nanmean(vol_ratio_inverse);
 
+figure()
 subplot(1,2,1)
 plot(stim_amplitudes_used,vol_ratio(1:1000:end,:)')
 set(gca,'YLim',[1 10],'FontSize',18)
@@ -284,7 +284,7 @@ set(gca,'YLim',[1 10],'FontSize',18)
 
 end
 
-function temp_struct = helper__getRecruitmentData(obj,C)
+function temp_struct = helper__getRecruitmentData(obj,C,current_pair)
 
 %Thresholds single electrode
 %--------------------------------------------------------------------------
@@ -300,7 +300,7 @@ act_obj_single   = xstim_obj.sim__getActivationVolume();
 %act_obj.bounds(:,3) = [C.Y_TEST_MIN; C.Y_TEST_MAX];
 
 [threshold_counts_single,extras_single] = act_obj_single.getVolumeCounts(C.MAX_THRESHOLD,...
-               'replication_points',current_pair,'C.STIM_RESOLUTION',C.STIM_RESOLUTION);
+               'replication_points',current_pair,'stim_resolution',C.STIM_RESOLUTION);
 
 
            
@@ -317,7 +317,7 @@ thresholds_double_2d = squeeze(thresholds_double(:,1,:));
 
 act_obj_dual  = xstim_obj.sim__getActivationVolume();
 
-[threshold_counts_double,extras_double] = act_obj_dual.getVolumeCounts(C.MAX_THRESHOLD,'C.STIM_RESOLUTION',C.STIM_RESOLUTION);
+[threshold_counts_double,extras_double] = act_obj_dual.getVolumeCounts(C.MAX_THRESHOLD,'stim_resolution',C.STIM_RESOLUTION);
 
 temp_struct = struct;
 temp_struct.threshold_counts_double = threshold_counts_double;
@@ -326,5 +326,8 @@ temp_struct.threshold_counts_single = threshold_counts_single;
 temp_struct.extras_single = extras_single;
 temp_struct.thresholds_single_plotting = thresholds_single;
 temp_struct.thresholds_double_2d = thresholds_double_2d;
+temp_struct.xstim_obj = xstim_obj;
+temp_struct.act_obj_single = act_obj_single;
+temp_struct.act_obj_dual = act_obj_dual;
 
 end

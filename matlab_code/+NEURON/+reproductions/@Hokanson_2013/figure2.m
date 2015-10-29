@@ -66,17 +66,16 @@ for iPair = 1:2
     rd_all{iPair} = temp_cell(2,:);
 end
 
-keyboard
 %--------------------------------------------------------------------------
 %                           Plotting results
 %--------------------------------------------------------------------------
 
 %1) Standard, vs amplitude ...
-figure(1)
+figure(40)
 clf
 for iPair = 1:2
     ax(iPair) = subplot(1,2,iPair);
-    final_strings = sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
+    final_strings = NEURON.sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
         
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
     obj.plotVolumeRatio(rs_all{iPair}(end:-1:1),rd_all{iPair}(end:-1:1));
@@ -88,11 +87,11 @@ end
 %Plots at same-amplitude
 %This wasn't all that exciting
 %--------------------------------------------------------------------------
-figure(2)
+figure(202)
 cla
 for iPair = 1:2
     subplot(1,2,iPair)
-    final_strings = sl.cellstr.sprintf('%5.2f - uA',P.ISO_STIM_PLOT);
+    final_strings = NEURON.sl.cellstr.sprintf('%5.2f - uA',P.ISO_STIM_PLOT);
         
     
     cur_rs = rs_all{iPair};
@@ -125,8 +124,8 @@ end
 
 % % for iPair = 1:2
 % %     
-% %     single_strings = sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Independent',C.FIBER_DIAMETERS);
-% %     double_strings = sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Simultaneous',C.FIBER_DIAMETERS);
+% %     single_strings = NEURON.sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Independent',C.FIBER_DIAMETERS);
+% %     double_strings = NEURON.sl.cellstr.sprintf('%s - %s: %5.2f - um',TITLE_STRINGS{iPair},'Simultaneous',C.FIBER_DIAMETERS);
 % %     
 % %     titles = [single_strings(:) double_strings(:)];
 % %     
@@ -189,24 +188,23 @@ C_LIM_MAX_ALL = [25 25; 25 25];
 
 plot_indices = [1 2; 3 4];
 
-figure(3)
+figure(201)
 clf
+colormap('jet')
 for iPair = 1:2
-temp_s = rs_all{iPair}{I};
-temp_d = rd_all{iPair}{I};
+    temp_s = rs_all{iPair}{I};
+    temp_d = rd_all{iPair}{I};
 
 
-subplot(2,2,plot_indices(iPair,1))
-plot(temp_s.replicated_slice,'lim_dim1',X_LIMITS{iPair,1})
-colorbar
-set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
+    subplot(2,2,plot_indices(iPair,1))
+    plot(temp_s.replicated_slice,'lim_dim1',X_LIMITS{iPair,1})
+    colorbar
+    set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
 
-subplot(2,2,plot_indices(iPair,2))
-plot(temp_d.slice,'lim_dim1',X_LIMITS{iPair,2})
-colorbar
-set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
-
-
+    subplot(2,2,plot_indices(iPair,2))
+    plot(temp_d.slice,'lim_dim1',X_LIMITS{iPair,2})
+    colorbar
+    set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
 end
 
 
@@ -230,13 +228,13 @@ temp_d = rd_all{iPair}{I};
 
 subplot(1,2,iPair)
 hold all
-contour(temp_s.replicated_slice,amps_plot(iPair,:))
+contour(temp_s.replicated_slice,amps_plot(iPair,:));
 %contour(temp_s.replicated_slice,amps_plot(iPair,2))
 % colorbar
 % set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
 
 %subplot(2,2,plot_indices(iPair,2))
-contour(temp_d.slice,amps_plot(iPair,:))
+contour(temp_d.slice,amps_plot(iPair,:));
 %contour(temp_d.slice,amps_plot(iPair,2))
 % colorbar
 % set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
@@ -247,42 +245,40 @@ end
 %====================================================================
 %HACK, THIS IS FOR A SETUP PLOT
 %====================================================================
-
+%Figure 2, Parts C & F
 amps_plot = [5 10 15; 5 10 15];
 
 I = find(C.FIBER_DIAMETERS == 15);
 
 
-figure(5)
+figure(13)
 clf
-
+c = 'bgr';
 for iPair = 1:2
-temp_s = rs_all{iPair}{I};
-temp_d = rd_all{iPair}{I};
+    temp_s = rs_all{iPair}{I};
+    temp_d = rd_all{iPair}{I};
 
-
-subplot(1,2,iPair)
-hold all
-contour(temp_s.replicated_slice,amps_plot(iPair,:))
-%contour(temp_s.replicated_slice,amps_plot(iPair,2))
-% colorbar
-% set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
-
-%subplot(2,2,plot_indices(iPair,2))
-contour(temp_d.slice,amps_plot(iPair,:))
-%contour(temp_d.slice,amps_plot(iPair,2))
-% colorbar
-% set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
-title(TITLE_STRINGS{iPair})
-set(gca,'xlim',[-500 500])
-axis equal
-
+    
+    subplot(1,2,iPair)
+    hold all
+    for iAmp = 1:3
+    [~,h1] = contour(temp_s.replicated_slice,amps_plot(iPair,iAmp));
+    %contour(temp_s.replicated_slice,amps_plot(iPair,2))
+    % colorbar
+    % set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
+    set(h1,'Color',c(iAmp),'LineStyle',':');
+    %subplot(2,2,plot_indices(iPair,2))
+    [~,h2] = contour(temp_d.slice,amps_plot(iPair,iAmp));
+    %contour(temp_d.slice,amps_plot(iPair,2))
+    % colorbar
+    % set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
+    set(h2,'Color',c(iAmp));
+    title(TITLE_STRINGS{iPair})
+    set(gca,'xlim',[-500 500])
+    axis equal
+    end
+    
 end
-
-
-
-
-
 
 
 % % % % %subplot(1,2,1)

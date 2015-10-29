@@ -64,7 +64,7 @@ in.stim_resolution    = 0.1;
 in.min_amp            = 1;
 in.bounds_guess       = [];
 in.quick_test         = false;
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 %Input Handling
 %--------------------------------------------------------------------------

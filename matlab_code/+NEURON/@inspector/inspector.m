@@ -1,4 +1,4 @@
-classdef inspector < sl.obj.handle_light
+classdef inspector < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.inspector

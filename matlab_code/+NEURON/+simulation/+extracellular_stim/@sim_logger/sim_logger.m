@@ -1,4 +1,4 @@
-classdef sim_logger < handle_light
+classdef sim_logger < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.simulation.extracellular_stim.sim_logger

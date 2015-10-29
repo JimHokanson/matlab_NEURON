@@ -9,7 +9,7 @@ function plotContours(obj,rs,rd,target,varargin)
 %Overlapping or separate?
 
 in.use_counts = false;
-in = sl.in.processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 color_order = get(gca,'ColorOrder');
 
@@ -38,7 +38,7 @@ for iObj = 1:n_objs
    set(h2,'Color',color_order(iObj,:));
 end
 
-sl.plot.postp.makeDimsEqual(ax,'xy');
+NEURON.sl.plot.postp.makeDimsEqual(ax,'xy');
 linkaxes(ax,'xy')
 axis(ax,'image'); 
    

@@ -1,4 +1,4 @@
-classdef processor < sl.obj.handle_light
+classdef processor < NEURON.sl.obj.handle_light
     %
     %
     %   Class:

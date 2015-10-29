@@ -1,4 +1,4 @@
-classdef MDF_trainer < handle_light
+classdef MDF_trainer < NEURON.sl.obj.handle_light
     % This class is intened to handle the sets of xIDs and map them to the
     % appropriate set of traininng data. The reason it maps a set is sso
     % 

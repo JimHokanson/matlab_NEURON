@@ -51,7 +51,7 @@ in.cell_type             = 'MRG';
 %Electrode properties:
 %--------------------------------------------------------------------------
 in.electrode_locations   = [0 100 0];
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 %--------------------------------------------------------------------------
 obj = NEURON.simulation.extracellular_stim(in.xstim_options);

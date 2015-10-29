@@ -1,4 +1,4 @@
-classdef scatteredPredictor < sl.obj.handle_light
+classdef scatteredPredictor < NEURON.sl.obj.handle_light
     properties
          s
         old_locations

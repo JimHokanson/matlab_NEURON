@@ -1,4 +1,4 @@
-classdef threshold_testing_history < handle_light
+classdef threshold_testing_history < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.simulation.extracellular_stim.results.threshold_testing_history

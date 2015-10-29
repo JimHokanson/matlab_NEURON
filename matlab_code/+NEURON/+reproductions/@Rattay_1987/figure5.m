@@ -6,7 +6,7 @@ function figure5(obj,varargin)
 
 in.debug = false;
 in.local_debug = false;
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 %minStim = -5; maxStim = 5; stimStep = .25; % -5 to 5 mA
 minStim = -10; maxStim = 10; stimStep = .5;

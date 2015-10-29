@@ -1,4 +1,4 @@
-classdef system_tester < sl.obj.handle_light
+classdef system_tester < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.system_tester
@@ -53,7 +53,7 @@ classdef system_tester < sl.obj.handle_light
             
             switch obj.old_data_method
                 case 1
-                    indices = sl.array.shuffle(1:n_indices);
+                    indices = NEURON.sl.array.shuffle(1:n_indices);
                     n_new = floor(obj.m1_pct*n_indices);
                     if n_new < obj.m1_min_points
                         error('Min points error')
@@ -65,7 +65,7 @@ classdef system_tester < sl.obj.handle_light
                     old_indices = indices(1:n_new);
                     new_indices = indices(n_new+1:end);
                 case 2
-                    %indices = sl.array.shuffle(1:n_indices);
+                    %indices = NEURON.sl.array.shuffle(1:n_indices);
                     error('Not yet implemented')
                 case 3
                     error('Not yet implemented')

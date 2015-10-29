@@ -50,7 +50,7 @@ MAX_MV_STIM   = 1e4; %10 V max
 in.remove_zero_stim_option = 0;
 in.xyz_use                 = [];
 in.nodes_only              = false;
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 
 if in.nodes_only && ~isempty(in.xyz_use)

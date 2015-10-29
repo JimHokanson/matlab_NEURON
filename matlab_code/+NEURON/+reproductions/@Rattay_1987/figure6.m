@@ -9,7 +9,7 @@ function figure6(obj,varargin)
 
 
 in.debug = false;
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 TISSUE_RESISTIVITY = obj.tissue_resistivity; % isotropic 300 ohm cm
 STIM_START_TIME    = 0.1;

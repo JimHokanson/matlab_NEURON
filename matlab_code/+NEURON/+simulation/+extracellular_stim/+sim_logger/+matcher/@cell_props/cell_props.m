@@ -1,4 +1,4 @@
-classdef cell_props < handle_light
+classdef cell_props < NEURON.sl.obj.handle_light
     %
     %   Class: 
     %   NEURON.simulation.extracellular_stim.sim_logger.matcher.cell_props

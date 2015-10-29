@@ -1,4 +1,4 @@
-classdef sectionlist < handle_light
+classdef sectionlist < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.classes.sectionlist

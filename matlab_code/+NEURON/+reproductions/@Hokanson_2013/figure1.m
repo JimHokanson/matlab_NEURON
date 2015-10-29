@@ -45,25 +45,27 @@ for iPair = 1:3
     rd_all{iPair}  = avr.makeRequest(electrode_locations_test,C.MAX_STIM_TEST_LEVEL);
 end
 
-keyboard
-
 %Temporary code I'm working on ...
 % cur_rs = rd_all{1}{4};
-% IJK = sl.xyz.locationsToIndices(cur_rs.electrode_locations,cur_rs.xyz_used);
+% IJK = NEURON.sl.xyz.locationsToIndices(cur_rs.electrode_locations,cur_rs.xyz_used);
 % [a,b,c] = NEURON.reproductions.Hokanson_2013.minPathValue(cur_rs.raw_abs_thresholds, IJK(1,:), IJK(2,:));
 
 %Plotting results
 %--------------------------------------------------------------------------
+figure()
+new_order = [2 1 3];
 for iPair = 1:3
     subplot(1,3,iPair)
-    electrode_locations_test = obj.ALL_ELECTRODE_PAIRINGS(EL_INDICES{iPair});
+    cur_I = new_order(iPair);
+    
+    electrode_locations_test = obj.ALL_ELECTRODE_PAIRINGS(EL_INDICES{cur_I});
     
     final_strings = obj.getElectrodeSeparationStrings(electrode_locations_test);
     
     %Change to: versus amplitude ...
-    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair});
+    obj.plotVolumeRatio(rs_all{cur_I},rd_all{cur_I});
     legend(final_strings)
-    title(TITLE_STRINGS{iPair})
+    title(TITLE_STRINGS{cur_I})
     set(gca,'YLim',P.Y_LIM);
 end
 

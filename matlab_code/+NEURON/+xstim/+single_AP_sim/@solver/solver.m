@@ -1,4 +1,4 @@
-classdef solver < sl.obj.handle_light
+classdef solver < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.solver

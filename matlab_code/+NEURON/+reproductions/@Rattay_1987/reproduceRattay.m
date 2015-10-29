@@ -8,7 +8,7 @@ function reproduceRattay(obj,varargin)
 
 in.debug = false;
 in.local_debug = false;
-in = processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 minStim = -10; maxStim = 10; stimStep = .5; % -10 to 10 mA
 stimAmps = [minStim:stimStep:maxStim]*1000;

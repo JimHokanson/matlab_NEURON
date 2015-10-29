@@ -64,7 +64,7 @@ classdef activation_volume < handle
             %
             
             in.request_handler = [];
-            in = sl.in.processVarargin(in,varargin);
+            in = NEURON.sl.in.processVarargin(in,varargin);
             
             obj.request_handler = in.request_handler;
             
@@ -91,8 +91,8 @@ classdef activation_volume < handle
                 
                 step_sz_local = obj.step_size;
                 
-                rf = @(x) sl.array.roundToPrecision(x,step_sz_local,@floor);
-                rc = @(x) sl.array.roundToPrecision(x,step_sz_local,@ceil);
+                rf = @(x) NEURON.sl.array.roundToPrecision(x,step_sz_local,@floor);
+                rc = @(x) NEURON.sl.array.roundToPrecision(x,step_sz_local,@ceil);
                 
                 
                 %Round x & y mins down
@@ -148,7 +148,7 @@ classdef activation_volume < handle
            %    NEURON.simulation.extracellular_stim.results.activation_volume.getSliceThresholds
            
            in.replication_points = [];
-           in = processVarargin(in,varargin);
+           in = NEURON.sl.in.processVarargin(in,varargin);
            
            %thresholds = getThresholdsEncompassingMaxScale(obj,max_stim_level);
            
@@ -158,7 +158,7 @@ classdef activation_volume < handle
            
            %xyz        = obj.getXYZlattice(true);
            
-           dim_use = sl.xyz.getNumericDim(dim_use);
+           dim_use = NEURON.sl.xyz.getNumericDim(dim_use);
            
            xyz_new = cell(1,3);
            for iXYZ = 1:3
@@ -224,9 +224,9 @@ classdef activation_volume < handle
             %I had pchip interpolation and it made my positive bound negative
             %and my negative bound positive
             if mod(bound_index,2) == 0
-                obj.bounds(bound_index) = sl.array.roundToPrecision(new_value,obj.step_size,@ceil);
+                obj.bounds(bound_index) = NEURON.sl.array.roundToPrecision(new_value,obj.step_size,@ceil);
             else
-                obj.bounds(bound_index) = sl.array.roundToPrecision(new_value,obj.step_size,@floor);
+                obj.bounds(bound_index) = NEURON.sl.array.roundToPrecision(new_value,obj.step_size,@floor);
             end
         end
     end

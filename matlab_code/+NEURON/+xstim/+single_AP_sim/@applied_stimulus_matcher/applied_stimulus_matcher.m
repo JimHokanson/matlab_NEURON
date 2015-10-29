@@ -1,4 +1,4 @@
-classdef applied_stimulus_matcher < sl.obj.handle_light
+classdef applied_stimulus_matcher < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher

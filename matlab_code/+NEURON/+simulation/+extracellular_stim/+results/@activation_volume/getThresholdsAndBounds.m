@@ -15,7 +15,7 @@ function [abs_thresholds,x,y,z,extras] = getThresholdsAndBounds(obj,max_stim_lev
 %   NEURON.simulation.extracellular_stim.results.activation_volume.getThresholdsAndBounds
 
 in.bounds_guess = []; %NYI
-in = sl.in.processVarargin(in,varargin);
+in = NEURON.sl.in.processVarargin(in,varargin);
 
 extras = struct;
 

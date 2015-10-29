@@ -1,4 +1,4 @@
-classdef Rattay_1987 < handle_light
+classdef Rattay_1987 < NEURON.sl.obj.handle_light
     
     %
     % F. Rattay, "Ways to approximate current-distance relations for

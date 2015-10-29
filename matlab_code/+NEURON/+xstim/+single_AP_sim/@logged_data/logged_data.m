@@ -1,4 +1,4 @@
-classdef logged_data < sl.obj.handle_light
+classdef logged_data < NEURON.sl.obj.handle_light
     %
     %   Class:
     %   NEURON.xstim.single_AP_sim.logged_data
@@ -59,7 +59,7 @@ classdef logged_data < sl.obj.handle_light
             file_name = xstim_ID.getSaveString;
             
             obj.xstim_ID  = xstim_ID;
-            obj.file_path = sl.dir.createFolderIfNoExist(true,base_path,file_name);
+            obj.file_path = NEURON.sl.dir.createFolderIfNoExist(true,base_path,file_name);
             obj.stim_sign = stim_sign;
             
             %Loading the data from disk ...
@@ -171,9 +171,9 @@ classdef logged_data < sl.obj.handle_light
             %but alas I forget and don't want to look at it right now ...
             
             base_path = NEURON.xstim.single_AP_sim.logged_data.getBasePath(sign);
-            d = sl.dir.getFilesInFolder(base_path,'ext','.mat');
-            for iFile = 1:d.n_files
-                cur_file_path = d.file_paths{iFile};
+            file_paths = NEURON.sl.dir.getList(base_path,'extension','.mat','output_type','paths');
+            for iFile = 1:length(file_paths)
+                cur_file_path = file_paths{iFile};
                 h = load(cur_file_path);
                 s = h.s;
                 sol_obj = NEURON.xstim.single_AP_sim.solution(s.solution);

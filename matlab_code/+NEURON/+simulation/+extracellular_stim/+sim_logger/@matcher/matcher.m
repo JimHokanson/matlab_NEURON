@@ -1,4 +1,4 @@
-classdef matcher < handle_light
+classdef matcher < NEURON.sl.obj.handle_light
     %
     %   Class: NEURON.simulation.extracellular_stim.sim_logger.matcher
     %

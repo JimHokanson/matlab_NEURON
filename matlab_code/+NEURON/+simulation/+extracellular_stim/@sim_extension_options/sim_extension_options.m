@@ -1,4 +1,4 @@
-classdef sim_extension_options < handle_light
+classdef sim_extension_options < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.simulaton.extracellular_stim.sim_extension_options   

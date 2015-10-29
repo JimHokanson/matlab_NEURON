@@ -1,4 +1,4 @@
-classdef log < handle_light
+classdef log < NEURON.sl.obj.handle_light
     %
     %   Class:
     %       NEURON.cmd.log
