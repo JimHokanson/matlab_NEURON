@@ -1,13 +1,23 @@
 classdef cmd < NEURON.sl.obj.handle_light
     %
-    %   CLASS: NEURON.cmd
+    %   Class: 
+    %   NEURON.cmd
     %
     %   Class to house NEURON commands with better wrappers.
     %   Most commands should go through here.
+    %
+    %   This class holds onto a communication object which is able to 
+    %   communicate with the NEURON process.
     
     properties (Hidden)
-        comm_obj        %Class: Implementation of NEURON.comm_obj
-        log    %Class: NEURON.command_log
+        comm_obj %Class: Implementation of NEURON.comm_obj
+        %
+        %   At one point I had tried a .NET implementation but
+        %   I then settled on a Java implementation.
+        %
+        %       NEURON.comm_obj.java_comm_obj
+        
+        log      %Class: NEURON.command_log
     end
     
     properties
@@ -38,6 +48,10 @@ classdef cmd < NEURON.sl.obj.handle_light
             
             %Load communication object
             obj.comm_obj = NEURON.comm_obj.java_comm_obj();
+            
+            %This is a hack around the following error:
+            
+            obj.cd_set('C:\',false);
         end
     end
     
@@ -78,9 +92,20 @@ classdef cmd < NEURON.sl.obj.handle_light
             
             %Error Handling and Interactive Display Handling
             %--------------------------------------------------------------
+            if ~success && length(result_str) > 14 && strcmp(result_str(1:14),'cygwin warning')
+               %This is a hack placed in because apparently now cygwin
+               %doesn't transform paths when retrieved as environment
+               %variables and thus throws a warning
+               %
+               %Alternative Approach:
+               %http://auxmem.com/2010/03/17/how-to-squelch-the-cygwin-dos-path-warning/
+                   fprintf(2,'CYGWIN WARNING DETECTED\n-----------------------\n%s\n\n',result_str);
+               success = 1;
+            end
+            
             if ~success && in.throw_error
                 %Let user know what caused the error
-                fprintf(2,'LAST COMMAND:\n%s\n',command_str);
+                fprintf(2,'LAST COMMAND:\n%s\n\n',command_str);
                 if opt.interactive_mode
                     %If we're in interactive mode don't bring
                     %the error into here, just display it in the command

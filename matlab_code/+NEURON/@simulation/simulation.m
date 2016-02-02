@@ -116,6 +116,7 @@ classdef simulation < NEURON.sl.obj.handle_light
             %   1) Loads init_neuron.hoc
             %   2) Populates sim hash.
             
+            %NEURON.cmd
             c = obj.cmd_obj;
             
             c.cd_set(obj.path_obj.hoc_code_root);            

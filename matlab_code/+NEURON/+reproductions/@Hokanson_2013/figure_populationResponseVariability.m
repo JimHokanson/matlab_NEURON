@@ -63,8 +63,11 @@ C.MAX_STIM_TEST_LEVEL     = 20; %Not sure I want to run this to 30, given my exa
 
 %C.MAX_STIM_LEVELS         = [90 80 70 50 40 30 20 20 20];
 
+
+
 C.STIM_WIDTH              = {[0.2 0.4]};
 C.FIBER_DIAMETERS         = 14;
+C.MAX_STIM_LEVELS         = 35; %This can impact whether or not C.X_LIMITS is valid
 C.N_SIMS                  = 10000; %# of simulations to run
 
 
@@ -105,28 +108,19 @@ for iPair = 1:2
     rd_all{iPair} = temp_cell(2,:);
 end
 
-keyboard
-
 bounds_all = zeros(2,2);
 for iPair = 1:2
    bounds_all(iPair,1) = rs_all{iPair}{1}.xyz_used{1}(1);
    bounds_all(iPair,2) = rd_all{iPair}{1}.xyz_used{1}(1);
 end
 
-%TODO: Ensure all within testing region ...
-
 %==========================================================================
 %==========================================================================
 %                         Random Simulation
 %==========================================================================
 %==========================================================================
-%Do I then want to show the results as will be presented in the next figure
-%for this figure?
-%1) Volume with varying amplitude
-%2) Random placement ...
 
-
-figure(1)
+figure(30)
 clf
 
 for iPair = 1:2
@@ -261,7 +255,7 @@ for iPct = 1:8
 plot(stim_amplitudes_used,y(iPct,:),'Color',all_colors(iPct,:),'Linewidth',line_widths(iPct))
 end
 h1 = plot(stim_amplitudes_used,threshold_counts_double./threshold_counts_single,'Linewidth',3,'Color','k');
-h2 = plot(stim_amplitudes_used,mean_vol_ratio,'Linewidth',3,'Color','y');
+h2 = plot(stim_amplitudes_used,mean_vol_ratio,':','Linewidth',3,'Color','y');
 
 % plot(stim_amplitudes_used,vol_ratio(I_min,:),'g')
 % plot(stim_amplitudes_used,vol_ratio(I_max,:),'b')
@@ -274,6 +268,9 @@ if iPair == 1
 else
     title('Transverse Pairing')
 end
+xlabel('Stimulus Amplitude (uA)')
+ylabel('Volume and Neuron Ratios')
+set(gca,'ylim',[1 5])
 % subplot(2,3,3)
 % plot(stim_amplitudes_used,nanmean(n_single_c,1));
 % hold on

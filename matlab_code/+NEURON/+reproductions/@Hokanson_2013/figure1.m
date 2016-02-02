@@ -52,7 +52,7 @@ end
 
 %Plotting results
 %--------------------------------------------------------------------------
-figure()
+figure(60)
 new_order = [2 1 3];
 for iPair = 1:3
     subplot(1,3,iPair)

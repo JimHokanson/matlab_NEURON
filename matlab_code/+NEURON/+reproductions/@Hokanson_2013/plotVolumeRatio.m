@@ -9,10 +9,6 @@ function plotVolumeRatio(obj,rs,rd,varargin)
 %
 %   TODO: This code needs to be documented ...
 %
-%    Crap, how to determine overlap for 2 electrodes ...
-%
-%    This turns out to be really tricky and is probably
-%    best done by hand ...
 
 in.x_by_single_volume = false; %If true we'll plot the counts for the single
 %electrodes on the x-axis
@@ -58,7 +54,8 @@ for iSet = 1:n_sets
     
     
     if in.x_by_single_volume
-        x_axis = cur_rs.counts;
+        x_axis = cur_rs.counts./(1000^3);
+        %x_axis = cur_rs.counts;
     else
         x_axis = cur_rs.stimulus_amplitudes;
     end
@@ -89,7 +86,8 @@ end
 
 set(gca,'FontSize',FONT_SIZE)
 if in.x_by_single_volume
-    xlabel('1 um voxels','FontSize',FONT_SIZE)
+    xlabel('Recruitment Volume (mm^3)','FontSize',FONT_SIZE)
+    %xlabel('1 um voxels','FontSize',FONT_SIZE)
 else
     xlabel('Stimulus Amplitude (uA)','FontSize',FONT_SIZE)
 end

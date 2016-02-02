@@ -17,7 +17,7 @@ tempFilePath = regexprep(filePath,'\\','/');
 %For absolute paths ...
 %e.g. C:\ to /cygdrive/c/
 if length(filePath) > 2 && filePath(2) == ':'
-    cygPath = ['/cygdrive/' tempFilePath(1) tempFilePath(3:end)];
+    cygPath = ['/cygdrive/' lower(tempFilePath(1)) tempFilePath(3:end)];
 else
     cygPath = tempFilePath;
 end

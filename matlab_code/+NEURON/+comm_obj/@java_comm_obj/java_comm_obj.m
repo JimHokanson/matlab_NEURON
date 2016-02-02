@@ -81,7 +81,13 @@ classdef java_comm_obj < NEURON.comm_obj
                 %
                 %It is equivalent to putting quotes around the executable
                 %and its arguments
+                
+                
+                %In NEURON 7.3 I'm getting a warning about DOS paths
+                %when running chdir(). I'm not sure where that is coming
+                %from since I'm using cygwin pathing
                 cmd_array = {paths_obj.win_bash_exe_path '-c' [NEURON.sl.dir.getCygwinPath(paths_obj.exe_path) ' -nobanner']};
+                %cmd_array = {paths_obj.win_bash_exe_path '-c' [NEURON.sl.dir.getCygwinPath(paths_obj.exe_path) ' -nobanner']};
             else % here i'm assuming mac and unix behave the same, if there's an issue with unix, fix this
                 cmd_array = [paths_obj.exe_path obj.cmd_options_unix];
             end
@@ -112,9 +118,18 @@ classdef java_comm_obj < NEURON.comm_obj
                    'this most often happens when failing to call\n' ... 
                    'NEURON.s.init_system() on system startup\n' ...
                    '--------------------------------------------------\n']);
-               %Add: NEURON.s.init_system() in startup
+               %Call initialize_matlab_NEURON() on startup
+               %
+               %    I generally prefer to place this in a startup file:
+               %        root_path = 'D:\repos\matlab_git\matlab_NEURON\matlab_code';
+               %        addpath(root_path)
+               %        initialize_matlab_NEURON()
+               %    
                ME.rethrow();
             end
+            
+            %Some debugging of a CYGWIN path error
+            %[success,results] = obj.write('1');            
         end
         
         function delete(obj)

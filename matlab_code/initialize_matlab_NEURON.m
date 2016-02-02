@@ -1,4 +1,4 @@
-function initialize
+function initialize_matlab_NEURON
 %initialize  Initializes the NEURON toolbox
 %
 %

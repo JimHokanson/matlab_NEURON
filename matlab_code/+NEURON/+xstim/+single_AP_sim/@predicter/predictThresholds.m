@@ -85,7 +85,10 @@ elseif n_known < 5000
         
         %YIKES: This could lead to duplicates as there are
         
+        orig_state = warning;
+        warning('off','all')
         fitresult = fit(known_inputs(:,1:2), known_thresholds(:), ft,opts);
+        warning(orig_state);
         predicted_thresholds(I_NaN) = feval(fitresult,unknown_inputs(I_NaN,1:2));
         
         I_NaN = find(isnan(predicted_thresholds));

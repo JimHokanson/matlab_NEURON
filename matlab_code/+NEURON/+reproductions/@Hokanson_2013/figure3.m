@@ -21,7 +21,7 @@ EL_LOCATIONS = {[0 0 -200; 0 0 200]      [-200 0 0;200 0 0]};
 TITLE_STRINGS = {'Longitudinal pairings'    'Transverse pairings'};
 
 P.YLIM = [1 4];
-P.XLIM = {[0 5e8] [0 8e8]};
+P.XLIM = {[0 0.5] [0 0.8]};
 
 C.MAX_STIM_AMPLITUDE_DEFAULT = 30; %For 0.2 ms width ...
 C.FIBER_DIAMETER           = 15; %10; %7.3; %15;
@@ -70,16 +70,12 @@ end
 %END OF SIMULATION CODE
 %--------------------------------------------------------------------------
 
-
-
-keyboard
-
 %--------------------------------------------------------------------------
 %                           Plotting results
 %--------------------------------------------------------------------------
 
 final_strings = NEURON.sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
-
+figure(50)
 %1) Vs. Effectivness
 for iPair = 1:2
     subplot(1,2,iPair)
@@ -88,79 +84,10 @@ for iPair = 1:2
     obj.plotVolumeRatio(rs_all{iPair}(end:-1:1),rd_all{iPair}(end:-1:1),'x_by_single_volume',true);
     legend(final_strings(end:-1:1))
     title(TITLE_STRINGS{iPair})
-    set(gca,'Xlim',P.XLIM{iPair},'ylim',P.YLIM)
-    
-    %Indicates max stimulus amplitude shown in figure ...
-    %cur_rs = rs_all{iPair}{3}1
-    %I_max_shown = interp1(cur_rs.counts,cur_rs.stimulus_amplitudes,P.XLIM(2))
-end
-
-%What about at max and end?
-
-%TARGET_SIZES = 
-
-diff_vr = zeros(1,2);
-for iPair = 1:2
-    
-    counts_small = rs_all{iPair}{1}.counts;
-    counts_large = rs_all{iPair}{end}.counts;
-    vr_small = rd_all{iPair}{1}.counts./rs_all{iPair}{1}.counts;
-    vr_large = rd_all{iPair}{end}.counts./rs_all{iPair}{end}.counts;
-    
-    [max_vr_large,I] = max(vr_large);
-    vr_small_at_max_large = interp1(counts_small,vr_small,counts_large(I));
-    diff_vr(iPair) = max_vr_large - vr_small_at_max_large;
-end
-
-
-%2) Normalized (Not used)
-%{
-for iPair = 1:2
-    subplot(1,2,iPair)
-    final_strings = NEURON.sl.cellstr.sprintf('%5.2f - ms',C.STIM_WIDTHS_ALL);
-        
-    %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
-    obj.plotVolumeRatio(rs_all{iPair},rd_all{iPair},'x_by_single_volume',true,'normalize',true);
-    legend(final_strings)
-    title(TITLE_STRINGS{iPair})
-    set(gca,'Xlim',P.XLIM);
-    set(gca,'ylim',[0 1])
-    
-    %Indicates max stimulus amplitude shown in figure ...
-    %cur_rs = rs_all{iPair}{3}1
-    %I_max_shown = interp1(cur_rs.counts,cur_rs.stimulus_amplitudes,P.XLIM(2))
-end
-%}
-
-%Where is this for 200 us?
-
-I = find(C.STIM_WIDTHS_ALL == 0.2);
-
-[~,long_min_I] = min(abs(rs_all{1}{I}.counts - P.XLIM{1}(2)));
-amp_long = rs_all{1}{I}.stimulus_amplitudes(long_min_I);
-
-[~,trans_min_I] = min(abs(rs_all{2}{I}.counts - P.XLIM{2}(2)));
-amp_trans = rs_all{1}{I}.stimulus_amplitudes(trans_min_I);
-
-fprintf(2,'Max 200 us amp shown for long: %0.2f\n',amp_long)
-fprintf(2,'Max 200 us amp shown for trans: %0.2f\n',amp_trans)
-
-%Contour plots
-for iPair = 1:2
-    figure
-    if iPair == 1
-        target = 1e8;
-    else
-        target = 1.5e8;
-    end
-    
-    obj.plotContours(rs_all{iPair},rd_all{iPair},target,'use_counts',true)
-    legend(final_strings)
-    title(TITLE_STRINGS{iPair})
+    set(gca,'Xlim',P.XLIM{iPair},'ylim',P.YLIM)    
 end
 
 end
-
 
 function max_stim_amplitudes_by_width = helper__getMaxStimulusAmplitudesByWidth(obj,C)
 %

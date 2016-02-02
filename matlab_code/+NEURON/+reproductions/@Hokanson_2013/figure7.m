@@ -28,10 +28,12 @@ NEW_MODEL_RESIST = 4; %should point to 1211 1211 175
 % RESISTIVITY   = {[500 500 500] [1211 1211 350] [1211 1211 87.5] [1211 1211 175]};
 % RESIST_STRINGS = {'500 iso' '1211 trans, 350 long' '1211 trans, 87.5 long' '1211 trans, 175 long'};
 
-RESISTIVITY   = { [1211 1211 350] [1211 1211 87.5] [1211 1211 175] [1411 1411 175] [1011 1011 175]};
-RESIST_STRINGS = {'1211 trans, 350 long' '1211 trans, 87.5 long' '1211 trans, 175 long' '1411 trans, 175 long' '1011 trans, 175 long'};
+%RESISTIVITY   = { [1211 1211 350] [1211 1211 87.5] [1211 1211 175] [1411 1411 175] [1011 1011 175]};
+%RESIST_STRINGS = {'1211 trans, 350 long' '1211 trans, 87.5 long' '1211 trans, 175 long' '1411 trans, 175 long' '1011 trans, 175 long'};
 
 
+RESISTIVITY   = { [1211 1211 275] [1211 1211 75] [1211 1211 175] [1311 1311 175] [1111 1111 175]};
+RESIST_STRINGS = {'1211 trans, 275 long' '1211 trans, 75 long' '1211 trans, 175 long' '1311 trans, 175 long' '1111 trans, 175 long'};
 
 TITLE_STRINGS = {'Longitudinal pairings'    'Transverse pairings'};
 SLICE_DIMS    = {'xz' 'xz'};
@@ -68,8 +70,6 @@ for iPair = 1:2
 end
 end
 
-
-keyboard
 %--------------------------------------------------------------------------
 %                           Plotting results
 %--------------------------------------------------------------------------
@@ -78,23 +78,23 @@ keyboard
 %NOTE: We need to include 
 
 
-for iDiameter = 1:length(C.FIBER_DIAMETERS)
-    cur_diameter = C.FIBER_DIAMETERS(iDiameter);
+%iDiameter = C.FIBER_DIAMETERS(1);
+iDiameter = 1;
 
-    figure(iDiameter)
-    
+figure(70)
+clf
 rs2_all = cell(n_resist,2);
 rd2_all = cell(n_resist,2);
 
-
+%RESIST_STRINGS = {'1211 trans, 350 long' '1211 trans, 87.5 long' '1211 trans, 175 long' '1411 trans, 175 long' '1011 trans, 175 long'};
+resist_ls = {'r:' 'b:' 'g-' 'r-' 'b-'}; %linestyles
 for iRes  = 1:n_resist
-    fprintf(2,'Current resist: %d\n', iRes);
+    %fprintf(2,'Current resist: %d\n', iRes);
     for iPair = 1:2
         rs2_all(iRes,iPair) = rs_all{iRes,iPair}(iDiameter);
         rd2_all(iRes,iPair) = rd_all{iRes,iPair}(iDiameter);
     end
 end
-
 
 %1) Standard, vs amplitude ...
 for iPair = 1:2
@@ -103,26 +103,22 @@ for iPair = 1:2
         
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
     obj.plotVolumeRatio(rs2_all(:,iPair),rd2_all(:,iPair));
+    c = get(gca,'Children');
+    c = c(end:-1:1); %Apparently the last shall be first
+    for iC = 1:5
+       cur_ls = resist_ls{iC}; 
+       set(c(iC),'Color',cur_ls(1),'LineStyle',cur_ls(2)); 
+    end
     legend(RESIST_STRINGS)
-    title(sprintf('%s fiber diameter: %5.2f',TITLE_STRINGS{iPair},cur_diameter))
-    set(gca,'YLim',P.Y_LIM);
+    if iPair == 1
+       title('Longitudinal pairing, 400 um');
+    else
+       title('Transverse pairing, 400 um'); 
+    end
+    %title(sprintf('%s fiber diameter: %5.2f',TITLE_STRINGS{iPair},cur_diameter))
+    %set(gca,'YLim',P.Y_LIM);
+    set(gca,'ylim',[1 3.5])
 end
-end
-
-%Old vs new model - for paper with Dennis ...
-%-----------------------------------------------------------
-figure(iDiameter+1)
-cla
-hold all
-final_strings = NEURON.sl.cellstr.sprintf('%5.2f - um',C.FIBER_DIAMETERS);
-for iDiameter = 1:length(C.FIBER_DIAMETERS)
-   temp_old = rs_all{OLD_MODEL_RESIST}{iDiameter};
-   temp_new = rs_all{NEW_MODEL_RESIST}{iDiameter};
-   %temp_new = rs_all{2}{iDiameter}; %The 350, Dennis might have used 300 - this would be closer than the current norm
-   plot(temp_old.stimulus_amplitudes,temp_old.counts./temp_new.counts); 
-end
-legend(final_strings)
-title(sprintf('Single electrode Recruitment ratio, old counts/new counts Resists: (%s) / (%s)\n',RESIST_STRINGS{OLD_MODEL_RESIST},RESIST_STRINGS{NEW_MODEL_RESIST}));
 
 end
 
