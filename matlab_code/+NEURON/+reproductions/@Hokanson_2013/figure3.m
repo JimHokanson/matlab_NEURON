@@ -2,11 +2,11 @@ function figure3
 %
 %   NEURON.reproductions.Hokanson_2013.figure3
 %
+%   Figure 5 in the final paper.
+%
 %   =======================================================================
 %                       MULTIPLE STIMULUS WIDTHS
 %   =======================================================================
-%
-%   This is currently NEW FIGURE 3
 %
 %   Diffs in volume ratio when max for 2ms
 %   7.3 - 0.72, 0.55

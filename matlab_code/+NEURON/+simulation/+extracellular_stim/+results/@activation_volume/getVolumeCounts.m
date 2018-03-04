@@ -1,18 +1,18 @@
 function [stim_level_counts,extras] = getVolumeCounts(obj,max_stim_level,varargin)
 %getVolumeCounts
 %
-%   stim_level_counts = getVolumeCounts(obj,stim_levels,varargin)
+%   [stim_level_counts,extras] = getVolumeCounts(obj,max_stim_level,varargin)
 %
-%   INPUTS
-%   =======================================================================
+%   Inputs
+%   ------
 %   max_stim_level : sign of this value is important. It indicates the
 %           maximum stimulus scaling value to use when getting count points.
 %
 %
 %   TODO: Change this output to its own class ...
 %
-%   OUTPUTS
-%   =======================================================================
+%   Outputs
+%   -------
 %   stim_level_counts : (vector, same sign as max_stim_level) For each 
 %           stimulus level input this specifies the # of micron voxels
 %           that have thresholds lower than the stimulus amplitude.
@@ -24,24 +24,31 @@ function [stim_level_counts,extras] = getVolumeCounts(obj,max_stim_level,varargi
 %         .threshold_extras : see getThresholdsAndBounds method
 %         .z_saturation_threshold : 2d matrix of max stim value
 %               required to saturate activation in z-dimension for a single
-%               x-y location
+%               x-y location. In other words, the maximum threshold along z
+%               for a given x-y
 %
 %
-%   OPTIONAL INPUTS
-%   =======================================================================
+%   Optional Inputs
+%   ---------------
 %   replication_points : (default []), This allows us to replicate the
 %           results of a single simulation at multiple points. This was
 %           originally designed for the single electrode case and for
 %           comparing it to two electrodes. Thresholds are currently
-%           combined using the min operator.
-%   stim_resolution    : (default 0.1), This indicates the resolution of 
-%           the stimulus amplitudes that are tested, and for which, 
-%           count data is returned.
-%   min_amp            : (defaul 2), This is the minimum amplitude that
-%           should be counted.
+%           combined using the min operator, i.e. a particular site is
+%           activated at the lower of two (or more) stimulation thresholds.
+%   stim_resolution : (default 0.1), 
+%           Bin width of the count histogram.
+%           This indicates the resolution of the stimulus amplitudes that 
+%           are tested, and for which, count data are returned.
 %
-%   IMPROVEMENTS
-%   =======================================================================
+%           
+%   min_amp : (defaul 1), This is the minimum amplitude that
+%           should be counted.
+%   bounds_guess : default []
+%   quick_test : default false
+%
+%   Improvements
+%   ------------
 %   1) Implement gradient testing to ensure that the mesh is significantly
 %      refined enough to allow interpolation.
 %
@@ -70,7 +77,6 @@ in = NEURON.sl.in.processVarargin(in,varargin);
 %--------------------------------------------------------------------------
 in.stim_resolution = abs(in.stim_resolution);
 
-%I decided to make this an input ...
 MIN_AMP = abs(in.min_amp);
 
 if max_stim_level < 0
@@ -86,10 +92,8 @@ abs_max_scale = abs(max_stim_level);
 %Threshold retrieval
 %--------------------------------------------------------------------------
 %NEURON.simulation.extracellular_stim.results.activation_volume.getThresholdsAndBounds
-[abs_thresholds,x,y,z,threshold_extras] = obj.getThresholdsAndBounds(max_stim_level,in.replication_points);
-
-
-
+[abs_thresholds,x,y,z,threshold_extras] = ...
+    obj.getThresholdsAndBounds(max_stim_level,in.replication_points);
 
 xyz_cell = {x y z};
 
@@ -227,7 +231,8 @@ if in.quick_test
    stim_level_counts       = N + 1;
    z_saturation_threshold  = 1;
 else
-   [N,z_saturation_threshold] = integrate(x,y,z,max_z_index_keep,in.stim_resolution,N_start_indices,interpolate_cube_mask,min_cube,max_cube,use_zero_edge,abs_thresholds,N,MIN_AMP);
+   [N,z_saturation_threshold] = ...
+       integrate(x,y,z,max_z_index_keep,in.stim_resolution,N_start_indices,interpolate_cube_mask,min_cube,max_cube,use_zero_edge,abs_thresholds,N,MIN_AMP);
    stim_level_counts     = cumsum(N)';
 end
 

@@ -40,22 +40,28 @@ classdef activation_volume_requestor < NEURON.sl.obj.handle_light
         function result_objs = makeRequest(obj,electrode_locations,max_stim_level,varargin)
             %
             %
+            %   result_objs = makeRequest(obj,electrode_locations,max_stim_level,varargin)
+            %
             %   The only thing this function can currently vary over is
             %   different electrode locations ...
             %
-            %   INPUTS
-            %   ===========================================================
+            %   Inputs
+            %   -------
             %   electrode_locations : (cell),
+            %       
+            %   Outputs
+            %   -------
+            %   result_objs: NEURON.reproductions.Hokanson_2013.activation_volume_results
             %
-            %    OUTPUTS
-            %    ===========================================================
-            %    result_objs:
             %
-            %
-            %    OPTIONAL INPUTS
-            %    ===========================================================
-            %    single_with_replication : (default false), if true
-            %        replicates a single electrode
+            %   Optional Inputs
+            %   ---------------
+            %   single_with_replication : (default false)
+            %       If true replicates results to all input electrode
+            %       locations.
+            %   single_output : (default true)
+            %       If only one electrode location is requested the output
+            %       is an object, not a cell array of objects.
             
             in.single_with_replication = false;
             in.single_output = true;
@@ -68,7 +74,6 @@ classdef activation_volume_requestor < NEURON.sl.obj.handle_light
             n_sets = length(electrode_locations);
             
             if in.single_with_replication
-                
                 all_replication_sets = electrode_locations;
                 electrode_locations = repmat({[0 0 0]},[1 n_sets]);
             else
@@ -84,6 +89,7 @@ classdef activation_volume_requestor < NEURON.sl.obj.handle_light
                 cur_elec_loc = electrode_locations{iSet};
                 
                 if iSet == 1 || ~in.single_with_replication
+                    %NEURON.simulation.extracellular_stim
                     xstim = obj.main.instantiateXstim(cur_elec_loc);
                     
                     xstim.cell_obj.props_obj.changeFiberDiameter(obj.fiber_diameter);
@@ -100,6 +106,8 @@ classdef activation_volume_requestor < NEURON.sl.obj.handle_light
                     %NEURON.simulation.extracellular_stim.results.activation_volume
                     
                     if obj.use_new_solver
+                        %r: NEURON.xstim.single_AP_sim.request_handler
+                        %act_obj: NEURON.simulation.extracellular_stim.results.activation_volume
                         %r = xstim.sim__getSingleAPSolver('solver','from_old_solver');
                         r = xstim.sim__getSingleAPSolver('solver','default');
                         act_obj   = xstim.sim__getActivationVolume('request_handler',r);
@@ -157,6 +165,9 @@ classdef activation_volume_requestor < NEURON.sl.obj.handle_light
                     r.replicated_thresholds = extras.threshold_extras.replication_extras.electrode_thresholds;
                 end
 
+                %Properties of the request
+                %-------------------------------------------------------
+                r.max_stim_level = max_stim_level;
                 r.is_single              = in.single_with_replication;
                 if r.is_single
                     %NOTE: Due to the merger, we adjust the z

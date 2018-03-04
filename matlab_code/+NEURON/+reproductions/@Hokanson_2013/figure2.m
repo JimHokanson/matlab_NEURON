@@ -2,11 +2,13 @@ function figure2()
 %
 %   NEURON.reproductions.Hokanson_2013.figure2
 %
+%   This is Figure 4 in the final paper.
+%
 %   =======================================================================
 %                       MULTIPLE FIBER DIAMETERS
 %   =======================================================================
 %
-%   This is Figure 4 in the final paper.
+%   
 %
 %   The goal here is to explore the effect of different fiber diameters on
 %   the volume ratio.

@@ -60,18 +60,21 @@ classdef Hokanson_2013
     end
     
     methods (Static)
+        BrannerTest()
         figure_showSingleStimulusMerger()
         figure_boundsIllustration
         figure_boundeIllustrationPart2()
         run()
         all_voltages = addVoltage()
         figure3_new()
+        example_figure_1()
         figure0()
         figure1()
         figure2()
         figure3()
         figure7()
         figure7_part2()
+        figure7_more
         figure8()
         figure_vr_walkthrough()
         figure_humpsExplained()

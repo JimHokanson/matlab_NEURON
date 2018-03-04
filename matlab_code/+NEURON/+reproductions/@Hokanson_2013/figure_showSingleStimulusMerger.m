@@ -2,6 +2,8 @@ function figure_showSingleStimulusMerger
 %
 %   NEURON.reproductions.Hokanson_2013.figure_showSingleStimulusMerger
 %
+%   This was going to go into an appendix but was ultimately not included.
+%
 %   Show results of replicating single stimulus ...
 %
 

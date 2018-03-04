@@ -1,7 +1,7 @@
-%Started 10/15/2015
+%NEURON.reproductions.Hokanson_2013.all_final_figures
 
 %Figure 1 - extracellular stimulation
-
+NEURON.reproductions.Hokanson_2013.example_figure_1
 
 %Figure 2 - example response - DONE
 NEURON.reproductions.Hokanson_2013.figure_vr_walkthrough
@@ -28,7 +28,12 @@ NEURON.reproductions.Hokanson_2013.figure1
 
 %Figure 7 - resistivity sensitivity
 NEURON.reproductions.Hokanson_2013.figure7 %Ran
+%May be an option for paper
+NEURON.reproductions.Hokanson_2013.figure7_more
 %70 - Figure 7
+
+%Discussion
+NEURON.reproductions.Hokanson_2013.BrannerTest
 
 %What are these for?????
 NEURON.reproductions.Hokanson_2013.figure0 %in progress

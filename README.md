@@ -27,6 +27,7 @@ At this point the majority of code focuses on modeling extracellular stimulation
 ## Requirements ##
 
 1. NEURON  - http://www.neuron.yale.edu/neuron/
+2. Curve Fitting Toolbox
 
 ## Future Design Plans ##
 

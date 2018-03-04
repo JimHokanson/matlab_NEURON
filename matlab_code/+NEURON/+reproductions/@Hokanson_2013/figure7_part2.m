@@ -2,6 +2,8 @@ function figure7_part2()
 %
 %   NEURON.reproductions.Hokanson_2013.figure7_part2
 %
+%   Not used in the paper
+%
 %   =======================================================================
 %               DIFFERENT RESISTIVITIES - halving magnitude
 %   =======================================================================
