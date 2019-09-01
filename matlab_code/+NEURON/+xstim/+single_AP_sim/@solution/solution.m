@@ -10,6 +10,10 @@ classdef  solution < NEURON.sl.obj.handle_light
     %           see method: getPartialObject
     %   3) Allow optimization - some function that goes through and
     %      sorts the data then saves it again
+    %
+    %   See Also
+    %   --------
+    %   NEURON.xstim.single_AP_sim.request_handler
     
     properties (Constant)
         VERSION = 1
@@ -99,8 +103,8 @@ classdef  solution < NEURON.sl.obj.handle_light
             %
             %   match_result = findLocationMatches(obj,new_cell_locations)
             %
-            %   OUTPUTS
-            %   ===========================================================
+            %   Outputs
+            %   -------
             %   match_result: NEURON.xstim.single_AP_sim.solution.match_result
             %
             %   INPUTS

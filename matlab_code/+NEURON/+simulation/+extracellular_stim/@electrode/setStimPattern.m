@@ -7,18 +7,23 @@ function setStimPattern(objs,start_times,phase_durations,phase_amplitudes)
 %   series of fixed amplitude stimulus phases which start at a
 %   given time after the start of the simulation.
 %
-%   INPUTS ===============================================================
-%   objs             : 1 or more object instances
-%   start_times      : (ms) Start of the stimulus
-%   phase_durations  : (ms) (singular vector or cell array of arrays)
-%                        Duration of each stimulus phase
-%   phase_amplitudes : (uA) See notes on stimulus amplitude
+%   Inputs 
+%   ------
+%   objs : 1 or more object instances
+%   start_times : (ms) scalar or length(objs)
+%           Start of the stimulus.
+%   phase_durations : (ms) (singular vector or cell array of arrays)
+%           Duration of each stimulus phase. The # of cells should
+%           be the same as the # of electrodes.
+%   phase_amplitudes : (uA) 
+%       This is the base amplitude. Reported stimulus amplitudes 
 %
 %   EXAMPLES
 %   ======================================================================
 %   setStimPattern(objs,0.1,[0.2 0.1],{[1 -0.5] [-1 0.5]})
 %
-%   FULL PATH:
+%   Full Path
+%   ---------
 %   NEURON.simulation.extracellular_stim.electrode.setStimPattern
 %
 %   TODO
@@ -30,8 +35,9 @@ function setStimPattern(objs,start_times,phase_durations,phase_amplitudes)
 
 n_electrodes = length(objs);
 
-%INPUT CHECKING
-%==========================================================================
+%Input Checking
+%----------------------------------------------------------------------
+%----------------------------------------------------------------------
 
 %Start Time Checking
 %--------------------------------------------------------------------------
@@ -91,7 +97,7 @@ if any(cellfun(@(x,y) length(x) ~= length(y),phase_amplitudes,phase_durations))
 end
 
 %Assignment
-%==========================================================================
+%--------------------------------------------------------------------------
 for iElec = 1:n_electrodes
     %NOTE: We ensure taking care of start times and end times
     cur_start_time       = start_times(iElec);

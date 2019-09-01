@@ -1,31 +1,52 @@
 function compile(mod_dir_path)
 %compile Compiles mod files into a dll.
 %
-%   compile(*mod_dir_path)
+%   NEURON.s.compile(*mod_dir_path)
+%   
+%   NEURON.s.compile(model_name)
 %
-%   INPUTS
-%   =======================================================================
-%   mod_dir_path : Path to folder containing mod files. If not specified 
+%
+%   Inputs
+%   ------
+%   mod_dir_path : string
+%       Path to folder containing mod files. If not specified 
 %       a file dialog window will open.
+%   model_name : string
+%       This can be the name of a model.
 %
 %   NOTE: The goal of this file is take in a mod path and to compile the
 %   necessary dll files instead of using NEURON's awful gui system. This is
 %   especially useful when making changes to the file during development as
 %   it allows hardcoding the command to recompile.
 %
-%   IMPORTANT NOTES
-%   =======================================================================
+%   Important Notes
+%   ---------------
 %   1)Commenting out lines in mknrndll file will allow for not needing to
-%   press return
+%   press return. This is a file shipped with NEURON (not with this code).
 %
-%   See Also:
-%       NEURON.paths
+%   See Also
+%   --------
+%   NEURON.paths
+%   NEURON.cell.getModRoot
 
 np = NEURON.paths.getCompilePaths;
 
+if ~exist(mod_dir_path,'dir')
+    %Might be a model name
+    try
+        cell_name = mod_dir_path;
+        mod_dir_path = NEURON.cell.getModRoot(cell_name);
+    catch
+        %Note, this might just mean we need to update NEURON.cell.getModRoot
+        error('Specified input doesn''t exist as a directory and is not recognized as a cell name')
+    end
+end
+    
+    
+
 if ispc
-    %EXAMPLE PATHS
-    %================================================
+    %Example Paths
+    %-------------
     %          c_root_install: 'C:\nrn72'
     %                  c_bash: 'C:\nrn72\bin\bash'
     %         c_bashStartFile: 'C:\nrn72\lib\bshstart.sh'

@@ -36,8 +36,8 @@ classdef cmd < NEURON.sl.obj.handle_light
             %
             %   obj = cmd(cmd_options)
             %
-            %   INPUTS
-            %   ===================================================
+            %   Inputs
+            %   ------
             %   cmd_options : NEURON.cmd.options
             %
             %  This method should be called by:
@@ -50,8 +50,11 @@ classdef cmd < NEURON.sl.obj.handle_light
             obj.comm_obj = NEURON.comm_obj.java_comm_obj();
             
             %This is a hack around the following error:
-            
-            obj.cd_set('C:\',false);
+            if ispc
+                obj.cd_set('C:\',false);
+            else
+                %obj.cd_set('/Users',false)
+            end
         end
     end
     
@@ -118,6 +121,23 @@ classdef cmd < NEURON.sl.obj.handle_light
                     %See comments 9 & 10
                     %MException/throwAsCaller
                     error('ERROR FROM NEURON:\n%s',result_str)
+                    %
+                    %
+                    %   Common Errors
+                    %   -------------
+                    %   - <string> is not a mechanism
+                    %       This requires that the mechanism be recompiled.
+                    %       Finding the the correct directory can be a bit
+                    %       difficult and is based on the model being run.
+                    %       For example, I often get "axnode" is not a
+                    %       MECHANISM for the MRG model. 
+                    %       TODO: allow specification of the cell model
+                    %       and compiling based on that ...
+                    %       -- I also found out that my code had an error
+                    %       and was trying to load i386 instead of the
+                    %       x86_64 bit, hopefully this is fixed now ...
+                    %
+                    %   
                 end
             elseif opt.interactive_mode && ~isempty(result_str)
                 %When in interactive mode and no error is present
@@ -212,8 +232,8 @@ classdef cmd < NEURON.sl.obj.handle_light
             %
             %   [success,results] = load_file(obj,file_path,*reload_file)
             %
-            %   INPUTS
-            %   ===========================================================
+            %   Inputs
+            %   ------
             %   file_path : Relative paths are fine and are referenced to
             %   the current directory first, followed by different
             %   environment variables. When not in the current directory it
@@ -255,14 +275,31 @@ classdef cmd < NEURON.sl.obj.handle_light
             %    success = load_dll(obj,dll_path)
             %
             %    NEURON COMMAND - nrn_load_dll
-            %    =============================================================
+            %    -----------------------------
             %    http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/system.html#nrn_load_dll
+            %
+            %   See Also
+            %   --------
+            %   load_standard_dll
             
+            %My question on not getting an error
+            %https://www.neuron.yale.edu/phpBB/viewtopic.php?t=2558
+            %
+            %Ted clarifying how brackets works ...
+            %https://www.neuron.yale.edu/phpBB/viewtopic.php?f=8&t=3604&p=15316&hilit=brackets#p15316
             
-            load_cmd = sprintf('{nrn_load_dll("%s")}',dll_path);
-            [flag,~] = obj.write(load_cmd);
+            %
+            load_cmd = sprintf('nrn_load_dll("%s")',dll_path);
+            [~,results] = obj.write(load_cmd);
             
-            success = flag;
+            trimmed = strtrim(results);
+            
+            success = ~strcmp(trimmed,'0');
+            
+            if ~success && obj.options.throw_error
+                cur_dir = obj.cd_get();
+                error('Failed to load %s from %s',dll_path,cur_dir);
+            end
         end
         function success = load_standard_dll(obj)
             %success
@@ -271,21 +308,39 @@ classdef cmd < NEURON.sl.obj.handle_light
             %
             %   This method can be used to load the standard dll or
             %   library. It provides system dependent pathing to this file.
+            %
+            %   Note, by convention the dll must be located in the
+            %   'mod_files' directory of the model. This workflow assumes
+            %   all relevant mod files have been compiled into one
+            %   directory.
+            %
             %   Windows: nrnmech.dll
             %   Mac    : libnrnmech.so
             %
-            %   See Also:
-            %       NEURON.cmd.load_dll
+            %   See Also
+            %   --------
+            %   load_dll
             
             %NOTE: This might eventually need some modifications for the mac
             %build. I'm a bit surprised the shared object is nested so deep.
             %It might be possible to simplify this with changes to the
             %compile command.
             
+            
+            
             if ispc
                 success = obj.load_dll('mod_files/nrnmech.dll');
             elseif ismac
-                success = obj.load_dll('mod_files/i386/.libs/libnrnmech.so');
+                %This could be removed if we moved the file after
+                %compiling.
+                root = obj.cd_get();
+                dll_path_64_partial = 'mod_files/x86_64/.libs/libnrnmech.so';
+                dll_path_64_full = fullfile(root,dll_path_64_partial);
+                if exist(dll_path_64_full,'file')
+                    success = obj.load_dll(dll_path_64_partial);
+                else
+                    success = obj.load_dll('mod_files/i386/.libs/libnrnmech.so');
+                end
             else
                 error('Non-Mac Unix systems are not yet supported.')
             end

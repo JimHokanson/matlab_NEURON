@@ -1,20 +1,14 @@
-//import java.io.*;  
+import java.io.*;  
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.lang.Process;
-import java.io.InputStream;
-import java.io.IOException;
-
-//java.lang.Process
-//java.io.InputStream
 
 //TO LOOK INTO:
 //http://www.mathworks.com/support/solutions/en/data/1-9389FH/index.html?product=ML&solution=1-9389FH
 
 public class NEURON_reader {
 
-	InputStream pin;
-	InputStream perr;
+	BufferedInputStream pin;
+	FileInputStream perr;
 	Process p;
 
 	//CONSTANTS
@@ -53,11 +47,7 @@ public class NEURON_reader {
 
 	//We start everything in Matlab and pass in the relevant objects here ...
 	//CONSTRUCTOR ===================================================================
-	public NEURON_reader(InputStream pin, InputStream perr, Process p) {
-        //java.lang.Process
-        //java.io.InputStream
-        //
-
+	public NEURON_reader(BufferedInputStream pin, FileInputStream perr, Process p) {
 		this.p    = p;
 		this.perr = perr;
 		this.pin  = pin;

@@ -8,6 +8,21 @@ classdef request_handler
     %   user when determining multiple thresholds.
     %
     %
+    %   Example
+    %   -------
+    %   %Note, it is likely that there are options that the user would
+    %   %want to pass in when creating xstim
+    %   xstim = NEURON.simulation.extracellular_stim.create_standard_sim();
+    %
+    %   %Other modifications may go here
+    %   r = xstim.sim__getSingleAPSolver();
+    %   cell_centers_to_test = {-600:20:600 -600:20:600 0};
+    %   s = r.getSolution();
+    %   %TODO: Note I'd like to add on a plot method for 
+    %   imagesc(s.thresholds)
+    %   colorbar
+    %   title('Thresholds in uA')
+    %   
     %   NEURON.simulation.extracellular_stim.??/
     %
     %   Main subclass:
@@ -71,7 +86,7 @@ classdef request_handler
             %
             in = NEURON.sl.in.processVarargin(in,varargin);
             
-            obj.xstim             = xstim;
+            obj.xstim = xstim;
             obj.default_stim_sign = default_stim_sign;
             
             %Retrieval of instance id
@@ -109,15 +124,21 @@ classdef request_handler
             %
             %   This is the main method
             %
-            %   OUTPUTS
-            %   ==========================================================
-            %   solution       : NEURON.xstim.single_AP_sim.solution
+            %   Outputs
+            %   -------
+            %   solution : NEURON.xstim.single_AP_sim.solution
+            %       
             %   predictor_info : Output depends on the solver. Currently
             %           I am not really doing anything with this output.
             %
             %   INPUTS
-            %   ==========================================================
+            %   ------
             %   cell_locations
+            %
+            %   Optional Inputs
+            %   ---------------
+            %   reshape_output : default true
+            %   stim_sign : default 
             
             
             %Local variables:

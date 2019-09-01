@@ -1,7 +1,7 @@
 classdef java_comm_obj < NEURON.comm_obj
     %
     %   Class:
-    %       NEURON.comm_obj.java_comm_obj
+    %   NEURON.comm_obj.java_comm_obj
     %
     %   java_comm_obj < NEURON.comm_obj
     %
@@ -10,11 +10,11 @@ classdef java_comm_obj < NEURON.comm_obj
     %   NEURON_reader.
     %
     %   The Java implementation is the preferred communication object as it
-    %   seems to run a bit faster, works on all os systems, and seems less
-    %   susceptible to random Matlab crashes.
+    %   seems to run a bit faster, should work on all os systems, and 
+    %   seems less susceptible to random Matlab crashes.
     %
-    %   IMPROVEMENTS
-    %   ===================================================================
+    %   Improvements
+    %   ------------
     %   1) Change the java reader to dynamically update string sizes when
     %   an overflow occurs.
     %   2) Allow interruption of the JAVA reader instead of pausing during
@@ -22,23 +22,21 @@ classdef java_comm_obj < NEURON.comm_obj
     %       See: NEURON.comm_obj.java_comm_obj.readResult
     %
     %   Installation
-    %   ===================================================================
+    %   ------------
     %   Installation requires calling the static method:
     %       NEURON.comm_obj.java_comm_obj.init_system_setup
-    %   
-    %   This method is called by the static method, NEURON.init_system
-    %   JAH NOTE: I'm working on an install class to make these things a
-    %   bit clearer.
+    %
+    %   This should be called by NEURON.s.init_system()
     
     
     
     properties
         %j => prefix to indicate Java class
         %------------------------------------------------------------------
-        j_process        %Class: java.lang.ProcessImpl
+        j_process  %Class: Implementation of java.lang.Process
         %
-        %   The process is held onto for destruction on object destruction.
-        %
+        %   The process is held onto for destruction when this class
+        %   gets destroyed
         
         %Streams   ---------------------------------------------------------
         j_error_stream   %Class: java.io.FileInputStream
@@ -51,8 +49,10 @@ classdef java_comm_obj < NEURON.comm_obj
         %http://download.java.net/jdk7/archive/b123/docs/api/java/io/BufferedOutputStream.html
         %------------------------------------------------------------------
         
-        j_reader         %Class: NEURON_reader, local Java class implemented
+        j_reader %Class: NEURON_reader, local Java class implemented
         %specifically for communication with NEURON
+        
+        cmd_array
     end
     
     properties (Constant, Hidden)
@@ -67,11 +67,7 @@ classdef java_comm_obj < NEURON.comm_obj
         function obj = java_comm_obj()
             %java_comm_obj
             %
-            %   obj = java_comm_obj()
-            %
-            %
-            %   FULL PATH:
-            %       NEURON.comm_obj.java_comm_obj
+            %   obj = NEURON.comm_obj.java_comm_obj()
             
             paths_obj = NEURON.paths.getInstance;
 
@@ -93,11 +89,20 @@ classdef java_comm_obj < NEURON.comm_obj
             end
             
             %java.lang.ProcessBuilder
-            temp_process_builder = java.lang.ProcessBuilder(cmd_array);
+            pb = java.lang.ProcessBuilder(cmd_array);
+            
+            %https://stackoverflow.com/questions/41263358/java-process-builder-add-path-to-environment-not-working
+            
+            pb.environment().put('PATH',[...
+                     fileparts(paths_obj.exe_path) ...
+                     char(java.io.File.pathSeparator) getenv('PATH')]);
 
+            %save for debugging
+            obj.cmd_array = cmd_array;
+            
             %Starting the process
             %--------------------------------------------------
-            obj.j_process       = temp_process_builder.start();
+            obj.j_process       = pb.start();
             obj.j_error_stream  = obj.j_process.getErrorStream;
             obj.j_input_stream  = obj.j_process.getInputStream;
             obj.j_output_stream = obj.j_process.getOutputStream;
@@ -110,7 +115,15 @@ classdef java_comm_obj < NEURON.comm_obj
             %
             %Source code: ./private/java_code/src/NEURON_reader.java
             
+            
+            
             try
+                %NEURON_reader(BufferedInputStream pin, FileInputStream perr, Process p)
+                %
+                %   On Mac:
+                %   - java.lang.UNIXProcess
+                %   - java.lang.UNIXProcess$ProcessPipeInputStream
+                %   - java.lang.UNIXProcess$ProcessPipeOutputStream
                 obj.j_reader = NEURON_reader(obj.j_input_stream,...
                                     obj.j_error_stream,obj.j_process);
             catch ME
@@ -168,7 +181,7 @@ classdef java_comm_obj < NEURON.comm_obj
            %    The goal of this method is to verify that things are
            %    properly installed.
            
-           java_paths    = javaclasspath(); %Current java paths defined in Matlab
+           java_paths = javaclasspath(); %Current java paths defined in Matlab
            
            %Desired path to be defined
            java_bin_path = NEURON.comm_obj.java_comm_obj.getJavaBinPath; 
@@ -201,7 +214,7 @@ classdef java_comm_obj < NEURON.comm_obj
             my_path       = NEURON.sl.stack.getMyBasePath();
             java_bin_path = fullfile(my_path,'private','java_code','bin');
         end
-        function init_system_setup
+        function init_system_setup()
             %init_system_setup
             %
             %   NEURON.comm_obj.java_comm_obj.init_system_setup()
@@ -210,6 +223,17 @@ classdef java_comm_obj < NEURON.comm_obj
             %
             %   NOTE: For non-jar filewe add the directory, not the
             %   class files
+            
+            
+            %This doesn't appear to pass to the new process
+            %----------------------------------------------
+%             %TODO: Only add if necessary ...
+%             %Is this needed on Windows?
+%             temp_path = getenv('PATH');
+%             
+%             paths_obj = NEURON.paths.getInstance;
+%             setenv('PATH',[temp_path ':' paths_obj.exe_path]);
+            
             
             %Let's first check that the class is not in the static path
             if NEURON.comm_obj.java_comm_obj.validate_installation
@@ -227,23 +251,28 @@ classdef java_comm_obj < NEURON.comm_obj
             %
             %   [success,results] = write(obj,command_str,*option_structure)
             %
-            %    INPUTS
-            %    ===========================================================
-            %    command_str      : (string), command to run
+            %    Inputs
+            %    ------
+            %    command_str : (string)
+            %           Command to run
             %    option_structure : (structure) (not a class)
             %        .max_wait    - (default 10), -1 indicates waiting
             %               forever, wait time in seconds before read
             %               timeout occurs
-            %        .debug       - (default true) whether to print messages or not ...
+            %        .debug       - (default true) whether to print 
+            %                        messages or not ...
             %
-            %   See Also:
+            %   See Also
+            %   --------
             %   NEURON.cmd.write    
             %   NEURON.comm_obj.java_comm_obj.writeLine
             %
-            %   FULL PATH: NEURON.comm_obj.java_comm_obj.write
-            
-            %DESIGN NOTE: Normally this function should be called
-            %by NEURON.cmd.write
+            %   Full Path:
+            %   NEURON.comm_obj.java_comm_obj.write
+            %
+            %   Design Note
+            %   -----------
+            %   Normally this function should be called by NEURON.cmd.write
             %
             %I added defaults to allow calling this code directly when
             %testing
@@ -254,7 +283,7 @@ classdef java_comm_obj < NEURON.comm_obj
                 option_structure = struct('debug',true,'max_wait',10);
             end
             
-            debug        = option_structure.debug;
+            debug = option_structure.debug;
               
             
             %TODO: Merge these things into the Java class
@@ -295,13 +324,47 @@ classdef java_comm_obj < NEURON.comm_obj
             
             out = obj.j_output_stream;
             %NOTE: To every string we add on a newline.
-            str = java.lang.String([str_to_write char(10)]);
+            str = java.lang.String([str_to_write char(10)]); %#ok<CHARTEN>
             %On writing we need to pass in a byte array. Hence the use of
             %a Java string above and using the getBytes method
             out.write(str.getBytes,0,length(str));
             
             %NOTE: Remember to flush!
-            out.flush;
+            try
+                out.flush;
+            catch ME
+                %On my mac this failed on startup because of a setup
+                %error. 
+                %identifier: 'MATLAB:Java:GenericException'
+                %
+                %   Required X11 => https://www.xquartz.org/
+                %
+                %Basically the output stream was closed, so the flush
+                %fails. Normally I think this section is avoided because
+                %errors come our messages sent to NEURON (i.e. after
+                %flushing), whereas this error came simply from starting 
+                %NEURON, thus our first write fails.
+                
+                %This is the Matlab way of reading from the stream
+                %
+                n_available = obj.j_error_stream.available();
+                err = obj.j_error_stream;
+                output = zeros(1,n_available);
+                %
+                for i = 1:n_available
+                    %Other read methods require passing a pointer
+                    %to a byte array. With this approach we get one 
+                    %byte at a time which for some reason is returned
+                    %as a double (we could cast at reading, but I just
+                    %cast before printing)
+                   output(i) = err.read();
+                end
+                fprintf(2,'------------   error from NEURON ... --------------\n');
+                fprintf(2,char(output));
+                fprintf(2,'\n-----------------------------------------------\n\n\n');
+                
+                error('See error message above')
+            end
         end
         function [success,results] = readResult(obj,wait_time,debug)
             %readResult
