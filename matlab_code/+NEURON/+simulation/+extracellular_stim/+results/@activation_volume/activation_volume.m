@@ -9,12 +9,7 @@ classdef activation_volume < handle
     %   changed. The biggest problem is the non-static nature of the
     %   result and the inclusion of replicated data with non-replicated
     %   data.
-    
-    
-    %METHODS IN OTHER FILES  %=============================================
-    %adjustBoundsGivenMaxScale
-    %checkBounds
-    
+        
     %HELPER METHODS IN OTHER FILES
     %======================================================================
     methods (Hidden)

@@ -1,9 +1,13 @@
-function example_figure_1(obj)
+function example_figure_1()
+%
+%   NEURON.reproductions.Hokanson_2013.example_figure_1
+
+obj = NEURON.reproductions.Hokanson_2013;
 
 %Create NEURON model, show applied stimuli
 %and show stimulus results ...
 
-STIM_AMPLITUDE = 5;
+STIM_AMPLITUDE = 8;
 CELL_XYZ = [100 0 300];
 E1       = [-200 0 0];
 E2       = [200  0 0];
@@ -13,7 +17,8 @@ MIN_Z    = -2000;
 %Threshold 4.91
 %Use 5 uA as an example ...
 
-figure
+figure(10)
+clf
 %r = xstim.sim__determine_threshold(1);
 
 %This should generate 3 plots:
@@ -43,7 +48,7 @@ for iElec = 1:3
     subplot(2,3,iElec)
     set(gca,'FontSize',18)
     xstim.plot__AppliedStimulus(STIM_AMPLITUDE);
-    set(gca,'YLim',[-25 0],'XLim',[-15 15])
+    set(gca,'YLim',[-40 0],'XLim',[-15 15])
     
     title(title_str)
     
@@ -54,7 +59,8 @@ for iElec = 1:3
     set(gca,'YLim',[-90 30],'XLim',[0 1.1])
 end
 
-figure
+figure(11)
+clf
 hold on
 %TODO: Make this a method (for plotting spatial layout of cell)
 %--------------------------------------------------------------
@@ -73,7 +79,7 @@ line([CELL_XYZ(1) CELL_XYZ(1)],[MIN_Z MAX_Z],'Linewidth',3)
 %             line([100 100],[2 1150],'Linewidth',3)
 %             line([100 100],[-1150 -2],'Linewidth',3)
 set(gca,'FontSize',18)
-title('Spatial layout of 10 um diameter fiber with 2 electrodes at x = [-200 200], cell at x = 100, node at z = 0')
+title('Spatial layout of 10 um diameter fiber with 2 electrodes at x = [-200 200], cell at x = 100, node at z = 300')
 xlabel('X')
 ylabel('Z')
 axis equal

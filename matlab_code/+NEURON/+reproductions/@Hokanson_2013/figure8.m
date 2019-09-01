@@ -2,6 +2,8 @@ function figure8()
 %
 %   NEURON.reproductions.Hokanson_2013.figure8
 %
+%   Not used in the paper.
+%
 %   =======================================================================
 %           Different electrode configurations, diagonal, 3 and 4
 %   =======================================================================

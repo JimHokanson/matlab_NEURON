@@ -65,11 +65,12 @@ classdef multi_id_manager < NEURON.sl.obj.handle_light
         end
         function saveObject(obj)
             s = NEURON.sl.obj.toStruct(obj); %#ok<NASGU>
-
+            
             save(obj.save_path,'s');
         end
         function loadObject(obj)
             if exist(obj.save_path,'file')
+                old_save_path = obj.save_path;
                 h = load(obj.save_path);
                 s = h.s;
                 
@@ -78,6 +79,8 @@ classdef multi_id_manager < NEURON.sl.obj.handle_light
                 end
                 
                 result = NEURON.sl.struct.toObject(obj,s); %#ok<NASGU>
+                
+                obj.save_path = old_save_path;
             end
         end
     end

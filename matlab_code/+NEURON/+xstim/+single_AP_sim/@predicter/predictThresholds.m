@@ -80,6 +80,7 @@ elseif n_known < 5000
     if ~isempty(I_NaN)
         
         ft = 'linearinterp';
+        %Curve Fitting Toolbox required
         opts = fitoptions( ft );
         opts.Normalize = 'on';
         

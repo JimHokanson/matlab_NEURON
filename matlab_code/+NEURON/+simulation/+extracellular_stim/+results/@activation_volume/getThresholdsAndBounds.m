@@ -5,8 +5,10 @@ function [abs_thresholds,x,y,z,extras] = getThresholdsAndBounds(obj,max_stim_lev
 %
 %
 %   extras:
-%       for replication ...
-%           see function ...
+%       .mean_rep_error
+%       .electrode_thresholds
+%       .electrode_interaction_thresholds
+%       .electrode_z_locations
 %
 %   See Also:
 %       #OBJ.getThresholdsEncompassingMaxScale
@@ -44,18 +46,26 @@ end
 
 end
 
-function [replicated_thresholds,x,y,z,extras] = helper__createReplicatedData(obj,abs_thresholds,replication_points)
+function [replicated_thresholds,x,y,z,extras] = ...
+    helper__createReplicatedData(obj,abs_thresholds,replication_points)
 %
 %   The goal of this function is to replicate data given the locations we
 %   wish to replicate the data to. This is specifically for the single
 %   electrode case.
 %
+%   Inputs
+%   ------
+%   abs_thresholds :
+%   replication_points :
 %
-%       .replication_extras
-%           .electrode_interaction_thresholds
-%           .electrode_thresholds : [x y z elec] - spatially replicated thresholds per
-%           electrode
-%           .mean_rep_error
+%   Outputs
+%   -------
+%   replicated_thresholds :
+%   extras : struct
+%       .electrode_interaction_thresholds
+%       .electrode_thresholds : [x y z elec] - spatially replicated 
+%               thresholds per electrode
+%   .mean_rep_error
 
 
 %What is the final z  value that is output?
@@ -274,16 +284,18 @@ z = xyz_new{3};
 
 extras.mean_rep_error = mean_rep_error;
 
+%==========================================================================
 [~,~,uI] = unique(electrode_ids);
 
 sz = size(V_temp);
 electrode_thresholds = zeros(sz(1),sz(2),sz(3),n_points);
 for iU = 1:n_points
+    %Note, due to replication in z, these should be roughly the same
     electrode_thresholds(:,:,:,iU) = min(V_temp(:,:,:,iU == uI),[],4);
 end
 
 extras.electrode_thresholds = electrode_thresholds;
-
+%==========================================================================
 electrode_interaction_thresholds = zeros(n_points,n_points);
 
 %Determine lowest stimulation amplitude
@@ -312,6 +324,7 @@ for i1 = 1:n_points
     end
 end
 extras.electrode_interaction_thresholds = electrode_interaction_thresholds;
+%==========================================================================
 extras.electrode_z_locations            = electrode_z_locations;
 %electrode_thresholds = ...
 
@@ -331,7 +344,7 @@ replicated_thresholds = squeeze(min(V_temp,[],4));
 %3) NaN check in Z
 %--------------------------------------------------------------------------
 %We currently assume that we can truncate in z, since the solution should
-%repeat itself in that dimensionnnn. This is not true if the solution is
+%repeat itself in that dimension. This is not true if the solution is
 %the result of z-expansion, where real data doesn't fill the z axis.
 
 %Example
@@ -359,9 +372,12 @@ if any(some_but_not_all_z_NaN)
     %level code fails to test z properly...
     %
     %    Example 1: Fix to above
-    %    1 3 1
-    %    2 3 2
-    %    4 3 4
+    %
+    %    -- xy -- |
+    %    1 3 1    |
+    %    2 3 2    z
+    %    4 3 4    |
+    %             |
     %
     %    This is good for the counts, asssuming we only need 3 values
     %
@@ -378,7 +394,7 @@ if any(some_but_not_all_z_NaN)
     %
     %    Mentally, one can think of this as for each column, taking a node
     %    of Ranvier and varying its row position, we can't break space rules
-    %    for the rows by putting the 1 & 5 next to each otehr. In addition
+    %    for the rows by putting the 1 & 5 next to each other. In addition
     %    if we need 3 values, column 1 doesn't have enough tested values,
     %    but again earlier code which sets the z-axis based on the internode
     %    length must have failed for this to occur.

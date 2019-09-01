@@ -2,6 +2,8 @@ function figure_vr_walkthrough()
 %
 %   NEURON.reproductions.Hokanson_2013.figure_vr_walkthrough
 %
+%   Final figure 2
+%
 %   This figure illustrates:
 %   - slice thresholds
 %   - iso-threshold contours
@@ -50,6 +52,7 @@ for iPair = 1:2
     electrode_locations_test = EL_LOCATIONS{iPair};
     temp_cell = cell(2,1);
     
+    %avr : NEURON.reproductions.Hokanson_2013.activation_volume_requestor
     avr.slice_dims = SLICE_DIMS{iPair}; %Long slice on x, trans on y
 
     for iDiameter = 1:1
@@ -62,7 +65,56 @@ for iPair = 1:2
     rd_all{iPair} = temp_cell(2,:);
 end
 
-keyboard
+%--------------------------------------------------------------------------
+%Results cited in text ...
+min_ratios = zeros(1,2);
+max_ratios = zeros(1,2);
+median_ratios = zeros(1,2);
+for i = 1:2
+
+sync = rd_all{i}{1};
+async = rs_all{i}{1};
+
+xyz_sync = sync.xyz_used;
+xyz_async = async.xyz_used;
+
+x_sync = xyz_sync{1};
+y_sync = xyz_sync{2};
+
+x_async = xyz_async{1};
+y_async = xyz_async{2};
+z_async = xyz_async{3};
+
+mask = ismember(x_sync,x_async);
+
+x_I1 = find(mask,1);
+x_I2 = find(mask,1,'last');
+
+mask = ismember(y_sync,y_async);
+
+y_I1 = find(mask,1);
+y_I2 = find(mask,1,'last');
+
+async_thresholds = async.raw_abs_thresholds;
+sync_thresholds = sync.raw_abs_thresholds(x_I1:x_I2,y_I1:y_I2,:);
+
+ratio = sync_thresholds./async_thresholds;
+
+%Ratios at low values are subject to errors based on the resolution 
+%we solved for
+%
+%limit to 1 uA and greater
+
+ratio2 = ratio(async_thresholds >= 1);
+
+min_ratios(i) = min(ratio2);
+max_ratios(i) = max(ratio2);
+median_ratios(i) = median(ratio2);
+
+end
+
+
+
 %--------------------------------------------------------------------------
 %                           Plotting results
 %--------------------------------------------------------------------------
@@ -72,7 +124,7 @@ keyboard
 
 %THRESHOLD MAPS FIRST
 %--------------------------------------------------------------
-X_LIMITS = {[-400 400] [-400 400]; [-400 400] [-400 400]};
+X_LIMITS = {[-500 500] [-500 500]; [-500 500] [-500 500]};
 
 C_LIM_MAX_ALL = [25 25; 25 25];
 
@@ -125,8 +177,8 @@ for iPair = 1:2
         title(TITLE_STRINGS{iPair})
     end
     
-    set(gca,'xlim',X_LIMITS{1})
     axis equal
+    set(gca,'xlim',X_LIMITS{1})
     colorbar
     set(gca,'clim',[0 C_LIM_MAX_ALL(iPair,1)]);
 
@@ -161,6 +213,44 @@ for iPair = 1:2
     %ylabel('Volume (um^3)')
     legend({'Non-simultaneous','Simultaneous'})
     set(gca,'ylim',[0 1.2])
+    
+    subplot(2,2,plot_indices2(iPair,2))
+    %NEURON.reproductions.Hokanson_2013.plotVolumeRatio
+    obj.plotVolumeRatio(rs_all{iPair}(end:-1:1),rd_all{iPair}(end:-1:1));
+    legend(final_strings(end:-1:1))
+    title(TITLE_STRINGS{iPair})
+    set(gca,'YLim',P.Y_LIM);
+end
+
+%==========================================================================
+figure(204)
+clf
+I = 1;
+plot_indices2 = [1 3; 2 4];
+
+for iPair = 1:2
+    
+    temp_s = rs_all{iPair}{I};
+    temp_d = rd_all{iPair}{I};
+    
+    s = temp_s.stimulus_amplitudes;
+    ds = s(2)-s(1);
+    
+    %NOTE: Counts are in units of um^3
+    c1 = temp_s.counts./(1000^3);
+    c2 = temp_d.counts./(1000^3);
+    
+    final_strings = NEURON.sl.cellstr.sprintf('%5.2f - um',DIAMETER_USE);
+    
+    ax = subplot(2,2,plot_indices2(iPair,1));
+    plot(s,c1,'b',s,c2,'g')
+    semilogy(s,c1,'b',s,c2,'g')
+    set(gca,'FontSize',18)
+    ylabel('Volume (mm^3)')
+    %ylabel('Volume (um^3)')
+    legend({'Non-simultaneous','Simultaneous'})
+    %set(gca,'ylim',[0 1.2])
+    set(ax,'ylim',[1e-4 1.2])
     
     subplot(2,2,plot_indices2(iPair,2))
     %NEURON.reproductions.Hokanson_2013.plotVolumeRatio

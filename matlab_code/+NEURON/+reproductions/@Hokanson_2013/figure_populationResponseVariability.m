@@ -1,6 +1,5 @@
 function figure_populationResponseVariability()
 %
-%
 %   NEURON.reproductions.Hokanson_2013.figure_populationResponseVariability
 %
 
