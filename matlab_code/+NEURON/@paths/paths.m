@@ -1,15 +1,16 @@
 classdef paths < NEURON.sl.obj.handle_light
     %
-    %   Class: NEURON.paths
+    %   Class: 
+    %   NEURON.paths
     %
     %   This is the main class for handling NEURON related pathing.
     %
-    %   USER CONSTANTS NEEDED
-    %   ===================================================================
-    %   C.NEURON_EXE_PATH
+    %   User Constants Needed - from the options file ...
+    %   -------------------------------------------------
+    %   'NEURON_EXE_PATH' 
     %
-    %   IMPROVEMENTS
-    %   ===================================================================
+    %   Improvements
+    %   ------------
     %   1) Build in reset method - NEURON_paths.reset
     %   2) Provide better customization of paths that are likely to change,
     %     specifically NEURON executable paths that will change with
@@ -38,7 +39,8 @@ classdef paths < NEURON.sl.obj.handle_light
         %base_save_root
     end
     
-    %INITIALIZATION METHODS   %============================================
+    %INITIALIZATION METHODS   
+    %----------------------------------------------------------------------
     methods (Access = private)
         function obj = paths()
             %paths
@@ -108,6 +110,11 @@ classdef paths < NEURON.sl.obj.handle_light
             end
         end
     end
-    
 end
 
+function output = filepartsx(input_path,n)
+    output = input_path;
+    for i = 1:n
+        output = fileparts(output);
+    end
+end

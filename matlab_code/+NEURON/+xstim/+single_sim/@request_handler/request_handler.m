@@ -1,35 +1,10 @@
 classdef request_handler
     %
     %   Class:
-    %   NEURON.xstim.single_AP_sim.request_handler
+    %   NEURON.xstim.single_sim.request_handler
     %
-    %   This is responsbile for carrying out determination of the
-    %   thresholds. It is meant as the top level interface object with the
-    %   user when determining multiple thresholds.
-    %
-    %   TODO: I'd like to rename the package
-    %   single_threshold_sim
-    %
-    %
-    %   Example
+    %   TODO
     %   -------
-    %   %Note, it is likely that there are options that the user would
-    %   %want to pass in when creating xstim
-    %   xstim = NEURON.simulation.extracellular_stim.create_standard_sim();
-    %
-    %   %Other modifications may go here
-    %   r = xstim.sim__getSingleAPSolver();
-    %   cell_centers_to_test = {-600:20:600 -600:20:600 0};
-    %   s = r.getSolution();
-    %   %TODO: Note I'd like to add on a plot method for 
-    %   imagesc(s.thresholds)
-    %   colorbar
-    %   title('Thresholds in uA')
-    %   
-    %   NEURON.simulation.extracellular_stim.??/
-    %
-    %   Main subclass:
-    %   NEURON.xstim.single_AP_sim.solver
     %
     %
     %   Improvements:
@@ -44,21 +19,17 @@ classdef request_handler
     %   NEURON.xstim.single_AP_sim.solution.match_result
     
     properties
-        xstim      %Class: NEURON.xstim
-        xstim_ID   %Class: NEURON.logger.ID;
+        xstim % NEURON.xstim
+        xstim_ID % NEURON.logger.ID
     end
     
     properties
-        % % %         cell_locations_input   %[n x 3] or {1 x 3}, we need to save this
-        % % %         %value in case we want to reshape the output back to a 3d matrix
-        % % %         xyz_of_cell_locations  %[n x 3] these are the locations we will
-        % % %         %solve for ...
         default_stim_sign
     end
     
     %OUTPUT ===============================================================
     properties
-        solution    %Class: NEURON.xstim.single_AP_sim.solution
+        solution %NEURON.xstim.single_AP_sim.solution
         solution_found = false
     end
     
@@ -70,18 +41,12 @@ classdef request_handler
         function obj = request_handler(xstim,default_stim_sign,varargin)
             %request_handler
             %
-            %   obj = NEURON.xstim.single_AP_sim.request_handler(xstim,default_stim_sign)
+            %   obj = NEURON.xstim.single_sim.request_handler(...
+            %               xstim,default_stim_sign)
             %
             %   Inputs
             %   ------
             %
-            %   Optional Inputs
-            %   ---------------
-            %   solver :
-            %       'default'
-            %       'from_old_solver' - this one is a bit tricky to use
-            %       and should be avoided
-            %   testing : NOT YET IMPLEMENTED
             %   
             %
             %   See Also:
@@ -112,6 +77,8 @@ classdef request_handler
             %later on, so the locaton we choose now is arbitrary.
             
             xstim.props.changeProps('tstop',DEFAULT_TIME)
+            
+            %TODO: We may no longer want this to be true for a single stim
             
             %TODO: Check this value before setting, throw warning
             %if it is not currently true ..., the user will need to

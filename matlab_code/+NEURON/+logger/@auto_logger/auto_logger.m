@@ -11,19 +11,20 @@ classdef auto_logger < NEURON.logger
     %   2) How to log them
     %   3) How to compare them to previous values
     %
-    %   Known implementations:
-    %   ===================================================================
+    %   Known implementations
+    %   ---------------------
     %   NEURON.simulation.extracellular_stim.electrode.logger
     %   NEURON.simulation.props.logger
     %   NEURON.tissue.homogeneous_anisotropic.logger
     %   NEURON.tissue.homogeneous_isotropic.logger
     %   NEURON.cell.axon.MRG.logger
     %
-    %   See Also:
+    %   See Also
+    %   --------
     %   NEURON.logger
     %
-    %   MAIN METHODS
-    %   ===================================================================
+    %   Main Methods
+    %   ------------
     %   NEURON.logger.auto_logger.getNewValue
     
     properties (Abstract,Constant)

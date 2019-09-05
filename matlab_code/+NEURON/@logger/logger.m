@@ -4,7 +4,7 @@ classdef logger < NEURON.sl.obj.handle_light
     %   NEURON.logger
     %
     %   Known Helper Subclasses
-    %   --------------------------------------------------------
+    %   -----------------------
     %   NEURON.logger.auto_logger
     %   NEURON.logger.ID_logger
     %

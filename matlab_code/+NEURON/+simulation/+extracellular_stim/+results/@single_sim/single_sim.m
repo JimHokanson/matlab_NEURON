@@ -1,7 +1,7 @@
 classdef single_sim < NEURON.sl.obj.handle_light
     %
     %   Class: 
-    %       NEURON.simulation.extracellular_stim.results.single_sim;
+    %   NEURON.simulation.extracellular_stim.results.single_sim;
     %
     %   This class is supposed to the results of running a single
     %   extracellular stimulation simulation. This class is created by:

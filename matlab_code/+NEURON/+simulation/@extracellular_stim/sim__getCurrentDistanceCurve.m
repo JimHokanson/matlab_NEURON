@@ -3,20 +3,25 @@ function result_obj = sim__getCurrentDistanceCurve(obj,all_distances,varargin)
 %
 %   t_all = sim__getCurrentDistanceCurve(obj,all_distances,varargin)
 %
-%   INPUTS
-%   =======================================================================
-%   all_distances: All distances to test
+%   Inputs
+%   ------
+%   all_distances : All distances to test
 %
 %
-%   OPTIONAL INPUTS
-%   =======================================================================
+%   Optional Inputs
+%   ---------------
 %   use_sim_logger : (default true)
+%   starting_value : default 1
+%           Starting stimulus scale, SIGN is important, applies for the 
+%           first distance tested.
+%   base_xyz : default [0 0 0] 
+%           Base location of the electrode
 %
 %
 %   TODO: - finish documentation
 %
-%   OUTPUTS
-%   =======================================================================
+%   Outputs
+%   -------
 %   result_obj : NEURON.simulation.extracellular_stim.results.current_distance
 %
 %   See Also:
@@ -26,8 +31,7 @@ function result_obj = sim__getCurrentDistanceCurve(obj,all_distances,varargin)
 %       NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
 
 in.use_sim_logger = true;
-in.starting_value = 1; %Starting stimulus scale, SIGN is important, applies
-%for the first distance tested.
+in.starting_value = 1; 
 in.base_xyz       = [0 0 0]; %Base location of the electrode ...
 in.dim_move       = 2;
 in.sim_logger_options = {};
@@ -54,8 +58,10 @@ if in.use_sim_logger
     cell_locations{in.dim_move} = all_distances;
     
     %NEURON.simulation.extracellular_stim.sim__getThresholdsMulipleLocations
-    all_thresholds = obj.sim__getThresholdsMulipleLocations(cell_locations,...
-        'threshold_sign',sign(in.starting_value),'reshape_output',false,...
+    all_thresholds = obj.sim__getThresholdsMulipleLocations(...
+        cell_locations,...
+        'threshold_sign',sign(in.starting_value),...
+        'reshape_output',false,...
         in.sim_logger_options{:});
 
 else

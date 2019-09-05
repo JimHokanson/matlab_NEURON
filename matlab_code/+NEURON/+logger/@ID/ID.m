@@ -1,10 +1,10 @@
 classdef ID < NEURON.sl.obj.handle_light
     %
-    %
     %   Class:
     %   NEURON.logger.ID
     %
-    %   See Also:
+    %   See Also
+    %   --------
     %   NEURON.logger
     %   NEURON.logger.getID
     
@@ -24,7 +24,7 @@ classdef ID < NEURON.sl.obj.handle_light
     methods
         function obj = ID(class_type, type, trial_row, creation_date)
             %
-            %   obj = ID(class_type, type, trial_row, creation_date)
+            %   obj = NEURON.logger.ID(class_type, type, trial_row, creation_date)
             %
             %   INPUTS: See properties
             %   trial_row : For null ids pass in an empty value here

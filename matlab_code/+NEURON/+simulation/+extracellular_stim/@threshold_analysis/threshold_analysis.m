@@ -1,7 +1,7 @@
 classdef threshold_analysis < NEURON.sl.obj.handle_light
     %
     %   Class: 
-    %       NEURON.simulation.extracellular_stim.threshold_analysis
+    %   NEURON.simulation.extracellular_stim.threshold_analysis
     %
     %   This class handles things related to analyzing extracellular
     %   stimulation. In general it should not be called directly by the
@@ -10,7 +10,7 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
     %   an instance of the extracellular stimulation simulation class.
     %
     %   Relevant Clases
-    %   ==================================================================
+    %   ---------------
     %   For instructions on how to process the threshold information, the
     %   cell must produce an object of the class:
     %   NEURON.cell.threshold_info
@@ -24,35 +24,38 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
     %   from .determine_threshold()
     %       NEURON.simulation.extracellular_stim.results.threshold_testing_history
     %
-    %   IMPROVEMENTS:
-    %   ===================================================================
+    %   Improvements
+    %   ------------
     %   1) For propagation index, don't allow within a certain distance of
     %   the stimulation maximum. I'm not sure how to quantify this yet ...
     %
-    %   PUBLIC ACCESS METHODS
-    %   ===================================================================
+    %   Public Access Methods
+    %   ---------------------
     %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
     %   NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
     %
     %
-    %   See Also:
-    %       NEURON.simulation.extracellular_stim.sim_determine_threshold
-    %       NEURON.simulation.extracellular_stim.results.single_sim
-    %       NEURON.simulation.extracellular_stim.results.threshold_testing_history
+    %   See Also
+    %   --------
+    %   NEURON.simulation.extracellular_stim.sim_determine_threshold
+    %   NEURON.simulation.extracellular_stim.results.single_sim
+    %   NEURON.simulation.extracellular_stim.results.threshold_testing_history
     
     properties (Hidden)
-        parent    %Class: NEURON.simulation.extracellular_stim
-        cmd_obj   %Class: NEURON.cmd
+        parent    %NEURON.simulation.extracellular_stim
+        
+        cmd_obj   %NEURON.cmd
     end
     
     %Threshold analysis options   %========================================
     properties (Access = private,Hidden)
-        threshold_info  %Class: NEURON.cell.threshold_info
+        threshold_info  %NEURON.cell.threshold_info
         %This property is set just before running a simulation.
+        %
         %See: NEURON.simulation.extracellular_stim.init__simulation
     end
     
-    %Temporary Properties     %============================================
+    %Temporary Properties  %===============================================
     properties (Hidden)
        ap_propagation_observed = false %This is a temporary variable used by
        %the determine_threshold() method to ensure that we actually get an
@@ -85,15 +88,23 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
            %
            %    setThresholdInfo(obj,threshold_info_obj)
            %
+           %    Inputs
+           %    ------
+           %    threshold_info_obj : 
+           %
            %    I created this method to discourage direct manipulation 
            %    of the property.
            
            obj.threshold_info = threshold_info_obj;
         end
+    end
+    
+    %MAIN FUNCTION TO RUN =================================================
+    methods (Hidden)
         function result_obj = run_stimulation(obj,scale,auto_expand)
             %run_stimulation
             %
-            %   result_obj = run_stimulation(obj,scale, *auto_expand)
+            %   result_obj = run_stimulation(obj,scale, auto_expand)
             %
             %   This is the main method for running a single extracellular
             %   stimulation. It should only be called by an instance of the
@@ -102,13 +113,16 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
             %   Specifically, this method is called by:
             %       NEURON.simulation.extracellular_stim.sim__single_stim
             %
-            %   INPUTS
-            %   ===========================================================
-            %   scale :  Multiplier of loaded data
+            %   Inputs
+            %   ------
+            %   scale : 
+            %       Multiplier of loaded data.
+            %   auto_expand : logical
+            %       If true, we 
             %
-            %   OUTPUTS
-            %   ===========================================================
-            %   result_obj : Class: NEURON.simulation.extracellular_stim.results.single_sim
+            %   Outputs
+            %   -------
+            %   result_obj : NEURON.simulation.extracellular_stim.results.single_sim
             %
             %   See Also:
             %   NEURON.simulation.extracellular_stim.sim__single_stim
@@ -130,7 +144,7 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
             result_obj = NEURON.simulation.extracellular_stim.results.single_sim(...
                             obj.parent,scale,t_info,initial_tstop);
             result_obj.tested_scale = scale;
-            result_obj.xstim_obj    = obj.parent;
+            result_obj.xstim_obj = obj.parent;
             
             %Running the simulation
             %--------------------------------------------------------------
@@ -191,9 +205,9 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
                if continue_test(vm)
                   sim_ext_options = obj.parent.sim_ext_options_obj;
                    
-                  tstop_growth   = sim_ext_options.sim_growth_rate;
+                  tstop_growth = sim_ext_options.sim_growth_rate;
                   current_t_stop = initial_tstop;
-                  max_t_stop     = current_t_stop + sim_ext_options.max_absolute_sim_growth;
+                  max_t_stop = current_t_stop + sim_ext_options.max_absolute_sim_growth;
                    
                   extension_successful = false;
                   
@@ -225,7 +239,7 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
             end
             
             result_obj.membrane_potential = vm;
-            result_obj.ap_propagated      = obj.analyzeMembranePotential(vm);  
+            result_obj.ap_propagated = obj.analyzeMembranePotential(vm);  
 
         end
     end
@@ -236,15 +250,15 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
     % to organize this. These functions might become their own class or be
     % placed into the threshold_info class. The threshold_info class is
     % strongly dependent on, and is populated in, the cell class, as the
-    % action potential properteis are a function of the cell type.
+    % action potential properties are a function of the cell type.
     methods (Hidden)
         function ap_propagated = analyzeMembranePotential(obj,vm)
             %
             %   
             %   ap_propagated = analyzeMembranePotential(obj,vm)   
             %
-            %   INPUTS
-            %   ===========================================================
+            %   Inputs
+            %   ------
             %   vm : [time x space], membrane potential
             %   
             %

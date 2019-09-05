@@ -1,7 +1,9 @@
-classdef  solution < NEURON.sl.obj.handle_light
+classdef results < NEURON.sl.obj.handle_light
     %
     %   Class:
-    %   NEURON.xstim.single_AP_sim.solution
+    %   NEURON.xstim.single_sim.results
+    %
+    %   Copying from: NEURON.xstim.single_AP_sim.solution
     %
     %   IMPROVEMENTS
     %   ------------
@@ -20,6 +22,9 @@ classdef  solution < NEURON.sl.obj.handle_light
     end
     
     properties
+        
+        
+        
         cell_locations   %[n x 3]
         thresholds       %[1 x n]
         solve_dates      %[1 x n]

@@ -2,22 +2,22 @@ classdef (Hidden) comm_obj < NEURON.sl.obj.handle_light
     %
     %   Abstract class for NEURON communication ...
     %
-    %   IMPLEMENTATIONS
-    %   ===================================================================
+    %   Implementations
+    %   ---------------
     %   NEURON.comm_obj.windows_comm_obj - windows
     %   NEURON.comm_obj.java_comm_obj    - java implementation
     %
-    %   Improvements:
-    %   ================================================================
+    %   Improvements
+    %   ------------
     %   1) Allow binary data transfer to go through these objects as well.
     %   Currently binary data transfer is handled through files. I think
     %   this is more efficient and accurate than numeric scanning (something 
     %   like fscanf), but ideally this could be done through memory
     
     methods (Abstract,Static)
-        init_system_setup %Should be called once in codebase to initialize system
-                          %Depending upon the system this method may not
-                          %need to do anything
+        init_system_setup %Should be called once in codebase to 
+                          %initialize system. Depending upon the system 
+                          %this method may not need to do anything
     end
     
     methods (Abstract)

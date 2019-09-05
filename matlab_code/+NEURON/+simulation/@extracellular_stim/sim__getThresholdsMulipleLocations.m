@@ -4,24 +4,22 @@ function thresholds = sim__getThresholdsMulipleLocations(obj,cell_locations,vara
 %   
 %   It just came to my attention that I spelled Multiple wrong :/
 %
+%   TODO: Fix this ...
+%
 %
 %   sim__getThresholdsMulipleLocations(obj,cell_locations,varargin)
 %
-%   INPUTS
-%   ===========================================================
+%   Inputs
+%   ------
 %   cell_locations : (cell array => {x y z} or [points by x,y,z]
 %
 %   OPTIONAL INPUTS
-%   ===========================================================
-%   threshold_sign     : (default 1)
-%   reshape_output     : (default true)
-%   initialized_logger : (default []), if passed in this
-%        can save a decent amount of time between sequential
-%        calls as it keeps data in memory instead of loading
-%        from disk
+%   ---------------
+%   threshold_sign : (default 1)
+%   reshape_output : (default true)
 %
-%   IMPROVEMENTS
-%   ===========================================================
+%   Improvements
+%   ------------
 %   1) Run a validation step that the passed in sim_logger
 %   matches the settings currently applied to this simulation
 %   object.
@@ -45,12 +43,15 @@ in.use_new_solver     = false; %NO LONGER USED
 in = NEURON.sl.in.processVarargin(in,varargin);
 
 % if in.use_new_solver
-    r  = obj.sim__getSingleAPSolver('solver','default');
+    r = obj.sim__getSingleAPSolver('solver','default');
     
     %NEURON.xstim.single_AP_sim.request_handler
     s = r.getSolution(cell_locations,'reshape_output',in.reshape_output);
     %NEURON.xstim.single_AP_sim.solution
     thresholds = s.thresholds;
+    
+    
+    
 % else
 %     if isempty(in.initialized_logger)
 %         sim_logger = NEURON.simulation.extracellular_stim.sim_logger;

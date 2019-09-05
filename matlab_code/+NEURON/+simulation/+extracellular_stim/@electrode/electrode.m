@@ -10,12 +10,12 @@ classdef electrode < NEURON.loggable
     %   See Also:
     %       NEURON.simulation.extracellular_stim
     %
-    %   CONSTRUCTOR CALL:
-    %   ===================================================================
+    %   Constructor Call
+    %   ----------------
     %   NEURON.simulation.extracellular_stim.electrode.create
     %
-    %   DATA SETTING METHODS
-    %   ===================================================================
+    %   Data Setting Methods
+    %   --------------------
     %   NEURON.simulation.extracellular_stim.electrode.moveElectrode
     %   NEURON.simulation.extracellular_stim.electrode.setStimPattern
     %

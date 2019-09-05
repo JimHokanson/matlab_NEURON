@@ -1,21 +1,30 @@
 classdef extracellular_stim < NEURON.simulation
     %
     %   Class:
-    %       NEURON.simulation.extracellular_stim
+    %   NEURON.simulation.extracellular_stim
     %
     %   This class is meant to implement extracellular stimulation of a
     %   cell.
     %
     %   HOW TO CALL
-    %   ===================================================================
+    %   -----------
     %   NEURON.simulation.extracellular_stim.create_standard_sim
     %
     %   Simulation Methods
-    %   ===================================================================
+    %   ------------------
+    %   JAH TODO: Describe these each briefly ...
     %   NEURON.simulation.extracellular_stim.sim__single_stim
+    %
+    %
     %   NEURON.simulation.extracellular_stim.sim__getCurrentDistanceCurve
+    %
+    %
     %   NEURON.simulation.extracellular_stim.sim__determine_threshold
+    %
+    %
     %   NEURON.simulation.extracellular_stim.sim__getActivationVolume
+    %
+    %
     %
     %   DOCUMENTATION
     %   ===================================================================
@@ -35,11 +44,15 @@ classdef extracellular_stim < NEURON.simulation
     end
     
     properties (Hidden)
-        data_transfer_obj       %Class: NEURON.simulation.extracellular_stim.data_transfer
+        data_transfer_obj 
+        %Class: NEURON.simulation.extracellular_stim.data_transfer
+        %
         %This object is meant to facilitate data transfer to and from the
         %NEURON environment.
         
-        threshold_analysis_obj  %Class: NEURON.simulation.extracellular_stim.threshold_analysis
+        threshold_analysis_obj  
+        %Class: NEURON.simulation.extracellular_stim.threshold_analysis
+        %
         %This object performs the actual stimulation and analyzes the
         %result.
     end
@@ -112,8 +125,9 @@ classdef extracellular_stim < NEURON.simulation
             %    For more information on event order see the Event Order
             %    documentation file in the private folder of this class.
             %
-            %    FULL PATH:
-            %        NEURON.simulation.extracellular_stim.init__simulation
+            %   Full Path
+            %   ---------
+            %   NEURON.simulation.extracellular_stim>init__simulation
             
             %Retrieval of the threshold info object from the cell for use in
             %analyzing action potentials.
@@ -167,9 +181,9 @@ classdef extracellular_stim < NEURON.simulation
             %   so that the data object it contains is valid given the
             %   current extracellular stimulation being used.
             %
-            %   OUTPUTS
-            %   ===========================================================
-            %   sim_logger : Class: NEURON.simulation.extracellular_stim.sim_logger
+            %   Outputs
+            %   -------
+            %   sim_logger : NEURON.simulation.extracellular_stim.sim_logger
             %
             %   See Also:
             %       NEURON.simulation.extracellular_stim.sim_logger
@@ -184,12 +198,14 @@ classdef extracellular_stim < NEURON.simulation
             %
             %   r = sim__getSingleAPSolver(obj,varargin)
             %
+            %   Optional Inputs
+            %
             %   OUTPUTS
-            %   ===========================================================
+            %   -------
             %   r : NEURON.xstim.single_AP_sim.request_handler
             %
             %   IMPROVEMENTS
-            %   ===========================================================
+            %   ------------
             %   1) I'd like to get rid of the inputs and either pass in
             %   an options class or introduce a second step of initializing
             %   the request handler.
@@ -203,10 +219,12 @@ classdef extracellular_stim < NEURON.simulation
             
             in.threshold_sign     = 1;
             %             in.reshape_output     = true;
-            in.solver             = 'default'; %from_old_solver
+            in.solver = 'default'; %from_old_solver
             in = NEURON.sl.in.processVarargin(in,varargin);
             
-            r = NEURON.xstim.single_AP_sim.request_handler(obj,in.threshold_sign,'solver',in.solver);
+            r = NEURON.xstim.single_AP_sim.request_handler(...
+                obj,in.threshold_sign,....
+                'solver',in.solver);
         end
 
     end
@@ -251,6 +269,9 @@ classdef extracellular_stim < NEURON.simulation
             %a singleton.. only mims. which is why this call is different
             %from the rest
             logger = NEURON.simulation.extracellular_stim.logger.getInstance(obj);
+        end
+        function single_stim_logger = getSingleStimLogger(obj)
+            
         end
     end
 end

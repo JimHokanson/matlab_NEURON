@@ -1,5 +1,6 @@
 //This bit of code allows Neuron to be run from another directory from which it was called
 
+//Note this is almost certainly a Windows only call ...
 nrn_load_dll("mod_files/nrnmech.dll")
 
 {load_file("noload.hoc")}		//loads library files

@@ -1,7 +1,7 @@
 classdef threshold_info
     %
     %   Class: 
-    %       NEURON.cell.threshold_info
+    %   NEURON.cell.threshold_info
     %
     %   This class is meant to hold information that is useful in
     %   determining extracellular stimulation threshold for a particular
@@ -18,12 +18,13 @@ classdef threshold_info
     %   This is requested from the cell object just before running any
     %   simulations.
     %
-    %   See Also:
-    %       NEURON.simulation.extracellular_stim.threshold_analysis
+    %   See Also
+    %   --------
+    %   NEURON.simulation.extracellular_stim.threshold_analysis
     %
     %
-    %   IMPROVEMENTS:
-    %   ===================================================================
+    %   Improvements
+    %   ------------
     %   1) Provide methods for determining what these parameters should be
     %   given an xstim obj with representative cell.
     
@@ -33,8 +34,10 @@ classdef threshold_info
         
         v_ap_threshold = 0 %Membrane potential to test for when 
         %determining if an action potential is present
-        v_ap_propagation_index = 1 %For a simulation, the membrane potential
-        %at various points in space is returned
+        
+        v_ap_propagation_index = 1 %For a simulation, the 
+        %membrane potential at various points in space are returned. This
+        %indicates what spatial index to look at for determining threshold.
         
         %Index into membrane potentials t
     end
