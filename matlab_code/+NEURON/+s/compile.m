@@ -31,12 +31,12 @@ if ispc
     %         c_bashStartFile: 'C:\nrn72\lib\bshstart.sh'
     %              c_mknrndll: 'C:\nrn72\lib\mknrndll.sh'
     
-    mod_dir_path    = getCygwinPath(mod_dir_path);
+    mod_dir_path    = NEURON.sl.dir.getCygwinPath(mod_dir_path);
     
     bash_path       = np.c_bash;
-    bash_start_file = getCygwinPath(np.c_bashStartFile);
-    mknrndll        = getCygwinPath(np.c_mknrndll);
-    NEURON_root     = getCygwinPath(np.c_root_install);
+    bash_start_file = NEURON.sl.dir.getCygwinPath(np.c_bashStartFile);
+    mknrndll        = NEURON.sl.dir.getCygwinPath(np.c_mknrndll);
+    NEURON_root     = NEURON.sl.dir.getCygwinPath(np.c_root_install);
     
     %Call bash, running their startup script
     %cd to mod path and then call their function with the correct root directory as an input
