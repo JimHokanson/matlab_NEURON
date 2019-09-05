@@ -1,12 +1,21 @@
-//import java.io.*;  
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.lang.Process;
 import java.io.InputStream;
 import java.io.IOException;
 
-//java.lang.Process
-//java.io.InputStream
+//  This gets used by:
+//  NEURON.comm_obj.java_comm_obj
+//
+//  We're using stdin/stdout to communicate with NEURON. Although Matlab
+//  can call Java classes directly, we need a way of quickly reading
+//  data into Matlab from Java. The Java interface for reading either
+//  requires reading 1 byte at a time, or alternatively requries passing
+//  a byte array by reference. The latter is the faster approach but
+//  can't be done in Matlab (I don't think).
+//
+//  - Compile with javac NEURON_reader.java
+//  - Manually moved to the bin folder
 
 //TO LOOK INTO:
 //http://www.mathworks.com/support/solutions/en/data/1-9389FH/index.html?product=ML&solution=1-9389FH
@@ -30,7 +39,7 @@ public class NEURON_reader {
 	//Technically we would expect that this is smaller than the input or output data
 	//as those can be formed by many concatenations of repeated reads. Each read
 	//writes over temp_data and then gets copied to the next index in the buffers
-	byte[] temp_data  	    = new byte[max_bytes];
+	byte[] temp_data = new byte[max_bytes];
 	
 	
 	
@@ -54,6 +63,7 @@ public class NEURON_reader {
 	//We start everything in Matlab and pass in the relevant objects here ...
 	//CONSTRUCTOR ===================================================================
 	public NEURON_reader(InputStream pin, InputStream perr, Process p) {
+        //  
         //java.lang.Process
         //java.io.InputStream
         //
@@ -77,6 +87,19 @@ public class NEURON_reader {
 	
 	public void init_read(long wait_time_seconds, boolean debug_input)
 	{
+        //  
+        //  This is called by the readResult method in Matlab, which is
+        //  called after we've sent a message to NEURON to be processed.
+        //
+        //  Inputs
+        //  -------
+        //  wait_time_seconds : long
+        //      Wait time in seconds. -1 is a special value which means
+        //      that we never time out (the loop will keep waiting
+        //      indefinitely)
+        //  debug_input :
+        //      
+        
 		//Initialization ...
 		input_data.setLength(0);
 		error_data.setLength(0);
@@ -96,6 +119,21 @@ public class NEURON_reader {
 	//=======================================================================
 	public boolean read_result() throws IOException
 	{
+        //
+        //  Output
+        //  ------
+        //  is_terminal_string : boolean
+        //      Whether or not the result is a terminal string, indicating
+        //      that the response to our request is complete. In other words
+        //      we do something like:
+        //  
+        //      Matlab: writes message
+        //      NEURON: sends messages, writes responses
+        //      Matlab: reads responses until terminal string is encountered
+        //
+        //      The terminal string comes from a special message that we
+        //      send in Matlab to NEURON for echoing back to Matlab (so that
+        //      we know NEURON has finished responding to our initial request)
 
 		//RETURNED VALUE SHOULD BE WHETHER OR NOT TO STOP ...
 
@@ -116,8 +154,9 @@ public class NEURON_reader {
 
 		//PROCESS RUNNING CODE
 		//---------------------------------------------------
-		//NOTE: Asking a process for its exit value will throw an error if it is still running
-		//I don't know of any other way to ask if the process is still valid ...
+		//NOTE: Asking a process for its exit value will throw an error 
+        //if it is still running. I don't know of any other way to ask if 
+        //the process is still valid ...
 		try {
 			p.exitValue();
 			if (ran_once_after_process_exiting){
@@ -154,7 +193,8 @@ public class NEURON_reader {
 		n_bytes_available = perr.available();
 		if (n_bytes_available > 0){
 			perr.read(temp_data,0,n_bytes_available);
-			readStream(n_bytes_available, debug, false); //false indicates error stream
+			readStream(n_bytes_available, debug, false); //false indicates 
+            //error stream
 			//NOTE: We'll never get the terminal string from the error stream
 			//Don't assign variable from function call..
 			
@@ -177,12 +217,12 @@ public class NEURON_reader {
 			
 			/*
 			Java exception occurred:
-java.lang.IndexOutOfBoundsException
+            java.lang.IndexOutOfBoundsException
 
-	at java.io.BufferedInputStream.read(Unknown Source)
+            at java.io.BufferedInputStream.read(Unknown Source)
 
-	at NEURON_reader.read_result(NEURON_reader.java:143)
-*/
+            at NEURON_reader.read_result(NEURON_reader.java:143)
+            */
 			
 			
 			
@@ -215,9 +255,12 @@ java.lang.IndexOutOfBoundsException
 	}
 
 	private boolean isStackdumpPresent(String temp_string, boolean is_success){
-
-		//NOTE: This code is a bit messy, essentially we look for a particular string
-		//in the current error string. 
+        //
+		//  NOTE: This code is a bit messy, essentially we look for 
+        //  a particular string in the current error string.
+        //
+        //  Note, I can't remember why I care about stackdumps in particular,
+        //  as opposed to errors in general ...
 
 		boolean potential_stackdump;
 		String  possible_error_string;
@@ -237,24 +280,49 @@ java.lang.IndexOutOfBoundsException
 	}
 
 	private String cleanString(int n_bytes_available){
-
+        //
+        //  
+        //  the NEURON prompt is oc> which should occur at the beginning 
+        //  of a new line. I want to return the printed data to the user
+        //  without the prompt in place.
+        //
+        //  So this:
+        //  oc>1
+        //  oc>3
+        //  becomes:
+        //  1
+        //  3
+        
 		Matcher matcher;
 		String temp_string;
-
+        
+        //Note 'temp_data' is the buffer from 1 read.
+        //
 		//Add newline to facilitate oc> matching ...
 		//Convert from bytes to string ...
+        //
+        //Note it would be better to be able to have a 2nd match
+        //on just the first few characters, rather than adding a newline,
+        //but we'll skip this "optimization" for now.
 		temp_string = "\n" + new String(temp_data,0,n_bytes_available);
 
 		//Replace with a replacement of \noc>oc>* with just the newline.
+        //
+        //pattern = Pattern.compile("\n(oc>)*");
 		matcher     = pattern.matcher(temp_string);
 		temp_string = matcher.replaceAll("\n");
 
-		//NOTE: I need to remove the first newline since I added it to facilitate matching
+		//NOTE: I need to remove the first newline since I added it 
+        //to facilitate matching
 		return temp_string.substring(1);
 	}
 
 	private boolean readStream(int n_bytes_available, boolean debug, boolean is_input_string){
-
+        //
+        //  Inputs
+        //  ------
+        //  n_bytes_available : 
+        //  
 		String temp_string;
 		int index_term_string_match;
 		boolean is_terminal_string = false;

@@ -1,7 +1,7 @@
 classdef threshold_testing_history < NEURON.sl.obj.handle_light
     %
     %   Class:
-    %       NEURON.simulation.extracellular_stim.results.threshold_testing_history
+    %   NEURON.simulation.extracellular_stim.results.threshold_testing_history
     %
     %   This is a results class which summarizes our attempt to determine
     %   threshold for a given extracellular simulation setup.
@@ -38,6 +38,16 @@ classdef threshold_testing_history < NEURON.sl.obj.handle_light
     methods
         function obj = threshold_testing_history(threshold_info)
            %threshold_testing_history
+           %
+           %    obj = NEURON.simulation.extracellular_stim.results.threshold_testing_history(threshold_info)
+           %
+           %    Inputs
+           %    ------
+           %    threshold_info : NEURON.cell.threshold_info
+           %
+           %    See Also
+           %    --------
+           %    NEURON.simulation.extracellular_stim>sim_determine_threshold
            %
            %    NOTE: Object should be finalized after simulation. See
            %    method finalizeData()

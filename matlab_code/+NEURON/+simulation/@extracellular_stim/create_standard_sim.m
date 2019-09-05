@@ -6,30 +6,34 @@ function obj = create_standard_sim(varargin)
 %   This static method will initialize all objects necessary to run a 
 %   simulation of extracellular stimulation.
 %
-%   OPTIONAL INPUTS
-%   =======================================================================
-%   Simulation:
-%   -----------------------------------------------------------------------
-%   xstim_options : see NEURON.simulation.extracellular_stim.options
+%   Optional Inputs
+%   ---------------
 %
-%   Tissue:
-%   -----------------------------------------------------------
-%   tissue_resistivity : (default 500 Ohm-cm, Units: Ohm-cm),
-%        currently either a 1 or 3 element vector for isotropic or
-%        anisotropic tissue
+%       For Simulation
+%       --------------
+%       xstim_options : see NEURON.simulation.extracellular_stim.options
 %
-%   Cell Properties
-%   -----------------------------------------------------------------------
-%   cell_center  : (default [0 0 0])
-%   cell_type    : (default 'MRG'), see NEURON.neural_cell.create_cell
-%           - MRG
-%           - generic
-%           - generic_unmyelinated
+%       Tissue
+%       ------
+%       tissue_resistivity : (default 500 Ohm-cm, Units: Ohm-cm),
+%           currently either a 1 or 3 element vector for isotropic or
+%           anisotropic tissue
 %
-%   Electrode Properties
-%   -----------------------------------------------------------------------
-%   electrode_locations : (default [0 100 0]), rows indicate different
-%                         electrodes.
+%       Cell Properties
+%       ---------------
+%       cell_center : (default [0 0 0]) 
+%           This takes on importance with the location of the electrode.
+%       cell_type : (default 'MRG'), see NEURON.neural_cell.create_cell
+%               - MRG
+%               - generic ????
+%               - generic_unmyelinated ????
+%
+%       Electrode Properties
+%       --------------------
+%       electrode_locations : (default [0 100 0]) (um)
+%           Rows can be used to indicate different electrodes.
+%
+%   Examples
 %
 %   FULL PATH:
 %   NEURON.simulation.extracellular_stim.create_standard_sim

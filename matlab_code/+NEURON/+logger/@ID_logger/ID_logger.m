@@ -1,10 +1,10 @@
 classdef ID_logger < NEURON.logger
     %
-    %
     %   Class:
     %   NEURON.logger.ID_logger
     %
-    %   This is am implementation of a class that only has other classes to log.
+    %   This is am implementation of a class that only has other classes to 
+    %   log.
     %
     %   See Also:
     %   NEURON.logger

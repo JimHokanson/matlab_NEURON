@@ -8,7 +8,7 @@ classdef sim_logger < NEURON.sl.obj.handle_light
     %
     %
     %   IMPROVEMENTS
-    %   ===================================================================
+    %   ------------
     %   1) Create backup system  - take structure and send to zip
     %   2) Create merging system - allow combining of data from multiple computers 
     %   3) Data subclass is not logging all components
@@ -30,8 +30,9 @@ classdef sim_logger < NEURON.sl.obj.handle_light
     
     properties
        %.sim_logger()
-       paths_obj    %Class: NEURON.simulation.extracellular_stim.sim_logger.pathing
-       matcher_obj  %Class: NEURON.simulation.extracellular_stim.sim_logger.matcher
+       paths_obj    %NEURON.simulation.extracellular_stim.sim_logger.pathing
+       
+       matcher_obj  %NEURON.simulation.extracellular_stim.sim_logger.matcher
        %The main function of this object is to serve as a place to query
        %matches for simulations that match the current simulation setup.
        
@@ -44,23 +45,21 @@ classdef sim_logger < NEURON.sl.obj.handle_light
        current_simulation_number  = 0 %This is the id of the simulation
        %being run. A value of 0 indicates that no extracellular_stim object
        %has been attached to this class.
-       current_xstim_obj %Class: NEURON.simulation.extracellular_stim.sim_logger.data
+       
+       current_xstim_obj %NEURON.simulation.extracellular_stim.sim_logger.data
     end
     
     methods
         function obj = sim_logger(preferred_base_path)
            %sim_logger
            %
-           %    obj = sim_logger(*preferred_base_path)
+           %    obj = NEURON.simulation.extracellular_stim.sim_logger(*preferred_base_path)
            %    
-           %    OPTIONAL INPUTS
-           %    ===========================================================
+           %    Optional Inputs
+           %    ---------------
            %    preferred_base_path : (default ''), If empty the base path
            %        for saving logging data is extracted from the user
            %        options file.
-           %
-           %    FULL PATH:
-           %    NEURON.simulation.extracellular_stim.sim_logger
            
            if ~exist('preferred_base_path','var')
                preferred_base_path = '';
@@ -79,9 +78,9 @@ classdef sim_logger < NEURON.sl.obj.handle_light
            %    This method can be used to initialize logging given a
            %    particular extracellular stimulation object.
            %
-           %    INPUTS
-           %    ===========================================================
-           %    xstim_obj : Class: NEURON.simulation.extracellular_stim
+           %    Inputs
+           %    ------
+           %    xstim_obj : NEURON.simulation.extracellular_stim
            
            
            %Here we force creation of a new matcher index
@@ -100,8 +99,8 @@ classdef sim_logger < NEURON.sl.obj.handle_light
            %    be used instead. This method relies on the matcher class
            %    to compare the xstim_obj to previous versions.
            %    
-           %    INPUTS
-           %    ===========================================================
+           %    Inputs
+           %    ------
            %    xstim_obj        : Class NEURON.simulation.extracellular_stim
            %    add_if_not_found : If true, a entry will be added in the
            %            case that the input xstim_obj fails to match any

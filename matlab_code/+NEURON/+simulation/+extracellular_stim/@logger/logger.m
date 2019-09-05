@@ -1,8 +1,13 @@
 classdef (Hidden) logger < NEURON.logger.ID_logger
     %
-    %
     %   Class:
     %   NEURON.simulation.extracellular_stim.logger
+    %
+    %   We inherit from the ID_logger because we only worry about logging
+    %   properties (that are objects themselves) of this class.
+    %
+    %   See Also
+    %   --------
     
     properties(Constant)
         VERSION     = 1

@@ -5,6 +5,8 @@ classdef activation_volume < handle
     %
     %   This class is meant to handle analyis of activation volumes.
     %
+    %   TODO: This class needs much better documentation
+    %
     %   Improvements. The design of this class needs to be significantly
     %   changed. The biggest problem is the non-static nature of the
     %   result and the inclusion of replicated data with non-replicated
@@ -56,7 +58,15 @@ classdef activation_volume < handle
     methods
         function obj = activation_volume(xstim,varargin)
             %
+            %   NEURON.simulation.extracellular_stim.results.activation_volume(xstim,varargin)
             %
+            %   Optional Inputs
+            %   ---------------
+            %   request_handler :
+            %   
+            %   See Also
+            %   --------
+            %   NEURON.simulation.extracellular_stim.sim__getActivationVolume
             
             in.request_handler = [];
             in = NEURON.sl.in.processVarargin(in,varargin);

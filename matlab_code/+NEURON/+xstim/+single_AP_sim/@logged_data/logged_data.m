@@ -14,14 +14,6 @@ classdef logged_data < NEURON.sl.obj.handle_light
     %   functionality might be added, where as the solution class will only
     %   store the data.
     %
-    %   Questions:
-    %   ===================================================================
-    %   1)
-    %
-    %   IMPROVEMENTS
-    %   ===================================================================
-    %
-    %
     %   See Also:
     %   NEURON.xstim.single_AP_sim.new_solution
     

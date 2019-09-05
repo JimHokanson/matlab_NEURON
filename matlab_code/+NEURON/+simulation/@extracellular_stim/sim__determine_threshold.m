@@ -8,7 +8,9 @@ function result_obj = sim__determine_threshold(obj,starting_value)
 %   Inputs
 %   ------
 %   starting_value : (units uA)
-%       This is the starting value to test for finding a stimulus threshold.
+%       This is the starting value to test for finding a stimulus 
+%       threshold. This should really be considered a multiplier on the
+%       stimulus magnitudes specified for each of the electrodes.
 %   threshold_sign : 
 %       The sign of the threshold is based on the sign of the
 %       input. At a minimum a positive or negative number should be
@@ -24,13 +26,23 @@ function result_obj = sim__determine_threshold(obj,starting_value)
 %   This class is available as the property:
 %       .threshold_cmd_obj
 %
-%   See Also:
-%       NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
-%       NEURON.simulation.extracellular_stim.threshold_analysis
-%       NEURON.simulation.extracellular_stim.results.threshold_testing_history
+%   Example
+%   -------
+%   e_loc = [0 1000 0]; %1 mm displaced in y
+%   c_loc = [0 0 0]; %centered cell, runs in z
+%   xstim = NEURON.simulation.extracellular_stim.create_standard_sim(...
+%       'electrode_locations',e_loc,'cell_center',c_loc);
+%   r = xstim.sim__determine_threshold(100);
 %
-%   FULL PATH: 
-%       NEURON.simulation.extracellular_stim.sim_determine_threshold
+%   See Also
+%   --------
+%   NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
+%   NEURON.simulation.extracellular_stim.threshold_analysis
+%   NEURON.simulation.extracellular_stim.results.threshold_testing_history
+%
+%   FULL PATH
+%   ---------
+%   NEURON.simulation.extracellular_stim>sim_determine_threshold
 
     if ~exist('starting_value','var')
         error('A starting stimulus value must be specified')
@@ -39,6 +51,7 @@ function result_obj = sim__determine_threshold(obj,starting_value)
     %Important call to make sure everything is synced
     obj.init__simulation();
     
-    %NEURON.simulation.extracellular_stim.threshold_analysis.determine_threshold
+    %Class: NEURON.simulation.extracellular_stim.threshold_analysis
+    %Method: determine_threshold()
     result_obj = obj.threshold_analysis_obj.determine_threshold(starting_value);
 end
