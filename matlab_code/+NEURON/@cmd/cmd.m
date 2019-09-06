@@ -8,6 +8,13 @@ classdef cmd < NEURON.sl.obj.handle_light
     %
     %   This class holds onto a communication object which is able to 
     %   communicate with the NEURON process.
+    %
+    %   Example Usage
+    %   -------------
+    %   options = NEURON.cmd.options;
+    %   options.debug = true;
+    %   cmd = NEURON.cmd(options);
+    %   version_str = cmd.version(1)
     
     properties (Hidden)
         comm_obj %Class: Implementation of NEURON.comm_obj
@@ -17,11 +24,11 @@ classdef cmd < NEURON.sl.obj.handle_light
         %
         %       NEURON.comm_obj.java_comm_obj
         
-        log      %Class: NEURON.command_log
+        log %NEURON.command_log
     end
     
     properties
-        options     %Class: NEURON.cmd.options
+        options %NEURON.cmd.options
     end
     
     properties
@@ -34,27 +41,29 @@ classdef cmd < NEURON.sl.obj.handle_light
         function obj = cmd(cmd_options)
             %cmd
             %
-            %   obj = cmd(cmd_options)
+            %   obj = NEURON.cmd(*cmd_options)
             %
             %   Inputs
             %   ------
             %   cmd_options : NEURON.cmd.options
+            %       Further documentaton is inside that class.
             %
             %  This method should be called by:
             %  NEURON.simulation
             
-            obj.options     = cmd_options;
+            if nargin
+                obj.options = cmd_options;
+            else
+                obj.options = NEURON.cmd.options();
+            end
+            
+            opt = obj.options;
+            
             obj.log = NEURON.cmd.log;
             
             %Load communication object
-            obj.comm_obj = NEURON.comm_obj.java_comm_obj();
+            obj.comm_obj = NEURON.comm_obj.java_comm_obj('show_banner',opt.show_banner);
             
-            %This is a hack around the following error:
-            if ispc
-                obj.cd_set('C:\',false);
-            else
-                %obj.cd_set('/Users',false)
-            end
         end
     end
     
@@ -67,11 +76,17 @@ classdef cmd < NEURON.sl.obj.handle_light
             %
             %   This method is THE gateway method for communicating with
             %   NEURON. This method calls the communication object to send
-            %   a message to NEURON and to get the response.
+            %   a message to NEURON and then waits for the response.
+            %
+            %   User should call run_command() instead
             %
             %   Further documentation of inputs and outputs is given in the
             %   public facing method:
             %       NEURON.cmd.run_command
+            %
+            %   See Also
+            %   --------
+            %   run_command
             
             opt = obj.options;
             in.throw_error = opt.throw_error;
@@ -83,6 +98,7 @@ classdef cmd < NEURON.sl.obj.handle_light
             
             if in.debug
                 fprintf('COMMAND: %s\n',command_str);
+                fprintf('---------------  RESPONSE -----------------\n');
             end
             
             %NEURON.comm_obj.java_comm_obj.write
@@ -162,28 +178,29 @@ classdef cmd < NEURON.sl.obj.handle_light
             %
             %    Generic method to run command in NEURON.
             %
-            %    INPUTS
-            %    ===========================================================
-            %    str : command to run
+            %    Inputs
+            %    ------
+            %    str : string
+            %       Command to run
             %
-            %    OUPUTS
-            %    ===========================================================
+            %    Outputs
+            %    ------
             %    flag    : Indicates success (true) or not (false). Success
             %        is based upon whether or not NEURON throws an error.
             %        Some commands will fail, as indicated by their
             %        response, but will not throw an error.
             %    results : String of response from NEURON program.
             %
-            %    OPTIONAL INPUTS
-            %    ===========================================================
+            %    Optional Inputs
+            %    ---------------
             %    Documentation for these properties can be found in:
             %    NEURON.cmd.options
             %    - debug
             %    - max_wait
             %    - throw_error
             %
-            %    See Also:
-            %        NEURON.cmd.write
+            %   TODO: Find an example of using this ...
+            %
             
             %This doesn't work ...
             %varargout = obj.write(str,varargin{:});
@@ -272,11 +289,14 @@ classdef cmd < NEURON.sl.obj.handle_light
         function success = load_dll(obj,dll_path)
             %load_dll
             %
-            %    success = load_dll(obj,dll_path)
+            %   success = load_dll(obj,dll_path)
             %
-            %    NEURON COMMAND - nrn_load_dll
-            %    -----------------------------
-            %    http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/system.html#nrn_load_dll
+            %   NEURON COMMAND - nrn_load_dll
+            %   -----------------------------
+            %   http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/system.html#nrn_load_dll
+            %
+            %   1 - success
+            %   0 - failure
             %
             %   See Also
             %   --------
@@ -298,7 +318,17 @@ classdef cmd < NEURON.sl.obj.handle_light
             
             if ~success && obj.options.throw_error
                 cur_dir = obj.cd_get();
-                error('Failed to load %s from %s',dll_path,cur_dir);
+                temp_path = fullfile(cur_dir,dll_path);
+                if ~exist(temp_path,'file')
+                    error('Failed to load %s from %s, file doesn''t exist',dll_path,cur_dir);
+                else
+                    error('Failed to load %s from %s, even though file exists',dll_path,cur_dir);
+                end
+                %   Possible Fix
+                %   ---------------------
+                %   NEURON.s.compile(model_name)
+                %   %e.g.
+                %   NEURON.s.compile('mrg')
             end
         end
         function success = load_standard_dll(obj)
@@ -316,6 +346,8 @@ classdef cmd < NEURON.sl.obj.handle_light
             %
             %   Windows: nrnmech.dll
             %   Mac    : libnrnmech.so
+            %
+            %   
             %
             %   See Also
             %   --------
@@ -354,17 +386,21 @@ classdef cmd < NEURON.sl.obj.handle_light
             %
             %   success = cd_set(obj,new_dir,*throw_error) Change to a new directory
             %
-            %   INPUTS
-            %   ===========================================================
-            %   new_dir : path, absolute or relative should be fine ...
+            %   Inputs
+            %   ------
+            %   new_dir : path
+            %       Absolute or relative should be fine ...
             %
-            %   OPTIONAL INPUTS
-            %   ===========================================================
+            %   Optional Inputs
+            %   ----------------
             %
             %
             %   NEURON COMMAND - chdir
-            %   ===========================================================
+            %   ----------------------
             %   http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/0fun.html#chdir
+            %
+            %   0 - success
+            %   -1 - failure
             %
             %   See Also:
             
@@ -391,18 +427,53 @@ classdef cmd < NEURON.sl.obj.handle_light
             end
             
         end
+        function version_str = version(obj,type)
+            %
+            %   Input:
+            %   -----
+            %   type : scalar
+            %       See below for examples
+            %
+            %   nrnversion()
+            %   https://www.neuron.yale.edu/neuron/static/new_doc/programming/system.html?highlight=version#nrnversion
+            %
+            % oc>for i=0,6 print i,": ", nrnversion(i)
+            % 0 : 7.1
+            % 1 : NEURON -- VERSION 7.1 (296:ff4976021aae) 2009-02-27
+            % 2 : VERSION 7.1 (296:ff4976021aae)
+            % 3 : ff4976021aae
+            % 4 : 2009-02-27
+            % 5 : 296
+            % 6 : '--prefix=/home/hines/neuron/nrnmpi' '--srcdir=../nrn' '--with-paranrn' '--with-nrnpython'
+            if nargin == 1
+                [success,version_str] = obj.write('nrnversion()');
+            else
+                if type < 0 || type > 6
+                    error('Unsupported version type')
+                end
+                cmd_str = sprintf('nrnversion(%d)',type);
+                [success,version_str] = obj.write(cmd_str);
+            end
+            
+            if ~success
+               error('Failed to retrieve the version string') 
+            end
+            
+           
+        end
         function [cur_dir,success] = cd_get(obj)
             %cd_set Wrapper for NEURON function that accomplishes cd() get functionality
             %
             %   [cur_dir,success] = cd_get(obj)
             %
-            %   NEURON COMMAND
-            %   ====================================
-            %   getcwd
+            %   Neuron Command
+            %   --------------
+            %   getcwd()
             %   http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/0fun.html#getcwd
             
             
             [success,cur_dir] = obj.write('getcwd()');
+            cur_dir = strtrim(cur_dir);
         end
         % % %         function success = init_and_set_str(obj,name,value)
         % % %            %
@@ -472,7 +543,7 @@ p_delim_l     = length(in.pair_delimiter);
 
 nPairs = length(props);
 
-if nPairs ~= length(values);
+if nPairs ~= length(values)
     error('Properties and Values must match in length\n%d Props Observed, %d Values Observed',...
         nPairs,length(values))
 end

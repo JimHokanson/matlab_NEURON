@@ -21,6 +21,12 @@ classdef java_comm_obj < NEURON.comm_obj
     %   read result in this class.
     %       See: NEURON.comm_obj.java_comm_obj.readResult
     %
+    %
+    %   Static Methods - most of these are internal use only
+    %   ----------------------------------------------------
+    %   NEURON.comm_obj.java_comm_obj.compileJavaProgram
+    %   NEURON.comm_obj.java_comm_obj.editJavaCode
+    %
     %   Installation
     %   ------------
     %   Installation requires calling the static method:
@@ -61,18 +67,36 @@ classdef java_comm_obj < NEURON.comm_obj
         % Forum discussion on topic here:
         % http://www.neuron.yale.edu/phpBB/viewtopic.php?f=4&t=2732
         %cmd_options_pc   = {'-nogui' '-nobanner' '-isatty'}
-        cmd_options_unix = {'-nogui' '-nobanner' '-notatty'}
+        %cmd_options_unix = {'-nogui' '-nobanner' '-notatty'}
+        cmd_options_unix = {'-nogui' '-notatty' '-nobanner'}
+        
+        %cmd_options_unix = {'-nogui' '-nobanner' '-notatty' '-nopython'}
+        
+        %This is experimental ...
+        cmd_options_unix_banner =  {'-notatty' '-nobanner'}
+        
+        %Hines intention:
+        %-isatty unbuffered stdout, print prompt when waiting for stdin
+        %-notatty buffered stdout and no prompt
+        %
+        %I had problems with isatty so I switched to notatty
     end
     
     methods (Hidden)
-        function obj = java_comm_obj()
+        function obj = java_comm_obj(varargin)
             %java_comm_obj
             %
             %   obj = NEURON.comm_obj.java_comm_obj()
             
+            in.show_banner = false;
+            in = NEURON.sl.in.processVarargin(in,varargin);
+            
             paths_obj = NEURON.paths.getInstance;
 
-            if ispc
+            if ispc && exist(paths_obj.win_bash_exe_path,'file')
+                %In later versions of NEURON the bash executable is missing
+                %...
+                %
                 %NOTE: The concatenation passes nobanner to the NEURON
                 %executable instead of being processed by Bash separately
                 %
@@ -83,10 +107,18 @@ classdef java_comm_obj < NEURON.comm_obj
                 %In NEURON 7.3 I'm getting a warning about DOS paths
                 %when running chdir(). I'm not sure where that is coming
                 %from since I'm using cygwin pathing
-                cmd_array = {paths_obj.win_bash_exe_path '-c' [NEURON.sl.dir.getCygwinPath(paths_obj.exe_path) ' -nobanner']};
+                if in.show_banner
+                    cmd_array = {paths_obj.win_bash_exe_path '-c' NEURON.sl.dir.getCygwinPath(paths_obj.exe_path)};  
+                else
+                    cmd_array = {paths_obj.win_bash_exe_path '-c' [NEURON.sl.dir.getCygwinPath(paths_obj.exe_path) ' -nobanner']};
+                end
                 %cmd_array = {paths_obj.win_bash_exe_path '-c' [NEURON.sl.dir.getCygwinPath(paths_obj.exe_path) ' -nobanner']};
             else % here i'm assuming mac and unix behave the same, if there's an issue with unix, fix this
-                cmd_array = [paths_obj.exe_path obj.cmd_options_unix];
+                if in.show_banner
+                    cmd_array = [paths_obj.exe_path obj.cmd_options_unix_banner];
+                else
+                    cmd_array = [paths_obj.exe_path obj.cmd_options_unix];
+                end
             end
             
             %java.lang.ProcessBuilder
@@ -103,9 +135,25 @@ classdef java_comm_obj < NEURON.comm_obj
             %of the system path, not NEURON's.
             %
             %https://stackoverflow.com/questions/41263358/java-process-builder-add-path-to-environment-not-working
-            pb.environment().put('PATH',[...
-                     fileparts(paths_obj.exe_path) ...
-                     char(java.io.File.pathSeparator) getenv('PATH')]);
+%             pb.environment().put('PATH',[...
+%                      'C:\Users\RNEL\Anaconda3' ...
+%                      char(java.io.File.pathSeparator) ...
+%                      fileparts(paths_obj.exe_path) ...
+%                      char(java.io.File.pathSeparator) getenv('PATH')]);
+                 
+            %Only what I think is necessary ...
+% % %         	pb.environment().put('PATH',[...
+% % %                      'C:\Users\RNEL\Anaconda3' ...
+% % %                      char(java.io.File.pathSeparator) ...
+% % %                      fileparts(paths_obj.exe_path) ...
+% % %                      char(java.io.File.pathSeparator) ...
+% % %                      'C:\nrn\mingw\usr\bin']);
+             
+%             %Trying to fix: The system cannot find the path specified.
+%             if ispc
+%                 %TODO: This needs to be made more generic ...
+%                 pb.directory(java.io.File('C:/nrn/bin/'));
+%             end
 
             %save for debugging
             obj.cmd_array = cmd_array;
@@ -170,6 +218,34 @@ classdef java_comm_obj < NEURON.comm_obj
     %Setup and Validation
     %----------------------------------------------------------------------
     methods (Static,Hidden)
+        function compileJavaProgram()
+            %
+            %   NEURON.comm_obj.java_comm_obj.compileJavaProgram()
+            
+            bin_path = NEURON.comm_obj.java_comm_obj.getJavaBinPath();
+            code_root = fileparts(bin_path);
+            java_target = fullfile(code_root,'src','NEURON_reader.java');
+            NEURON.utils.java.compile(java_target)
+            
+        	current_breakpoints = dbstatus('-completenames');
+            evalin('base', 'clear java');
+            pause(0.1)
+            dbstop(current_breakpoints);
+            
+            
+            src = fullfile(code_root,'src','NEURON_reader.class');
+            dest = fullfile(bin_path,'NEURON_reader.class');
+            movefile(src,dest)
+        end
+        function editJavaCode()
+          	%
+            %   NEURON.comm_obj.java_comm_obj.editJavaCode()
+            %   
+         	bin_path = NEURON.comm_obj.java_comm_obj.getJavaBinPath();
+            code_root = fileparts(bin_path);
+            java_target = fullfile(code_root,'src','NEURON_reader.java');
+            edit(java_target)
+        end
         function reinstall_java()
             %reinstall_java
             %
@@ -314,13 +390,102 @@ classdef java_comm_obj < NEURON.comm_obj
             %
             %NOTE: This is a magic string which we could change if
             %necessary.
-            obj.writeLine('{fprint("\n<oc>\n")}');
+            %obj.writeLine('{fprint("\n<oc>\n")}');
+            %obj.writeLine('{printf("\n<oc>\n")}');
+            %obj.writeLine(['{' char(10) '<oc>' char(10) '}']); %#ok<CHARTEN>
+            %obj.writeLine([ char(10) '"<oc>"' char(10) ]); %#ok<CHARTEN>
+            %obj.writeLine([ char(10) '"' char(10) '<oc>' char(10) '"' char(10) ]);
+            %obj.writeLine('{fprint("\n\r<oc>\n\r")}');
+            %'G:/repos/matlab_git/?????<oc>???'
+            
+            %obj.writeLine('{fprint("\n<oc>\n")}');
+            %'G:/repos/matlab_git/????<oc>??'
+            
+            %obj.writeLine('{fprint("\n<oc>\r\n")}');
+            %'G:/repos/matlab_git/????<oc>???'
+            
+            %I think the lesson learned here is that for some reason
+            %newline is forcing a CR\NL combo and that I shouldn't
+            %rely on faithful transmission of this combo
+            %
+            %Instead let's just make our magic string slightly more
+            %complicated,although <oc> on it's own is unlikely
+            
+            obj.writeLine('{fprint("<xxocxx>")}');
             
             max_wait = option_structure.max_wait;
             
             [success,results] = readResult(obj,max_wait,debug);
         end
     end
+    
+    methods (Hidden)
+        function s = getJavaReaderInfo(obj)
+            r = obj.j_reader;
+            s = struct;
+            s.success_flag = r.success_flag;
+            s.error_flag = r.error_flag;
+            s.detected_end_statement = r.detected_end_statement;
+            s.input_string = char(r.getCurrentInputString);
+            s.error_string = char(r.getCurrentErrorString);
+            keyboard
+        end
+    end
+    
+% % %     methods
+% % %         function banner_string = readBanner(obj,debug)
+% % %             
+% % %             %This only gets sent once we send something to NEURON
+% % %             %It also seems to rely on what we send it, can't just
+% % %             %be a print statement
+% % %             obj.writeLine('{nrnversion()}')
+% % %             
+% % %             r = obj.j_reader;
+% % %             
+% % %             r.init_read(-1,debug);
+% % %             
+% % %             %TODO: This all seems like a race condition ...
+% % %             s1 = char(r.getCurrentErrorString());
+% % %             s2 = char(r.getCurrentInputString());
+% % %             
+% % %             if ~isempty(s1)
+% % %                 banner_string = s1;
+% % %             else
+% % %                 banner_string = s2;
+% % %             end
+% % %             s1
+% % %             s2
+% % %             
+% % % %             done = false;
+% % % %             %NOTE: I decided to do the pausing here so that you can
+% % % %             %intterupt the read in Matlab as opposed to trying to intterupt
+% % % %             %the Java process which I found to be much more difficult.
+% % % %             t = tic;
+% % % %             while ~done
+% % % %                 done = r.read_result;
+% % % %                 %NOTE: One can always set debug to true to see why this is
+% % % %                 %not working ...
+% % % %                 %Other methods:
+% % % %                 %   r.getCurrentInputString
+% % % %                 %   r.getCurrentErrorString
+% % % %                 if ~done
+% % % %                     pause(0.001)
+% % % %                 end
+% % % %                 if toc(t) > 2
+% % % %                    keyboard 
+% % % %                 end
+% % % %             end
+% % % %             
+% % % %             %debugging: s = obj.getJavaReaderInfo();
+% % % %             
+% % % %             error_flag = r.error_flag;
+% % % %             success    = r.success_flag;
+% % % %             
+% % % %             %Success processing
+% % % %             %--------------------------------------------------
+% % % %             results = char(r.result_str);
+% % %         end 
+% % %     end
     
     %COMMUNICATION HELPER METHODS 
     %----------------------------------------------------------------------
@@ -337,8 +502,10 @@ classdef java_comm_obj < NEURON.comm_obj
             %   write
             
             out = obj.j_output_stream;
+            
             %NOTE: To every string we add on a newline.
             str = java.lang.String([str_to_write char(10)]); %#ok<CHARTEN>
+            
             %On writing we need to pass in a byte array. Hence the use of
             %a Java string above and using the getBytes method
             out.write(str.getBytes,0,length(str));
@@ -383,12 +550,11 @@ classdef java_comm_obj < NEURON.comm_obj
                 error('See error message above')
             end
         end
+
         function [success,results] = readResult(obj,wait_time,debug)
             %readResult
             %
             %    [success,results] = readResult(obj,wait_time,debug)
-            %
-            %   Note we have no guarantee of 
             %
             %   Inputs
             %   ------
@@ -416,6 +582,7 @@ classdef java_comm_obj < NEURON.comm_obj
             %NOTE: I decided to do the pausing here so that you can
             %intterupt the read in Matlab as opposed to trying to intterupt
             %the Java process which I found to be much more difficult.
+            t = tic;
             while ~done
                 done = r.read_result;
                 %NOTE: One can always set debug to true to see why this is
@@ -426,7 +593,12 @@ classdef java_comm_obj < NEURON.comm_obj
                 if ~done
                     pause(0.001)
                 end
+%                 if toc(t) > 2
+%                    keyboard 
+%                 end
             end
+            
+            %debugging: s = obj.getJavaReaderInfo();
             
             error_flag = r.error_flag;
             success    = r.success_flag;
@@ -466,10 +638,6 @@ classdef java_comm_obj < NEURON.comm_obj
             
         end
     end
-    
 
-    
-    
-    
 end
 

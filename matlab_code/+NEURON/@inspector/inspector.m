@@ -69,13 +69,17 @@ classdef inspector < NEURON.sl.obj.handle_light
             %
             %   symbols(obj,is_init)
             %
+            %   Inputs
+            %   ------
+            %   is_init
+            %
             %   Populates Properties
-            %   ===========================================================
+            %   --------------------
             %   default_procedures
             %   default_scalars
             %
-            %    FULL PATH:
-            %    NEURON.inspector.symbols
+            %   FULL PATH:
+            %   NEURON.inspector.symbols
             
             [~,str] = obj.cmd.run_command('{symbols()}');
             str2 = regexp(str,'\n','split');
@@ -84,7 +88,7 @@ classdef inspector < NEURON.sl.obj.handle_light
             I_S = find(strcmpi(str2,'Scalars'),1);
             
             if isempty(I_P) || isempty(I_S)
-                fprintf(2,'Unable to find procedures or scalars in NEURON.inspector.symbobls\n');
+                fprintf(2,'Unable to find procedures or scalars in NEURON.inspector.symbols\n');
                 return
             end
             

@@ -23,7 +23,7 @@ Eventually I would like to place the derivative detection in here
 */
 
 	
-
+    print binary_data_root_path
 
 	//Can I make this local somehow?
 	//Do I have to use a String object????
@@ -31,17 +31,21 @@ Eventually I would like to place the derivative detection in here
 
 	stim_scale = $1
 	
+    print "test4"
 	xstim__apply_stimulus(stim_scale)
 
 	//This code would allow timing the simulation ...
 	//xstim__run_simulation_timer1 = startsw()
+    print "test1"
 	run()
+    print "test2"
 	//NOTE: Need to modify to take advantage of hash
 	sprint(vm_save_path,"%s/%s%s",binary_data_root_path,sim_hash,"xstim__vm.bin")
+    print vm_save_path
 	file__saveDataMatrix(vm_save_path,xstim__node_vm_hist)
+	print "test3"
 	
-	
-	//print "xstim__run_simulation_timer1"
+	print "xstim__run_simulation_timer1"
 	//print startsw() - xstim__run_simulation_timer1
 	
 }

@@ -28,7 +28,7 @@ public class NEURON_reader {
 
 	//CONSTANTS
 	//-----------------------------------------------------------------------
-	public static final String term_string_const = String.format("\n<oc>\n");
+	public static final String term_string_const = String.format("<xxocxx>");
 	public static final Pattern pattern = Pattern.compile("\n(oc>)*");
 
 	//??? Use StringBuilder????
@@ -40,8 +40,6 @@ public class NEURON_reader {
 	//as those can be formed by many concatenations of repeated reads. Each read
 	//writes over temp_data and then gets copied to the next index in the buffers
 	byte[] temp_data = new byte[max_bytes];
-	
-	
 	
 	//Set by class 
 	public boolean success_flag           = false;   //aka 'result' or 'success flag'
@@ -119,6 +117,10 @@ public class NEURON_reader {
 	//=======================================================================
 	public boolean read_result() throws IOException
 	{
+        //  This is the main function that is called by Matlab in a loop
+        //  while waiting for the response from NEURON. It must be
+        //  preceeded by the initialization call (init_read())
+        //
         //
         //  Output
         //  ------
@@ -128,14 +130,13 @@ public class NEURON_reader {
         //      we do something like:
         //  
         //      Matlab: writes message
-        //      NEURON: sends messages, writes responses
+        //      NEURON: reacts to Matlab, writes responses
         //      Matlab: reads responses until terminal string is encountered
         //
         //      The terminal string comes from a special message that we
         //      send in Matlab to NEURON for echoing back to Matlab (so that
         //      we know NEURON has finished responding to our initial request)
 
-		//RETURNED VALUE SHOULD BE WHETHER OR NOT TO STOP ...
 
 		//NOTE: I couldn't figure out how to interrupt
 		//So I call this function a bunch of times from Matlab ... :/
@@ -190,15 +191,14 @@ public class NEURON_reader {
 
 		//READING ERROR
 		//---------------------------------------------------
+        //TODO: We should probably have an overflow error check here too
 		n_bytes_available = perr.available();
 		if (n_bytes_available > 0){
 			perr.read(temp_data,0,n_bytes_available);
-			readStream(n_bytes_available, debug, false); //false indicates 
-            //error stream
+            //false indicates error stream
+			readStream(n_bytes_available, debug, false);  
 			//NOTE: We'll never get the terminal string from the error stream
 			//Don't assign variable from function call..
-			
-			
 		}
 
 		//READING INPUT
@@ -208,26 +208,9 @@ public class NEURON_reader {
 			System.err.println("Too many bytes needed for input: " + max_bytes + " initialized, " + n_bytes_available + "requested");
 		}
 		
-		if (n_bytes_available > 0){
-			
-			
-			// I am getting an error here:
-			//java.io.BufferedInputStream.read(Unknown Source)
-			//This is after an error ...
-			
-			/*
-			Java exception occurred:
-            java.lang.IndexOutOfBoundsException
-
-            at java.io.BufferedInputStream.read(Unknown Source)
-
-            at NEURON_reader.read_result(NEURON_reader.java:143)
-            */
-			
-			
-			
-			
+		if (n_bytes_available > 0){	
 			pin.read(temp_data,0,n_bytes_available);
+            //true indicates input stream
 			is_terminal_string = readStream(n_bytes_available, debug, true);
 		}
 		
@@ -279,8 +262,93 @@ public class NEURON_reader {
 		return stackdump_present;
 	}
 
-	private String cleanString(int n_bytes_available){
+
+
+	private boolean readStream(int n_bytes_available, boolean debug, boolean is_input_string){
         //
+        //  This method processes the stream.
+        //
+        //  Call Stack
+        //  ----------
+        //  > read_result
+        //      > readStream
+        //
+        //  Steps
+        //  -----
+        //  1. Removal of the prompts
+        //  2. Removal of terminal string, if present
+        //  3. Printing out debugging info
+        //  4. Adding of the string to the running buffer
+        //
+        //  Inputs
+        //  ------
+        //  n_bytes_available : 
+        //  
+		String temp_string;
+		int index_term_string_match;
+		boolean is_terminal_string = false;
+
+		//Bytes to string
+		//------------------------------------------------------------
+		temp_string = cleanString(n_bytes_available);
+
+		//Check if the terminal string is present
+		//If it is, trim it out of the result ...
+		//------------------------------------------------------------
+		if (is_input_string){
+			index_term_string_match = temp_string.lastIndexOf(term_string_const);
+			if (index_term_string_match >= 0){
+				is_terminal_string = true;
+				//Remove the terminal string ...
+				if (index_term_string_match == 0){
+					temp_string = new String("");
+				}else{
+                    if (temp_string.charAt(index_term_string_match-1) == '\n'){
+                        temp_string = temp_string.substring(0,index_term_string_match-2);
+                    }else{
+                        temp_string = temp_string.substring(0,index_term_string_match-1);
+                    }
+				}
+			}
+		}
+
+		//Print out things if debugging ...
+		if (debug && temp_string.length() > 0){
+			if (is_input_string){
+				System.out.println(temp_string);
+			} else {
+				System.err.println(temp_string);
+			}
+		}
+
+		if (is_terminal_string){
+			//NOTE: We will eventually remove this ...
+			//System.out.println("Terminal String Detected");
+		}else{
+			if (isStackdumpPresent(temp_string,is_input_string)){
+				stackdump_present = true;
+			}
+		}
+
+		//String copying to buffer ...
+        //TODO: I think we should check the buffer overflow here as well
+		if (is_input_string){
+			input_data.append(temp_string);
+		} else {
+			error_data.append(temp_string);
+		}
+		return is_terminal_string;
+	}
+    
+    	private String cleanString(int n_bytes_available){
+        //
+        //
+        //  Call Stack
+        //  ----------
+        //  > read_result
+        //      > readStream
+        //          > cleanString
+        //      
         //  
         //  the NEURON prompt is oc> which should occur at the beginning 
         //  of a new line. I want to return the printed data to the user
@@ -306,6 +374,9 @@ public class NEURON_reader {
         //but we'll skip this "optimization" for now.
 		temp_string = "\n" + new String(temp_data,0,n_bytes_available);
 
+        //System.err.println("xxxxxxxxxxxxx");
+        //System.err.println(temp_string);
+        
 		//Replace with a replacement of \noc>oc>* with just the newline.
         //
         //pattern = Pattern.compile("\n(oc>)*");
@@ -315,63 +386,6 @@ public class NEURON_reader {
 		//NOTE: I need to remove the first newline since I added it 
         //to facilitate matching
 		return temp_string.substring(1);
-	}
-
-	private boolean readStream(int n_bytes_available, boolean debug, boolean is_input_string){
-        //
-        //  Inputs
-        //  ------
-        //  n_bytes_available : 
-        //  
-		String temp_string;
-		int index_term_string_match;
-		boolean is_terminal_string = false;
-
-		//Bytes to string
-		//------------------------------------------------------------
-		temp_string = cleanString(n_bytes_available);
-
-		//Check if the terminal string is present
-		//If it is, trim it out of the result ...
-		//------------------------------------------------------------
-		if (is_input_string){
-			index_term_string_match = temp_string.lastIndexOf(term_string_const);
-			if (index_term_string_match >= 0){
-				is_terminal_string = true;
-				//Remove the terminal string ...
-				if (index_term_string_match == 0){
-					temp_string = new String("");
-				}else{
-					temp_string = temp_string.substring(0,index_term_string_match-1);
-				}
-			}
-		}
-
-		//Print out things if debugging ...
-		if (debug && temp_string.length() > 0){
-			if (is_input_string){
-				System.out.println(temp_string);
-			} else {
-				System.err.println(temp_string);
-			}
-		}
-
-		if (is_terminal_string){
-			//NOTE: We will eventually remove this ...
-			//System.out.println("Terminal String Detected");
-		}else{
-			if (isStackdumpPresent(temp_string,is_input_string)){
-				stackdump_present = true;
-			}
-		}
-
-		//String copying to buffer ...
-		if (is_input_string){
-			input_data.append(temp_string);
-		} else {
-			error_data.append(temp_string);
-		}
-		return is_terminal_string;
 	}
 
 }

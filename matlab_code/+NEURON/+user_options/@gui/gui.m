@@ -1,6 +1,12 @@
 classdef gui < NEURON.sl.obj.handle_light
-    %UNTITLED6 Summary of this class goes here
-    %   Detailed explanation goes here
+    %
+    %   Class:
+    %   NEURON.user_options.gui
+    %
+    %   The idea of this class was to make a GUI that helped the user
+    %   to populate the options file. 
+    %
+    %   NOT YET IMPLEMENTED
     
     properties
     end

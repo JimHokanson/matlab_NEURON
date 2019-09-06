@@ -148,7 +148,8 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
             
             %Running the simulation
             %--------------------------------------------------------------
-            str = sprintf('{xstim__run_stimulation2(%0g)}',scale);
+            obj.cmd_obj.run_command('{symbols()}')
+            str = sprintf('xstim__run_stimulation2(%0g)',scale);
             [result_obj.success,result_str] = obj.cmd_obj.run_command(str,'throw_error',false);
             
             %Determining if we used too large of a scale ...

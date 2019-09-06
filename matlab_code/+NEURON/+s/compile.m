@@ -24,6 +24,10 @@ function compile(mod_dir_path)
 %   1)Commenting out lines in mknrndll file will allow for not needing to
 %   press return. This is a file shipped with NEURON (not with this code).
 %
+%   Examples
+%   --------
+%   NEURON.s.compile('mrg')
+%
 %   See Also
 %   --------
 %   NEURON.paths
@@ -52,20 +56,41 @@ if ispc
     %         c_bashStartFile: 'C:\nrn72\lib\bshstart.sh'
     %              c_mknrndll: 'C:\nrn72\lib\mknrndll.sh'
     
-    mod_dir_path    = NEURON.sl.dir.getCygwinPath(mod_dir_path);
+    mod_dir_path2    = NEURON.sl.dir.getCygwinPath(mod_dir_path);
     
     bash_path       = np.c_bash;
-    bash_start_file = NEURON.sl.dir.getCygwinPath(np.c_bashStartFile);
-    mknrndll        = NEURON.sl.dir.getCygwinPath(np.c_mknrndll);
-    NEURON_root     = NEURON.sl.dir.getCygwinPath(np.c_root_install);
-    
-    %Call bash, running their startup script
-    %cd to mod path and then call their function with the correct root directory as an input
-    temp = [bash_path ' --rcfile ' bash_start_file ' -c "cd ' mod_dir_path ' && ' mknrndll ' ' NEURON_root '"'];
-    
-    fprintf(2,'------------------  Compiling mod functions  ------------------\n');
-    dos(temp,'-echo');
-    fprintf(2,'------------------  Compile End  ------------------\n');
+    if exist(bash_path)
+        bash_start_file = NEURON.sl.dir.getCygwinPath(np.c_bashStartFile);
+        mknrndll        = NEURON.sl.dir.getCygwinPath(np.c_mknrndll);
+        NEURON_root     = NEURON.sl.dir.getCygwinPath(np.c_root_install);
+
+        %Call bash, running their startup script
+        %cd to mod path and then call their function with the correct root directory as an input
+        temp = [bash_path ' --rcfile ' bash_start_file ' -c "cd ' mod_dir_path2 ' && ' mknrndll ' ' NEURON_root '"'];
+
+        fprintf(2,'------------------  Compiling mod functions  ------------------\n');
+        dos(temp,'-echo');
+        fprintf(2,'------------------  Compile End  ------------------\n');
+
+
+    else
+    	%Newer versions are doing this ....
+        %sscanf(neuronhome(), "%[^:]:%s", s1.s, s2.s)
+        %sprint(s1.s, "/cygdrive/%s%s", s1.s, s2.s)
+        %sprint(tstr, "%s/mingw/usr/bin/sh %s/lib/mknrndll.sh %s", neuronhome(), neuronhome(), s1.s)
+
+        %This gets run in the directory with the mod files ...
+        %C:/nrn/mingw/usr/bin/sh C:/nrn/lib/mknrndll.sh /cygdrive/C/nrn
+        mingw_path = fullfile(np.c_root_install,'mingw','usr','bin','sh');
+        sh_path = fullfile(np.c_root_install,'lib','mknrndll.sh');
+
+        %&& means to run one command and then another
+        %TODO: Apparently this can fail if old .o and .c files remain
+        cmd_str = sprintf('cd %s &&%s %s %s',mod_dir_path,mingw_path,sh_path,'/cygdrive/C/nrn/');
+        fprintf(2,'------------------  Compiling mod functions  ------------------\n');
+        system(cmd_str,'-echo');
+        fprintf(2,'------------------  Compile End  ------------------\n');
+    end
     
 elseif ismac %may work for all unix systems, but untested
     mknrndll = np.c_mknrndll; % path to nrnivmodl

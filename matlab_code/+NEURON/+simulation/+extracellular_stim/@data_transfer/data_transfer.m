@@ -4,7 +4,7 @@ classdef data_transfer < NEURON.sl.obj.handle_light
     %   NEURON.simulation.extracellular_stim.data_transfer
     %
     %   This class will be involved with data transfer between Matlab and
-    %   NEURON with variabls specifically related to extracellular
+    %   NEURON with variables specifically related to extracellular
     %   stimulation.
     %
     %   IMPROVEMENTS

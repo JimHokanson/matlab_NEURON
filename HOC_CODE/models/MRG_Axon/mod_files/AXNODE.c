@@ -1,5 +1,6 @@
-/* Created by Language version: 6.2.0 */
+/* Created by Language version: 7.7.0 */
 /* VECTORIZED */
+#define NRN_VECTORIZED 1
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -21,10 +22,19 @@ extern int _method3;
 extern double hoc_Exp(double);
 #endif
  
-#define _threadargscomma_ _p, _ppvar, _thread, _nt,
-#define _threadargs_ _p, _ppvar, _thread, _nt
+#define nrn_init _nrn_init__axnode
+#define _nrn_initial _nrn_initial__axnode
+#define nrn_cur _nrn_cur__axnode
+#define _nrn_current _nrn_current__axnode
+#define nrn_jacob _nrn_jacob__axnode
+#define nrn_state _nrn_state__axnode
+#define _net_receive _net_receive__axnode 
+#define evaluate_fct evaluate_fct__axnode 
+#define states states__axnode 
  
+#define _threadargscomma_ _p, _ppvar, _thread, _nt,
 #define _threadargsprotocomma_ double* _p, Datum* _ppvar, Datum* _thread, _NrnThread* _nt,
+#define _threadargs_ _p, _ppvar, _thread, _nt
 #define _threadargsproto_ double* _p, Datum* _ppvar, Datum* _thread, _NrnThread* _nt
  	/*SUPPRESS 761*/
 	/*SUPPRESS 762*/
@@ -101,6 +111,15 @@ extern void hoc_register_limits(int, HocParmLimits*);
 extern void hoc_register_units(int, HocParmUnits*);
 extern void nrn_promote(Prop*, int, int);
 extern Memb_func* memb_func;
+ 
+#define NMODL_TEXT 1
+#if NMODL_TEXT
+static const char* nmodl_file_text;
+static const char* nmodl_filename;
+extern void hoc_reg_nmodl_text(int, const char*);
+extern void hoc_reg_nmodl_filename(int, const char*);
+#endif
+
  extern void _nrn_setdata_reg(int, void(*)(Prop*));
  static void _setdata(Prop* _prop) {
  _extcall_prop = _prop;
@@ -257,9 +276,10 @@ static void _ode_spec(_NrnThread*, _Memb_list*, int);
 static void _ode_matsol(_NrnThread*, _Memb_list*, int);
  
 #define _cvode_ieq _ppvar[0]._i
+ static void _ode_matsol_instance1(_threadargsproto_);
  /* connect range variables in _p that hoc is supposed to know about */
  static const char *_mechanism[] = {
- "6.2.0",
+ "7.7.0",
 "axnode",
  "gnapbar_axnode",
  "gnabar_axnode",
@@ -317,7 +337,7 @@ static void nrn_alloc(Prop* _prop) {
  0,0
 };
  extern Symbol* hoc_lookup(const char*);
-extern void _nrn_thread_reg(int, int, void(*f)(Datum*));
+extern void _nrn_thread_reg(int, int, void(*)(Datum*));
 extern void _nrn_thread_table_reg(int, void(*)(double*, Datum*, Datum*, _NrnThread*, int));
 extern void hoc_register_tolerance(int, HocStateTolerance*, Symbol***);
 extern void _cvode_abstol( Symbol**, double*, int);
@@ -328,11 +348,16 @@ extern void _cvode_abstol( Symbol**, double*, int);
  	register_mech(_mechanism, nrn_alloc,nrn_cur, nrn_jacob, nrn_state, nrn_init, hoc_nrnpointerindex, 1);
  _mechtype = nrn_get_mechtype(_mechanism[1]);
      _nrn_setdata_reg(_mechtype, _setdata);
-  hoc_register_dparam_size(_mechtype, 1);
+ #if NMODL_TEXT
+  hoc_reg_nmodl_text(_mechtype, nmodl_file_text);
+  hoc_reg_nmodl_filename(_mechtype, nmodl_filename);
+#endif
+  hoc_register_prop_size(_mechtype, 32, 1);
+  hoc_register_dparam_semantics(_mechtype, 0, "cvodeieq");
  	hoc_register_cvode(_mechtype, _ode_count, _ode_map, _ode_spec, _ode_matsol);
  	hoc_register_tolerance(_mechtype, _hoc_state_tol, &_atollist);
  	hoc_register_var(hoc_scdoub, hoc_vdoub, hoc_intfunc);
- 	ivoc_help("help ?1 axnode /cygdrive/c/repos/matlab_git/matlab_NEURON/HOC_CODE/models/MRG_Axon/mod_files/AXNODE.mod\n");
+ 	ivoc_help("help ?1 axnode G:/repos/matlab_git/matlab_NEURON/HOC_CODE/models/MRG_Axon/mod_files/AXNODE.mod\n");
  hoc_register_limits(_mechtype, _hoc_parm_limits);
  hoc_register_units(_mechtype, _hoc_parm_units);
  }
@@ -366,15 +391,15 @@ static int _ode_spec1(_threadargsproto_);
  Dm = Dm  / (1. - dt*( ( ( ( - 1.0 ) ) ) / tau_m )) ;
  Dh = Dh  / (1. - dt*( ( ( ( - 1.0 ) ) ) / tau_h )) ;
  Ds = Ds  / (1. - dt*( ( ( ( - 1.0 ) ) ) / tau_s )) ;
- return 0;
+  return 0;
 }
  /*END CVODE*/
  static int states (double* _p, Datum* _ppvar, Datum* _thread, _NrnThread* _nt) { {
    evaluate_fct ( _threadargscomma_ v ) ;
-    mp = mp + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / tau_mp)))*(- ( ( ( mp_inf ) ) / tau_mp ) / ( ( ( ( - 1.0) ) ) / tau_mp ) - mp) ;
-    m = m + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / tau_m)))*(- ( ( ( m_inf ) ) / tau_m ) / ( ( ( ( - 1.0) ) ) / tau_m ) - m) ;
-    h = h + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / tau_h)))*(- ( ( ( h_inf ) ) / tau_h ) / ( ( ( ( - 1.0) ) ) / tau_h ) - h) ;
-    s = s + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / tau_s)))*(- ( ( ( s_inf ) ) / tau_s ) / ( ( ( ( - 1.0) ) ) / tau_s ) - s) ;
+    mp = mp + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / tau_mp)))*(- ( ( ( mp_inf ) ) / tau_mp ) / ( ( ( ( - 1.0 ) ) ) / tau_mp ) - mp) ;
+    m = m + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / tau_m)))*(- ( ( ( m_inf ) ) / tau_m ) / ( ( ( ( - 1.0 ) ) ) / tau_m ) - m) ;
+    h = h + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / tau_h)))*(- ( ( ( h_inf ) ) / tau_h ) / ( ( ( ( - 1.0 ) ) ) / tau_h ) - h) ;
+    s = s + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / tau_s)))*(- ( ( ( s_inf ) ) / tau_s ) / ( ( ( ( - 1.0 ) ) ) / tau_s ) - s) ;
    }
   return 0;
 }
@@ -589,6 +614,10 @@ static void _ode_map(int _ieq, double** _pv, double** _pvdot, double* _pp, Datum
 	}
  }
  
+static void _ode_matsol_instance1(_threadargsproto_) {
+ _ode_matsol1 (_p, _ppvar, _thread, _nt);
+ }
+ 
 static void _ode_matsol(_NrnThread* _nt, _Memb_list* _ml, int _type) {
    double* _p; Datum* _ppvar; Datum* _thread;
    Node* _nd; double _v; int _iml, _cntml;
@@ -598,7 +627,7 @@ static void _ode_matsol(_NrnThread* _nt, _Memb_list* _ml, int _type) {
     _p = _ml->_data[_iml]; _ppvar = _ml->_pdata[_iml];
     _nd = _ml->_nodelist[_iml];
     v = NODEV(_nd);
- _ode_matsol1 (_p, _ppvar, _thread, _nt);
+ _ode_matsol_instance1(_threadargs_);
  }}
 
 static void initmodel(double* _p, Datum* _ppvar, Datum* _thread, _NrnThread* _nt) {
@@ -642,7 +671,8 @@ for (_iml = 0; _iml < _cntml; ++_iml) {
   }
  v = _v;
  initmodel(_p, _ppvar, _thread, _nt);
-}}
+}
+}
 
 static double _nrn_current(double* _p, Datum* _ppvar, Datum* _thread, _NrnThread* _nt, double _v){double _current=0.;v=_v;{ {
    inap = gnapbar * mp * mp * mp * ( v - ena ) ;
@@ -690,7 +720,9 @@ for (_iml = 0; _iml < _cntml; ++_iml) {
 	NODERHS(_nd) -= _rhs;
   }
  
-}}
+}
+ 
+}
 
 static void nrn_jacob(_NrnThread* _nt, _Memb_list* _ml, int _type) {
 double* _p; Datum* _ppvar; Datum* _thread;
@@ -712,12 +744,13 @@ for (_iml = 0; _iml < _cntml; ++_iml) {
 	NODED(_nd) += _g;
   }
  
-}}
+}
+ 
+}
 
 static void nrn_state(_NrnThread* _nt, _Memb_list* _ml, int _type) {
- double _break, _save;
 double* _p; Datum* _ppvar; Datum* _thread;
-Node *_nd; double _v; int* _ni; int _iml, _cntml;
+Node *_nd; double _v = 0.0; int* _ni; int _iml, _cntml;
 #if CACHEVEC
     _ni = _ml->_nodeindices;
 #endif
@@ -735,16 +768,10 @@ for (_iml = 0; _iml < _cntml; ++_iml) {
     _nd = _ml->_nodelist[_iml];
     _v = NODEV(_nd);
   }
- _break = t + .5*dt; _save = t;
  v=_v;
 {
- { {
- for (; t < _break; t += dt) {
-   states(_p, _ppvar, _thread, _nt);
-  
-}}
- t = _save;
- }}}
+ {   states(_p, _ppvar, _thread, _nt);
+  }}}
 
 }
 
@@ -763,4 +790,221 @@ _first = 0;
 
 #if defined(__cplusplus)
 } /* extern "C" */
+#endif
+
+#if NMODL_TEXT
+static const char* nmodl_filename = "AXNODE.mod";
+static const char* nmodl_file_text = 
+  "TITLE Motor Axon Node channels\n"
+  "\n"
+  ": 2/02\n"
+  ": Cameron C. McIntyre\n"
+  ":\n"
+  ": Fast Na+, Persistant Na+, Slow K+, and Leakage currents \n"
+  ": responsible for nodal action potential\n"
+  ": Iterative equations H-H notation rest = -80 mV\n"
+  ":\n"
+  ": This model is described in detail in:\n"
+  ":\n"
+  ": McIntyre CC, Richardson AG, and Grill WM. Modeling the excitability of\n"
+  ": mammalian nerve fibers: influence of afterpotentials on the recovery\n"
+  ": cycle. Journal of Neurophysiology 87:995-1006, 2002.\n"
+  "\n"
+  "INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}\n"
+  "\n"
+  "NEURON {\n"
+  "	SUFFIX axnode\n"
+  "	NONSPECIFIC_CURRENT ina\n"
+  "	NONSPECIFIC_CURRENT inap\n"
+  "	NONSPECIFIC_CURRENT ik\n"
+  "	NONSPECIFIC_CURRENT il\n"
+  "	RANGE gnapbar, gnabar, gkbar, gl, ena, ek, el\n"
+  "	RANGE mp_inf, m_inf, h_inf, s_inf\n"
+  "	RANGE tau_mp, tau_m, tau_h, tau_s\n"
+  "}\n"
+  "\n"
+  "\n"
+  "UNITS {\n"
+  "	(mA) = (milliamp)\n"
+  "	(mV) = (millivolt)\n"
+  "}\n"
+  "\n"
+  "PARAMETER {\n"
+  "\n"
+  "	gnapbar = 0.01	(mho/cm2)\n"
+  "	gnabar	= 3.0	(mho/cm2)\n"
+  "	gkbar   = 0.08 	(mho/cm2)\n"
+  "	gl	= 0.007 (mho/cm2)\n"
+  "	ena     = 50.0  (mV)\n"
+  "	ek      = -90.0 (mV)\n"
+  "	el	= -90.0 (mV)\n"
+  "	celsius		(degC)\n"
+  "	dt              (ms)\n"
+  "	v               (mV)\n"
+  "	vtraub=-80\n"
+  "	ampA = 0.01\n"
+  "	ampB = 27\n"
+  "	ampC = 10.2\n"
+  "	bmpA = 0.00025\n"
+  "	bmpB = 34\n"
+  "	bmpC = 10\n"
+  "	amA = 1.86\n"
+  "	amB = 21.4\n"
+  "	amC = 10.3\n"
+  "	bmA = 0.086\n"
+  "	bmB = 25.7\n"
+  "	bmC = 9.16\n"
+  "	ahA = 0.062\n"
+  "	ahB = 114.0\n"
+  "	ahC = 11.0\n"
+  "	bhA = 2.3\n"
+  "	bhB = 31.8\n"
+  "	bhC = 13.4\n"
+  "	asA = 0.3\n"
+  "	asB = -27\n"
+  "	asC = -5\n"
+  "	bsA = 0.03\n"
+  "	bsB = 10\n"
+  "	bsC = -1\n"
+  "}\n"
+  "\n"
+  "STATE {\n"
+  "	mp m h s\n"
+  "}\n"
+  "\n"
+  "ASSIGNED {\n"
+  "	inap    (mA/cm2)\n"
+  "	ina	(mA/cm2)\n"
+  "	ik      (mA/cm2)\n"
+  "	il      (mA/cm2)\n"
+  "	mp_inf\n"
+  "	m_inf\n"
+  "	h_inf\n"
+  "	s_inf\n"
+  "	tau_mp\n"
+  "	tau_m\n"
+  "	tau_h\n"
+  "	tau_s\n"
+  "	q10_1\n"
+  "	q10_2\n"
+  "	q10_3\n"
+  "}\n"
+  "\n"
+  "BREAKPOINT {\n"
+  "	SOLVE states METHOD cnexp\n"
+  "	inap = gnapbar * mp*mp*mp * (v - ena)\n"
+  "	ina = gnabar * m*m*m*h * (v - ena)\n"
+  "	ik   = gkbar * s * (v - ek)\n"
+  "	il   = gl * (v - el)\n"
+  "}\n"
+  "\n"
+  "DERIVATIVE states {   : exact Hodgkin-Huxley equations\n"
+  "       evaluate_fct(v)\n"
+  "	mp'= (mp_inf - mp) / tau_mp\n"
+  "	m' = (m_inf - m) / tau_m\n"
+  "	h' = (h_inf - h) / tau_h\n"
+  "	s' = (s_inf - s) / tau_s\n"
+  "}\n"
+  "\n"
+  "UNITSOFF\n"
+  "\n"
+  "INITIAL {\n"
+  ":\n"
+  ":	Q10 adjustment\n"
+  ":\n"
+  "\n"
+  "	q10_1 = 2.2 ^ ((celsius-20)/ 10 )\n"
+  "	q10_2 = 2.9 ^ ((celsius-20)/ 10 )\n"
+  "	q10_3 = 3.0 ^ ((celsius-36)/ 10 )\n"
+  "\n"
+  "	evaluate_fct(v)\n"
+  "	mp = mp_inf\n"
+  "	m = m_inf\n"
+  "	h = h_inf\n"
+  "	s = s_inf\n"
+  "}\n"
+  "\n"
+  "PROCEDURE evaluate_fct(v(mV)) { LOCAL a,b,v2\n"
+  "\n"
+  "	a = q10_1*vtrap1(v)\n"
+  "	b = q10_1*vtrap2(v)\n"
+  "	tau_mp = 1 / (a + b)\n"
+  "	mp_inf = a / (a + b)\n"
+  "\n"
+  "	a = q10_1*vtrap6(v)\n"
+  "	b = q10_1*vtrap7(v)\n"
+  "	tau_m = 1 / (a + b)\n"
+  "	m_inf = a / (a + b)\n"
+  "\n"
+  "	a = q10_2*vtrap8(v)\n"
+  "	b = q10_2*bhA / (1 + Exp(-(v+bhB)/bhC))\n"
+  "	tau_h = 1 / (a + b)\n"
+  "	h_inf = a / (a + b)\n"
+  "\n"
+  "	v2 = v - vtraub : convert to traub convention\n"
+  "\n"
+  "	a = q10_3*asA / (Exp((v2+asB)/asC) + 1) \n"
+  "	b = q10_3*bsA / (Exp((v2+bsB)/bsC) + 1)\n"
+  "	tau_s = 1 / (a + b)\n"
+  "	s_inf = a / (a + b)\n"
+  "}\n"
+  "\n"
+  "FUNCTION vtrap(x) {\n"
+  "	if (x < -50) {\n"
+  "		vtrap = 0\n"
+  "	}else{\n"
+  "		vtrap = bsA / (Exp((x+bsB)/bsC) + 1)\n"
+  "	}\n"
+  "}\n"
+  "\n"
+  "FUNCTION vtrap1(x) {\n"
+  "	if (fabs((x+ampB)/ampC) < 1e-6) {\n"
+  "		vtrap1 = ampA*ampC\n"
+  "	}else{\n"
+  "		vtrap1 = (ampA*(x+ampB)) / (1 - Exp(-(x+ampB)/ampC))\n"
+  "	}\n"
+  "}\n"
+  "\n"
+  "FUNCTION vtrap2(x) {\n"
+  "	if (fabs((x+bmpB)/bmpC) < 1e-6) {\n"
+  "		vtrap2 = bmpA*bmpC : Ted Carnevale minus sign bug fix\n"
+  "	}else{\n"
+  "		vtrap2 = (bmpA*(-(x+bmpB))) / (1 - Exp((x+bmpB)/bmpC))\n"
+  "	}\n"
+  "}\n"
+  "\n"
+  "FUNCTION vtrap6(x) {\n"
+  "	if (fabs((x+amB)/amC) < 1e-6) {\n"
+  "		vtrap6 = amA*amC\n"
+  "	}else{\n"
+  "		vtrap6 = (amA*(x+amB)) / (1 - Exp(-(x+amB)/amC))\n"
+  "	}\n"
+  "}\n"
+  "\n"
+  "FUNCTION vtrap7(x) {\n"
+  "	if (fabs((x+bmB)/bmC) < 1e-6) {\n"
+  "		vtrap7 = bmA*bmC : Ted Carnevale minus sign bug fix\n"
+  "	}else{\n"
+  "		vtrap7 = (bmA*(-(x+bmB))) / (1 - Exp((x+bmB)/bmC))\n"
+  "	}\n"
+  "}\n"
+  "\n"
+  "FUNCTION vtrap8(x) {\n"
+  "	if (fabs((x+ahB)/ahC) < 1e-6) {\n"
+  "		vtrap8 = ahA*ahC : Ted Carnevale minus sign bug fix\n"
+  "	}else{\n"
+  "		vtrap8 = (ahA*(-(x+ahB))) / (1 - Exp((x+ahB)/ahC)) \n"
+  "	}\n"
+  "}\n"
+  "\n"
+  "FUNCTION Exp(x) {\n"
+  "	if (x < -100) {\n"
+  "		Exp = 0\n"
+  "	}else{\n"
+  "		Exp = exp(x)\n"
+  "	}\n"
+  "}\n"
+  "\n"
+  "UNITSON\n"
+  ;
 #endif

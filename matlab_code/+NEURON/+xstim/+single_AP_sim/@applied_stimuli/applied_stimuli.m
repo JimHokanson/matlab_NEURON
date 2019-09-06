@@ -7,7 +7,7 @@ classdef applied_stimuli < NEURON.sl.obj.handle_light
     %   for a set of cell locations.
     %
     %   MAIN METHODS
-    %   ===================================================================
+    %   ------------
     %   initializeReducedDimStimulus
     %   getLowDStimulus
     %

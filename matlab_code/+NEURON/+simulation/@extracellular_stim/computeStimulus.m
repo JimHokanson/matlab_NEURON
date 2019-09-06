@@ -3,15 +3,17 @@ function varargout = computeStimulus(obj,varargin)
 %
 %   [tvec,vall,cell_xyz_all] = computeStimulus(obj,varargin)
 %
+%   computeStimulus(obj,varargin)
+%
 %   Computes the stimulus that is applied to a cell.
 %
-%   POPULATES (unless requested via output, [t_vec,v_all]
-%   ======================================================================
+%   Populates (unless requested via output, [t_vec,v_all]
+%   -----------------------------------------------------
 %   obj.t_vec
 %   obj.v_all
 %
-%   OPTIONAL INPUTS
-%   =======================================================================
+%   Optional Inputs
+%   ---------------
 %   remove_zero_stim_option: (default 0)
 %           - 0, remove nothing
 %           - 1, remove start & end zeros
