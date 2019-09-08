@@ -1,13 +1,13 @@
-function writeVector(obj,filePath,v)
+function writeVector(obj,file_path,v)
    %get pathing 
    %
-   %    NEURON_model.writeVector(model,fileName,v)
+   %    NEURON.cmd.writeVector(model,file_path,v)
    %
-   %    IMPROVEMENTS
-   %    ===================================================================
+   %    Improvements
+   %    ------------
    %    1) Build support for non-double data types 
    
-    fid      = fopen(filePath,'w+');
+    fid = fopen(file_path,'w+');
     if fid == -1
         %TODO: Improve error message 
         error('Failed to create the file for some reason ...')

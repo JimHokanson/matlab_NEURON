@@ -9,8 +9,8 @@ classdef inspector < NEURON.sl.obj.handle_light
     %   STATUS:
     %   Not yet finished ..., see notes_on_outputs
     %
-    %   Neuron Commands to Inspect:
-    %   ====================================================
+    %   Neuron Inspection Commands
+    %   --------------------------
     %   allobjects()
     %   allobjects(type)
     %   allobjectvars()
@@ -42,11 +42,16 @@ classdef inspector < NEURON.sl.obj.handle_light
         function obj = inspector(cmd_obj)
             %
             %
-            %    obj = inspector(cmd_obj)
+            %   obj = NEURON.inspector(cmd_obj)
+            %
+            %   Inputs
+            %   ------
+            %   cmd_obj
             
             obj.cmd = cmd_obj;
             
-            obj.symbols(true);
+            IS_INIT = true;
+            obj.symbols(IS_INIT);
         end
     end
     
@@ -59,7 +64,8 @@ classdef inspector < NEURON.sl.obj.handle_light
             %   This method should be called to update the properties of
             %   the class to match the current reality in NEURON
             
-            symbols(obj,false)
+            IS_INIT = false;
+            obj.symbols(IS_INIT)
         end
     end
     
@@ -71,7 +77,10 @@ classdef inspector < NEURON.sl.obj.handle_light
             %
             %   Inputs
             %   ------
-            %   is_init
+            %   is_init : 
+            %       On initialization, we get all the symbols. Later on
+            %       we can then get all the symbols again. Any new symbols
+            %       belong to the user.
             %
             %   Populates Properties
             %   --------------------
