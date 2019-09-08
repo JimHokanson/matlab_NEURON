@@ -21,13 +21,27 @@ classdef (Hidden) logger < NEURON.logger.ID_logger
     
     methods(Access = private)
         function obj = logger(varargin)
+            %
+            %   This is called by:
+            %   
+            %
+            %Call the super's constructor
             obj@NEURON.logger.ID_logger(varargin{:});
+            
+            %this < ID_logger < NEURON.logger
         end
     end
     methods(Static)
         function obj = getInstance(varargin)
+            %
+            %   For logging we need singletons to not corrupt the
+            %   "database"
+            
             persistent p_logger
+            
+            %c_handle : class constructor handle
             c_handle = @NEURON.simulation.extracellular_stim.logger;
+            
             [obj,p_logger] = NEURON.logger.getInstanceHelper(c_handle,p_logger,varargin);
         end
     end

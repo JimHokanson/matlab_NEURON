@@ -31,6 +31,12 @@ classdef request_handler
     %   Main subclass:
     %   NEURON.xstim.single_AP_sim.solver
     %
+    %   Request Code Layout
+    %   -------------------
+    %   request_handler : handles fufilling the request for data made by
+    %       the user.
+    %   logged_data : 
+    %
     %
     %   Improvements:
     %

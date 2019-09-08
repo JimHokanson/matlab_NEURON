@@ -1,14 +1,31 @@
 function varargout = computeStimulus(obj,varargin)
 %computeStimulus Computes the stimulus
 %
-%   [tvec,vall,cell_xyz_all] = computeStimulus(obj,varargin)
+%   Computes the stimulus to apply to the cell.
 %
+%   Calling Forms
+%   -------------
+%   1) User gets the computed variables
+%   [t_vec,v_all,cell_xyz_all] = computeStimulus(obj,varargin)
+%
+%   2) Computed variables are stored internally
 %   computeStimulus(obj,varargin)
 %
-%   Computes the stimulus that is applied to a cell.
+%   
 %
-%   Populates (unless requested via output, [t_vec,v_all]
-%   -----------------------------------------------------
+%   Infinite Stimulation Fix
+%   ------------------------
+%   The user may request stimuli that are too close   
+%
+%
+%   Outputs
+%   -------
+%   t_vec
+%   v_all
+%   
+%
+%   Populates (when no outputs are requested)
+%   -----------------------------------------
 %   obj.t_vec
 %   obj.v_all
 %
@@ -18,20 +35,25 @@ function varargout = computeStimulus(obj,varargin)
 %           - 0, remove nothing
 %           - 1, remove start & end zeros
 %           - 2, remove all zero stim times
-%   xyz_use          : (default []), allows passing in different locations,
-%                       default (i.e. if empty) is to use cell location
-%   nodes_only : (default false), if true then the voltages are computed
-%   only at nodes
+%       I'm not entirely sure why this was added :/. It may have been
+%       for plotting ...
+%   xyz_use : (default []) [n x 3]
+%           This should be used to pass in multiple xyz_locations. The
+%           default behavior is to request xyz based on the location
+%           of the single cell that is defined in the simulation currently.
+%   nodes_only : (default false)
+%           If true then the voltages are computed only at nodes. This was
+%           initially added for plotting purposes.
 %
-%   RELIES ON
-%   =======================================================================
+%   Relies On
+%   ---------
 %   1) cell placement
 %   2) tissue properties
 %   3) spatial relation between electrodes and cell
 %   4) stimulus pattern for each electrode
 %
-%   IMROVEMENTS
-%   =======================================================================
+%   Improvements
+%   ------------
 %   1) Document infinite stimulation fix ...
 %
 %
@@ -41,24 +63,24 @@ function varargout = computeStimulus(obj,varargin)
 %   NOTE: There is no stimulus amplitude applied here, only the scales and
 %   superposition ...
 %
-%   See Also:
-%       NEURON.cell.extracellular_stim_capable.getXYZnodes
-%       NEURON.simulation.extracellular_stim.plot__AppliedStimulus
+%   See Also
+%   --------
+%   NEURON.cell.extracellular_stim_capable.getXYZnodes
+%   NEURON.simulation.extracellular_stim.plot__AppliedStimulus
 
 INF_MOVE_CELL = sqrt(1/3); %Distance between this (for x,y,and z) and 0 is 1
 MAX_MV_STIM   = 1e4; %10 V max
 
 
 in.remove_zero_stim_option = 0;
-in.xyz_use                 = [];
-in.nodes_only              = false;
+in.xyz_use = [];
+in.nodes_only = false;
 in = NEURON.sl.in.processVarargin(in,varargin);
 
 
 if in.nodes_only && ~isempty(in.xyz_use)
     error('When retrieving stimuli applied to nodes, specific xyz to retrieve may not be used')
 end
-
 
 if isempty(in.xyz_use)
     if in.nodes_only
@@ -95,14 +117,15 @@ switch in.remove_zero_stim_option
         t_vec(mask)      = [];
 end
 
-v_all = helper__getVall(obj,cell_xyz_all,all_stim);
+v_all = h__getAppliedPotentials(obj,cell_xyz_all,all_stim);
 
 %Check for problems
 %--------------------------------------------------------------------
 %TODO: Handle zero applied stimulus ...
 %[~,J] = find(isinf(v_all));
 
-[~,J] = find(v_all > MAX_MV_STIM);
+%abs() added because of large negative values
+[~,J] = find(abs(v_all) > MAX_MV_STIM);
 
 if ~isempty(J)
     
@@ -113,7 +136,7 @@ if ~isempty(J)
     %We'll add a rediculously small amount which causes a slight bias
     %but I don't think it will be important, especially as the accuracy
     %isn't so high as to notice this small amount of movement
-    v_all = helper__getVall(obj,cell_xyz_all,all_stim);
+    v_all = h__getAppliedPotentials(obj,cell_xyz_all,all_stim);
     
     if any(v_all(:) > MAX_MV_STIM)
         error('Jim''s crappy fix to handling infinite stimulation failed, please come up with a better solution')
@@ -133,7 +156,18 @@ end
 
 end
 
-function v_all = helper__getVall(obj,cell_xyz_all,all_stim)
+function v_all = h__getAppliedPotentials(obj,cell_xyz_all,all_stim)
+%
+%   Here we retrieve the applied potential from each of the electrodes
+%
+%   Inputs
+%   ------
+%   cell_xyz : [n x 3]
+%   all_stim : 
+%
+%   Outputs
+%   -------
+%   v_all : [n_times x n_points]
 
 %Compute the voltage field
 %---------------------------------------------------------------------------
@@ -141,7 +175,9 @@ n_electrodes = length(obj.elec_objs);
 for iElec = 1:n_electrodes
     
     elec_xyz = obj.elec_objs(iElec).xyz;
-    v_ext = computeAppliedVoltageToCellFromElectrode(obj.tissue_obj,cell_xyz_all,elec_xyz,all_stim(:,iElec));
+    tissue = obj.tissue_obj;
+    v_ext = tissue.computeAppliedVoltageToCellFromElectrode(...
+            cell_xyz_all,elec_xyz,all_stim(:,iElec));
     
     %Use superposition, NOT AVERAGING
     if iElec == 1

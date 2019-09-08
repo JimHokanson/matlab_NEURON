@@ -46,6 +46,10 @@ classdef results_path_manager < NEURON.sl.obj.handle_light
                     base_path = fullfile(root,'single_AP_threshold','logged_data');
                 case 'NEURON.xstim.single_AP_sim.new_solution'
                     base_path = fullfile(root,'single_AP_threshold','new_data');
+                case 'NEURON.xstim.single_sim.logged_data'
+                    base_path = fullfile(root,'single_stim','logged_data');
+                case 'NEURON.xstim.single_sim.new_solution'    
+                    base_path = fullfile(root,'single_stim','new_data');
                 otherwise
                     error('class: %s, not yet handled',class_name)
             end

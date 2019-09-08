@@ -1,50 +1,43 @@
 classdef simulation < NEURON.sl.obj.handle_light
     %
-    %   CLASS: 
-    %       NEURON.simulation
+    %   CLASS:
+    %   NEURON.simulation
     %
     %   This class (or subclasses) are the main class for running code in NEURON.
     %
-    %   SUBCLASS IMPLEMENTATION NOTES
-    %   =========================================================
+    %   Implementor Notes
+    %   -----------------
     %   1) Call this constructor
     %
-    %   KNOWN IMPLEMENTORS
-    %   =========================================================
-    %   	NEURON.simulation.extracellular_stim
-    %       NEURON.simulation.intracellular_stim
+    %   Known Implementations
+    %   ---------------------
+    %   NEURON.simulation.extracellular_stim
+    %   NEURON.simulation.intracellular_stim
     %
-    %   IMPROVEMENTS
-    %   ===================================================================
-    %   1) Allow disabling of time adjustment warning
-    %   2) Provide functionality for using conduction result to set time to
-    %   wait apropriately.
-
+    
     properties
-        props       %Class: NEURON.simulation.props
-        options     %Class: NEURON.simulation.options
+        d0 = '----- generic simulation props ------'
+        options %NEURON.simulation.options
+        props   %NEURON.simulation.props
     end
     
     properties
-        %NOTE: These classes may not exist if NEURON is not loaded on startup.
-        cmd_obj  %Class: NEURON.cmd 
-        path_obj %Class: NEURON.paths
-        
+        cmd  %NEURON.cmd
+        paths %NEURON.paths
     end
     
     %TODO: It would be nice to expose these objects through a GUI
     %as they are primarily debug objects ...
     properties (Hidden)
-        command_log_obj     %Class: NEURON.command_log
-        inspector_obj       %Class: NEURON.inspector
+        inspector  %NEURON.inspector
         %This class requires initialization during startup. If it is not
-        %enabled at startup, it is not available. 
+        %enabled at startup, it is not available.
     end
     
     properties (Hidden)
         %.simulation()
-        sim_hash    %String for preventing file save collisions 
-        %between concurrent versions of Matlab. This is based upon the 
+        sim_hash    %String for preventing file save collisions
+        %between concurrent versions of Matlab. This is based upon the
         %process id of Matlab, not the communications process.
         %
         %IMPORTANT: This variable is declared in NEURON in init_neuron.hoc
@@ -63,13 +56,11 @@ classdef simulation < NEURON.sl.obj.handle_light
             %       NEURON.simulation.initNEURON
             
             if ~exist('sim_options','var')
-               sim_options = NEURON.simulation.options; 
+                sim_options = NEURON.simulation.options;
             end
             
             obj.sim_hash = ['p' num2str(feature('GetPid'),'%d') '_'];
-            
             obj.options  = sim_options;
-            
             
             %Binary Data Transfer Path Handling
             %--------------------------------------------------------------
@@ -87,18 +78,20 @@ classdef simulation < NEURON.sl.obj.handle_light
             obj.binary_data_transfer_path = fullfile(base_path,save_dir_name);
             
             if ~exist(obj.binary_data_transfer_path,'dir')
-               mkdir(obj.binary_data_transfer_path) 
+                mkdir(obj.binary_data_transfer_path)
             end
+            
             
             %Launching NEURON process if desired
             %--------------------------------------------------------------
+            %Unfortunately I'm  not sure why we wouldn't want to do this
+            %
             if sim_options.launch_NEURON_process_during_initialization
                 
-                %MOVE NEURON CODE TO HERE ...
-                obj.path_obj = NEURON.paths.getInstance;
-                obj.cmd_obj  = NEURON.cmd(sim_options.cmd_options);
-                                                    
-                initNEURON(obj);
+                obj.paths = NEURON.paths.getInstance;
+                obj.cmd  = NEURON.cmd(sim_options.cmd_options);
+                
+                obj.initNEURON();
                 
                 %NOTE: This class currently populates simulation variables
                 %into Matlab
@@ -117,10 +110,10 @@ classdef simulation < NEURON.sl.obj.handle_light
             %   2) Populates sim hash.
             
             %NEURON.cmd
-            c = obj.cmd_obj;
+            c = obj.cmd;
             
-            c.cd_set(obj.path_obj.hoc_code_root);            
-            c.run_command('{xopen("$(NEURONHOME)/lib/hoc/noload.hoc")}');
+            c.cd_set(obj.paths.hoc_code_root);
+            c.xopen('$(NEURONHOME)/lib/hoc/noload.hoc');
             
             
             c.load_file('general_sim_definitions.hoc');
@@ -141,36 +134,37 @@ classdef simulation < NEURON.sl.obj.handle_light
                 {obj.sim_hash NEURON.s.createNeuronPath(obj.binary_data_transfer_path)});
             
             if obj.options.run_inspector
-                obj.inspector_obj = NEURON.inspector(c);
+                obj.inspector = NEURON.inspector(c);
             end
         end
     end
     
-    %INFO RETRIEVAL
-    %======================================================================
+    %INFO RETRIEVAL   =====================================================
     %Design note: These methods are meant to hide the properties class.
     methods
         function sim_duration = getSimDuration(obj)
-           %getSimDuration
-           %
-           %    sim_duration = getSimDuration(obj)
-           %
-           %    Returns duration of the simulation
-           %
-           %    See Also:
-           %        NEURON.simulation.props
-           
-           sim_duration = obj.props.getSimDuration;
+            %getSimDuration
+            %
+            %   sim_duration = getSimDuration(obj)
+            %
+            %   Returns duration of the simulation
+            %
+            %   See Also
+            %   --------
+            %   NEURON.simulation.props
+            
+            sim_duration = obj.props.getSimDuration;
         end
         function sim_time_vector = getSimTimeVector(obj)
-           %getSimTimeVector
-           %
-           %    sim_time_vector = getSimTimeVector(obj
-           %
-           %    See Also:
-           %        NEURON.simulation.props
-           
-           sim_time_vector = obj.props.getTimeVector;
+            %getSimTimeVector
+            %
+            %   sim_time_vector = getSimTimeVector(obj)
+            %
+            %   See Also
+            %   --------
+            %   NEURON.simulation.props
+            
+            sim_time_vector = obj.props.getTimeVector;
         end
     end
     
@@ -187,11 +181,14 @@ classdef simulation < NEURON.sl.obj.handle_light
             %
             %    adjustSimTimeIfNeeded(obj,lastEventTime)
             %
-            %	 RELEVANT OPTIONS - see options class
-            %    ==========================================================
+            %	 Relevant Options - see options class
+            %    ------------------------------------
             %    autochange_run_time
             %    display_time_change_warnings
             %    time_after_last_event
+            %
+            %   For extracellular stimulation is when the stimulus
+            %   terminates.
             
             opt = obj.options;
             
@@ -224,15 +221,7 @@ classdef simulation < NEURON.sl.obj.handle_light
             end
             
             obj.props.autoChangeTStop(new_tstop)
-            
-            %changeProps(obj.props,'tstop',new_tstop)
         end
-    end
-    
-    %METHODS THAT INTERACT WITH NEURON ===================
-    methods 
-        
-        
     end
     
 end

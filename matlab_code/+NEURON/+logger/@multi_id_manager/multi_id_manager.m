@@ -1,16 +1,47 @@
 classdef multi_id_manager < NEURON.sl.obj.handle_light
     %
-    %
     %   Class:
     %   NEURON.logger.multi_id_manager
     %
+    %   The basic idea with this class is that we want to track simulation
+    %   types. To do this the simulation is composed of a bunch of parts.
+    %   Each part gets tracked on its own with an ID representing a unique
+    %   part. Each simulation is then tracked as a combination of its
+    %   unique parts.
     %
-    %   IMPROVEMENTS
-    %   ===================================================================
+    %   So for example, the xstim logger tracks four objects that specify
+    %   a unique xstim, the electrode, the cell, the tissue, and general
+    %   simulation properties. As we change general simulation properties
+    %   new unique IDs will be created for that class, where each ID points
+    %   to a set of simulation properties. Each time these properties are
+    %   changed, a new xstim entry will be created, but the IDs for all the
+    %   other classes will stay the same, just the simulation props entry
+    %   will change.
+    %
+    %   With all of this information we can say, if you saved data 
+    %   with the ID of 4 for xstim, then we go into xstim and we might
+    %   see that for entry #4 we have:
+    %   electrode: ID 1 (i.e. never been updated)
+    %   cell: ID 2 (i.e. simulations were logged with two different cell props) 
+    %   props: ID 2
+    %   tissue: ID 3
+    %
+    %   For each of these IDs, we can go into their own loggers and get
+    %   exactly the parameters that were used. Thus for entry #4 (and all
+    %   entries), we know all parameters that were used.
+    %
+    %
+    %   Improvements
+    %   ------------
     %   1) Build in tracking of creation dates ...
-    
-    
-    
+    %
+    %   Functions in other files
+    %   ------------------------
+    %   find - NEURON.logger.multi_id_manager.find
+    %
+    %   See Also
+    %   --------
+    %   NEURON.logger.ID_logger
     
     %{
     
@@ -60,6 +91,9 @@ classdef multi_id_manager < NEURON.sl.obj.handle_light
     %Constructor and SAVE/LOAD  %==========================================
     methods
         function obj = multi_id_manager(save_base_path)
+            %
+            %
+            %   obj = multi_id_manager(save_base_path)
             obj.save_path = fullfile(save_base_path,'MIM.mat');
             obj.loadObject();
         end
@@ -69,6 +103,8 @@ classdef multi_id_manager < NEURON.sl.obj.handle_light
             save(obj.save_path,'s');
         end
         function loadObject(obj)
+            %
+            %   loadObject(obj)
             if exist(obj.save_path,'file')
                 old_save_path = obj.save_path;
                 h = load(obj.save_path);
@@ -87,7 +123,6 @@ classdef multi_id_manager < NEURON.sl.obj.handle_light
     
     %PROCESSING   %========================================================
     methods
-        
         function class_types_local = getClassTypes(obj,id_obj_cell_array)
             %
             %
@@ -107,13 +142,13 @@ classdef multi_id_manager < NEURON.sl.obj.handle_light
             %
             %   This function returns a linearized version of the ids
             %
-            %   OUTPUT
-            %   ===========================================================
+            %   Output
+            %   ------
             %   row_entry : a linearized version of the ids as a vector
             %
-            %   TODO: It might be desirable to move this to
-            %   the ID class
-            %
+            %   TODO: It might be desirable to move this to the ID class
+            
+            %   ???? What is this?????
             %   id_array = [id_obj_cell_arrray{:}]
             %   row_entry = id_array.linearize; %Function NYI
             

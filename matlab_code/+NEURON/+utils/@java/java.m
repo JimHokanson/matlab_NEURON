@@ -2,6 +2,9 @@ classdef java
     %
     %   Class:
     %   NEURON.utils.java
+    %
+    %   This was originally written to help with compiling the Java
+    %   code used in this repo.
     
     properties
         Property1

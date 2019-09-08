@@ -1,22 +1,9 @@
 classdef logged_data < NEURON.sl.obj.handle_light
     %
     %   Class:
-    %   NEURON.xstim.single_AP_sim.logged_data
+    %   NEURON.xstim.single_sim.logged_data
     %
-    %   This class is in charge of saving/loading each data instance and
-    %   maintaining which predictor is being used to generate this
-    %   information especially useful for testing, we are going to want to
-    %   insure that the different predictor methods do not generate
-    %   different outcomes.
-    %
-    %   Not sure if I want to eventually merge this with the solution
-    %   class. I feel like right now this class will maintain solving and
-    %   more functionality might be added, where as the solution class will
-    %   only store the data.
-    %
-    %   See Also:
-    %   NEURON.xstim.single_AP_sim.new_solution
-    
+
     properties(Constant)
         VERSION = 1;
     end
@@ -24,7 +11,6 @@ classdef logged_data < NEURON.sl.obj.handle_light
     properties
         system_testing = false
         file_path %Path to mat file ...
-        stim_sign
         xstim_ID  %NEURON.logger.ID
     end
     
@@ -35,7 +21,7 @@ classdef logged_data < NEURON.sl.obj.handle_light
     end
     
     methods
-        function obj = logged_data(stim_sign,xstim_ID,system_testing)
+        function obj = logged_data(xstim_ID,system_testing)
             %logged_data
             %
             %   obj = logged_data(stim_sign,xstim_ID)
@@ -48,12 +34,11 @@ classdef logged_data < NEURON.sl.obj.handle_light
                 
             obj.system_testing = system_testing;
             
-            base_path = obj.getBasePath(stim_sign);
+            base_path = obj.getBasePath();
             file_name = xstim_ID.getSaveString;
             
             obj.xstim_ID  = xstim_ID;
             obj.file_path = NEURON.sl.dir.createFolderIfNoExist(true,base_path,file_name);
-            obj.stim_sign = stim_sign;
             
             %Loading the data from disk ...
             %------------------------------
@@ -61,7 +46,7 @@ classdef logged_data < NEURON.sl.obj.handle_light
             
             %If the new solution object has anything logged on disk
             %we'll merge at this time
-            NEURON.xstim.single_AP_sim.new_solution.loadAndMergeNewData(obj.stim_sign,obj,xstim_ID);
+            NEURON.xstim.single_sim.new_solution.loadAndMergeNewData(obj,xstim_ID);
         end
         function changeKnownData(obj,indices_to_keep)
            %
@@ -118,19 +103,17 @@ classdef logged_data < NEURON.sl.obj.handle_light
                 save(obj.file_path,'s')
             end
         end
-        function match_result = checkIfSolved(obj,new_cell_locations)
+        function match_result = checkIfSolved(obj,new_cell_locations,scales)
             %NOTE: We should also return a solution object
             %
-            %    match_result = checkIfSolved(obj,new_cell_locations)
+            %    match_result = checkIfSolved(obj,new_cell_locations,scales)
             %
-            %    INPUTS
-            %    ==================================
-            %    new_cell_locations : [n x 3]
-            %
-            %    FULL PATH:
-            %    NEURON.xstim.single_AP_sim.logged_data.checkIfSolved
+            %   Inputs
+            %   ------
+            %   new_cell_locations : [n x 3]
+            %   scales
             
-            match_result = obj.solution.findLocationMatches(new_cell_locations);
+            match_result = obj.solution.findMatches(new_cell_locations,scales);
         end
         function addEntries(obj,solve_dates,new_locations,new_thresholds,predictor_types,ranges)
             %
@@ -178,25 +161,18 @@ classdef logged_data < NEURON.sl.obj.handle_light
                 end
             end
         end
-        function base_path = getBasePath(sign)
+        function base_path = getBasePath()
             %
             %
             %    NEURON.xstim.single_AP_sim.logged_data.getBasePath()
             
-            CLASS_NAME = 'NEURON.xstim.single_AP_sim.logged_data';
-            
-            if sign > 0
-                sign_folder = 'pos';
-            else
-                sign_folder = 'neg';
-            end
+            CLASS_NAME = 'NEURON.xstim.single_sim.logged_data';
             
             %The path manager will generate a path for saving
             %based on the class name. As this logged data can be rather
             %large it is saved at a user specified location, not with the
             %logging data.
             base_path = NEURON.xstim.results_path_manager.getMyBasePath(CLASS_NAME);
-            base_path = fullfile(base_path,sign_folder);
         end
     end
     

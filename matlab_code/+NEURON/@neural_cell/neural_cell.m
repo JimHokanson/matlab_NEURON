@@ -50,8 +50,8 @@ classdef neural_cell < handle
                   error('Unrecognized cell type: %s',cell_type)
            end
            
-           obj.path_obj = sim_obj.path_obj;
-           obj.cmd_obj  = sim_obj.cmd_obj;
+           obj.path_obj = sim_obj.paths;
+           obj.cmd_obj  = sim_obj.cmd;
         end
     end
     

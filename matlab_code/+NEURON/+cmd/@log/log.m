@@ -1,27 +1,44 @@
 classdef log < NEURON.sl.obj.handle_light
     %
     %   Class:
-    %       NEURON.cmd.log
+    %   NEURON.cmd.log
     %
     %   This class can log commands sent to NEURON, and the responses
     %   that are received back.
     %
-    %   IMPROVEMENTS
-    %   ===================================================================
-    %   1) Finish createHocFile method
+    %   See Also
+    %   --------
+    %   NEURON.cmd
+    %   NEURON.cmd.write
     
     properties
         commands  = {}       %cellstr
         responses = {}       %cellstr
         cur_index = 0
         command_success = []  %logical array
-        %        execution_start_time
-        %        execution_duration
+        execution_duration = []
     end
     
     properties (Hidden)
-        initialized            = false
+        h_tic
+        initialized = false
         opt__default_init_size = 1000
+    end
+    
+    properties (Dependent)
+        command_history
+    end
+    
+    methods
+        function value = get.command_history(obj)
+            if obj.cur_index == 0
+                value = '';
+            else
+                newline_added_commands = cellfun(@(x) sprintf('%s\n',x),obj.commands(1:obj.cur_index),'un',0);
+                value = [newline_added_commands{:}];
+                value(end) = [];
+            end
+        end
     end
     
     methods (Hidden)
@@ -40,42 +57,29 @@ classdef log < NEURON.sl.obj.handle_light
             obj.commands        = cell(sz,1);
             obj.responses       = cell(sz,1);
             obj.command_success = false(1,sz);
+            obj.execution_duration = zeros(sz,1);
             obj.initialized     = true;
+            
         end
     end
     
     methods
-        function addCommand(obj,command,response,success_flag)
-            %addCommand
-            %   
-            %   addCommand(obj,command,response,success_flag)
-            %
-            %   INPUTS
-            %   ===========================================================
-            
+        function initCommand(obj,command)
             if ~obj.initialized
                 obj.initObject;
             end
             
-            next_index    = obj.cur_index + 1;
+            next_index = obj.cur_index + 1;
             obj.cur_index = next_index;
             
-            obj.commands{next_index}        = command;
-            obj.responses{next_index}       = response;
-            obj.command_success(next_index) = success_flag;
-            
+            obj.commands{next_index} = command;
+            obj.h_tic = tic;
         end
-        function createHocFile(obj)
-            %TODO: Implement method
-            %The goal of this method was to allow creation of a hoc
-            %file which one could run to rerun the commands that were
-            %previously run
-            %
-            %   This method may be insufficient in cases where binary data
-            %   transfer occurs between Matlab and NEURON.
-            %
-            %   Thought was to provide either file_path or a prompt
-            
+        function terminateCommand(obj,response,success_flag)
+            index = obj.cur_index;
+            obj.responses{index} = response;
+            obj.command_success(index) = success_flag;
+            obj.execution_duration(index) = toc(obj.h_tic);
         end
     end
     

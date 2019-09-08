@@ -107,8 +107,8 @@ classdef solver < NEURON.sl.obj.handle_light
             %    subclasses after this. Currently the request handler
             %   makes that call ...
             %
-            %   INPUTS
-            %   ===========================================================
+            %   Inputs
+            %   ------
             %   logged_data : NEURON.xstim.single_AP_sim.logged_data
             %   new_data    : NEURON.xstim.single_AP_sim.new_solution
             %

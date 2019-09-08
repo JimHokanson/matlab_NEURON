@@ -76,6 +76,7 @@ classdef logger < NEURON.sl.obj.handle_light
             obj.parent = parent;
         end
     end
+    %======================================================================
     
     methods (Static)
         function [obj,p_logger] = getInstanceHelper(c_handle,p_logger,varg_input)
@@ -86,13 +87,25 @@ classdef logger < NEURON.sl.obj.handle_light
             %   This method was written to facilitate singleton
             %   object construction ...
             %
-            %   INPUTS
-            %   ===========================================================
-            %   c_handle : Constructor function handle
-            %   p_logger : Reference to persistent variable ...
+            %   Inputs
+            %   ------
+            %   c_handle : function handle
+            %       Constructor function handle. If the peristent variable
+            %       is empty then we construct the class.
+            %   p_logger : class instance or []
+            %       Reference to the peristent variable that represents
+            %       the particular logger class.
+            %   varg_input : cell
+            %       
+            %
+            %   See Also
+            %   --------
+            %   NEURON.simulation.extracellular_stim.logger.getInstanceHelper
             
             %Generic function
             if isempty(p_logger)
+                %Note this is a call to the constructor with the relevant
+                %inputs
                 obj = c_handle(varg_input{:});
                 p_logger = obj;
             else
@@ -245,18 +258,22 @@ classdef logger < NEURON.sl.obj.handle_light
             %
             %   save_base_path = getClassPath(obj)
             %
-            %  Returns a path for saving data that is specific to the
-            %  particular subclass of logger that is requesting the data.
+            %   Returns a path for saving data that is specific to the
+            %   particular subclass of logger that is requesting the data.
             
             %NOTE: We may eventually change this to point to a user
             %specified data logging base path ...
             %
             %   i.e. see NEURON.user_options
-            base_path        = NEURON.sl.stack.getMyBasePath('','n_dirs_up',3);
+            %
+            %   Currently we save this is the repo root in a 'data' folder.
+            base_path = NEURON.sl.stack.getMyBasePath('','n_dirs_up',3);
             
             class_name_parts = regexp(class(obj),'\.','split');
             
-            save_base_path   = NEURON.sl.dir.createFolderIfNoExist(base_path,'data',class_name_parts{2:end});
+            %here we trim off the NEURON package name just to reduce
+            %one layer of depth ...
+            save_base_path = NEURON.sl.dir.createFolderIfNoExist(base_path,'data',class_name_parts{2:end});
         end
         function file_path = getSaveDataPath(obj)
             file_path = fullfile(obj.getClassPath,'data.mat');

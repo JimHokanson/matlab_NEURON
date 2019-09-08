@@ -3,20 +3,24 @@ function initializeReducedDimStimulus(obj1,obj2,options)
 %   initializeReducedDimStimulus(obj1,obj2,options)
 %
 %   The method uses PCA to reduce the # of dimensions in the stimulus for
-%   comparison and subsequent prediction.
+%   comparison and subsequent prediction. Note, it is not at all clear that
+%   PCA is the best option here, but it is simple enough ...
 %   
-%   INPUTS
-%   =======================================================================
-%   obj1    : Instance of this class
-%   obj2    : Secondary instance, this can be used when performing
-%             dimensionality reduction on both old and new stimuli
+%   Inputs
+%   ------
+%   obj1 : Instance of this class
+%           This tends to consist of the previously run stimuli.
+%   obj2 : Secondary instance
+%           This tends to the new stimuli.
 %   options : Class: NEURON.xstim.single_AP_sim.dim_reduction_options
 %
-%   See Also:
+%   See Also
+%   --------
 %   NEURON.xstim.single_AP_sim.dim_reduction_options
 %   NEURON.xstim.single_AP_sim.applied_stimulus_manager.getLowDStimulusInfo
 %
-%   FULL PATH:
+%   Full Path
+%   ---------
 %   NEURON.xstim.single_AP_sim.applied_stimuli.initializeReducedDimStimulus
 
 if obj2.n == 0
@@ -41,6 +45,9 @@ else
     %exactly the same in the low dimensional space (off by some small percentage).
     %This is currently important because I have yet to implement a loose
     %matching algorithm
+    %
+    %Here we compute the resulting transformed values (scores) based on
+    %the computed coefficients.
     
     temp_data_no_mean = bsxfun(@minus,temp_data,data_mean);
     scores_both       = temp_data_no_mean*coeff;

@@ -1,7 +1,7 @@
 classdef single_sim < NEURON.sl.obj.handle_light
     %
     %   Class: 
-    %   NEURON.simulation.extracellular_stim.results.single_sim;
+    %   NEURON.simulation.extracellular_stim.results.single_sim
     %
     %   This class is supposed to the results of running a single
     %   extracellular stimulation simulation. This class is created by:
@@ -15,7 +15,7 @@ classdef single_sim < NEURON.sl.obj.handle_light
     %   1) Get accurate labels of space & time for plotting method
     
     properties (Hidden)
-        xstim_obj          %Class: NEURON.simulation.extracellular_stim
+        xstim_obj %NEURON.simulation.extracellular_stim
         
         cell_obj           %Class: Subclass of NEURON.neural_cell &
         %NEURON.cell.extracellular_stim_capable
@@ -24,9 +24,11 @@ classdef single_sim < NEURON.sl.obj.handle_light
     end
     
     properties
-       tested_scale        %Scaling amplitude tested.
+       tested_scale 
+       %Scaling amplitude tested.
        
-       success             %Whether or not simulation ran without an error
+       success 
+       %Whether or not simulation ran without an error
        %NOTE: Currently if this is false it indicates that the tissue is
        %fried, as otherwise an error will be thrown. It might eventually be
        %changed to have other reasons.
@@ -41,11 +43,11 @@ classdef single_sim < NEURON.sl.obj.handle_light
     end
     
     properties
-        membrane_potential       = []    %[time x space] Potential recorded
+        membrane_potential = []    %[time x space] Potential recorded
         %at each point in space. Spatial interpretation is left up to the
         %cell.
         
-        ap_propagated            = false %Whether or not propagation was
+        ap_propagated = false %Whether or not propagation was
         %detected.
     end
     

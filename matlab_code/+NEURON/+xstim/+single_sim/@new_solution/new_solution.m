@@ -1,11 +1,11 @@
 classdef new_solution < NEURON.sl.obj.handle_light
     %
     %   Class:
-    %   NEURON.xstim.single_AP_sim.new_solution
+    %   NEURON.xstim.single_sim.new_solution
     %
-    %   This class is meant to hold new threhsold data from simulations.
+    %   This class is meant to hold new data from simulations.
     %   All results will be initialized on startup but will not be valid
-    %   until thresholds have been assigned by the predictor/solver.
+    %   until the simulations have been run.
     %
     %   Design
     %   ------
@@ -44,7 +44,6 @@ classdef new_solution < NEURON.sl.obj.handle_light
     
     properties
         file_save_path
-        stim_sign
     end
     
     %??? Make some of these access private?????
@@ -77,16 +76,25 @@ classdef new_solution < NEURON.sl.obj.handle_light
         %   Known interfacing classes:
         %   -----------------------------------------------
         %    1) NEURON.xstim.single_AP_sim.applied_stimulus_matcher
-        %    2)
     end
     
     properties (SetAccess = {?NEURON.sl.struct.toObject})
         d2 = '----  Fine to access directly for now ----'
-        cell_locations   %(numeric, [n x 3])
-        thresholds       %(numeric, [1 x n]), default NaN
-        solved_dates     %(numeric, [1 x n]), Matlab time
-        prediction_types %(numeric, [1 x n])
-        ranges           %(numeric, [n x 2])
+       	cell_locations  %[n x 3]
+        tested_scales   %[1 x n]
+        success  	%[1 x n]
+        tissue_fried    %[1 x n]
+        initial_stim_time   %[1 x n]
+        final_stim_time     %[1 x n]
+        membrane_potential  %{1 x n}
+        ap_propagated   %[1 x n]
+        solve_dates 	%[1 x n]
+        
+%         cell_locations   %(numeric, [n x 3])
+%         thresholds       %(numeric, [1 x n]), default NaN
+%         solved_dates     %(numeric, [1 x n]), Matlab time
+%         prediction_types %(numeric, [1 x n])
+%         ranges           %(numeric, [n x 2])
     end
     
     %Public Properties ====================================================
@@ -112,7 +120,7 @@ classdef new_solution < NEURON.sl.obj.handle_light
     end
     
     methods
-        function obj = new_solution(stim_sign,xstim_ID,cell_locations)
+        function obj = new_solution(xstim_ID,cell_locations,scales)
             %
             %
             %   This constructor is currently called in two different
@@ -124,21 +132,25 @@ classdef new_solution < NEURON.sl.obj.handle_light
             
             %NOTE: From the static method createFromDisk we will allow
             %empty cell locations ...
-            obj.file_save_path = obj.getSavePath(stim_sign,xstim_ID);
-            
-            obj.stim_sign = stim_sign;
+            obj.file_save_path = obj.getSavePath(xstim_ID);
             
             if ~isempty(cell_locations)
                 obj.cell_locations = cell_locations;
+                obj.tested_scales = scales;
                 
                 n_elements = size(cell_locations,1);
-                obj.solved           = false(1,n_elements);
+                
+                obj.success = false(1,n_elements);
+                obj.tissue_fried = false(1,n_elements);
+                obj.initial_stim_time = NaN(1,n_elements);
+                obj.final_stim_time = NaN(1,n_elements);
+                obj.membrane_potential = cell(1,n_elements);
+                obj.ap_propagated = false(1,n_elements);
+                obj.solve_dates = NaN(1,n_elements);
+                
+                obj.solved = false(1,n_elements);
                 obj.solved_and_unique = false(1,n_elements);
                 obj.will_solve_later = false(1,n_elements);
-                obj.thresholds       = NaN(1,n_elements);
-                obj.solved_dates     = NaN(1,n_elements);
-                obj.prediction_types = NaN(1,n_elements);
-                obj.ranges           = NaN(n_elements,2);
             end
         end
     end
@@ -311,6 +323,7 @@ classdef new_solution < NEURON.sl.obj.handle_light
             
             mask = obj.solved;  %Only pass in solved entries ...
 
+            keyboard
             logged_data_obj.addEntries(obj.solved_dates(mask),obj.cell_locations(mask,:),...
                     obj.thresholds(mask),obj.prediction_types(mask),obj.ranges(mask,:))
             
@@ -340,13 +353,13 @@ classdef new_solution < NEURON.sl.obj.handle_light
             %    See Also:
             %    NEURON.xstim.single_AP_sim.logged_data.loadData
             
-            [obj,file_exists] = NEURON.xstim.single_AP_sim.new_solution.createFromDisk(stim_sign,xstim_ID);
+            [obj,file_exists] = NEURON.xstim.single_AP_sim.new_solution.createFromDisk(xstim_ID);
             
             if file_exists
                 obj.mergeResultsWithOld(logged_data_obj);
             end
         end
-        function [obj,file_exists] = createFromDisk(stim_sign,xstim_ID)
+        function [obj,file_exists] = createFromDisk(xstim_ID)
             %createFromDisk
             %
             %    [obj,file_exists] = createFromDisk(stim_sign,xstim_ID)
@@ -354,7 +367,7 @@ classdef new_solution < NEURON.sl.obj.handle_light
             %    FULL PATH:
             %    NEURON.xstim.single_AP_sim.new_solution.createFromDisk
             
-            obj = NEURON.xstim.single_AP_sim.new_solution(stim_sign,xstim_ID,[]);
+            obj = NEURON.xstim.single_AP_sim.new_solution(xstim_ID,[]);
             
             file_exists = exist(obj.file_save_path,'file');
             

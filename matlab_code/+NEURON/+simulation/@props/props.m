@@ -1,7 +1,7 @@
 classdef props < NEURON.sl.obj.handle_light 
     %
     %   Class: 
-    %       NEURON.simulation.props
+    %   NEURON.simulation.props
     %
     %   IMPROVEMENTS:
     %   ==============================================================
@@ -10,7 +10,7 @@ classdef props < NEURON.sl.obj.handle_light
     %           it seems slow
    
     properties (Hidden)
-       cmd_obj  %Class: NEURON.cmd 
+       cmd  %Class: NEURON.cmd 
        parent   %Class: NEURON.simulation
     end
     
@@ -27,12 +27,12 @@ classdef props < NEURON.sl.obj.handle_light
         %   getExpectedSimDuration
         %   getSimDuration
         
-        tstop   = 1.2       %(units - ms) Stopping time for the simulation
+        tstop = 1.2 %(units - ms) Stopping time for the simulation
     end
     
     %Fixed Time Step Properties  %=========================================
     properties (SetAccess = private)
-        dt      = 0.005     %(units - ms) dt for fixed time solvers
+        dt = 0.005     %(units - ms) dt for fixed time solvers
         
         %NOT YET SUPPORTED
         %secondorder = 0; 
@@ -58,7 +58,7 @@ classdef props < NEURON.sl.obj.handle_light
            %
            %
            
-           final_time_used = obj.cmd_obj.getScalar('t');
+           final_time_used = obj.cmd.getScalar('t');
            if isnan(final_time_used)
                error('Why is this NaN?')
            elseif final_time_used == 0
@@ -100,7 +100,7 @@ classdef props < NEURON.sl.obj.handle_light
     methods
         function obj = props(parent_obj,varargin)
             obj.parent  = parent_obj;
-            obj.cmd_obj = parent_obj.cmd_obj;
+            obj.cmd = parent_obj.cmd;
             obj.changeProps(varargin);
         end
         function changeProps(obj,varargin)
@@ -138,7 +138,7 @@ classdef props < NEURON.sl.obj.handle_light
             
             values = {obj.celsius   obj.tstop  obj.dt};
             props  = {'celsius'     'tstop'    'dt'};
-            obj.cmd_obj.writeNumericProps(props,values);
+            obj.cmd.writeNumericProps(props,values);
         end   
     end
     
