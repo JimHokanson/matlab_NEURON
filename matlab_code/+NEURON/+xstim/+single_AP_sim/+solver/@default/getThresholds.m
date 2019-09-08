@@ -5,8 +5,8 @@ function predictor_info = getThresholds(obj)
 %
 %   This is a specific implementation for getting threshold data.
 %
-%   OUTPUTS
-%   =======================================================================
+%   Outputs
+%   -------
 %   predictor_info : Currently of type:
 %           NEURON.xstim.single_AP_sim.threshold_simulation_results
 %
@@ -18,7 +18,8 @@ function predictor_info = getThresholds(obj)
 %   1) Reduces the # of points to solve by finding redundant applied stimuli
 %   2) 
 %
-%   FULL PATH:
+%   Full Path
+%   ---------
 %   NEURON.xstim.single_AP_sim.predictor.default.getThreshold
 
 predictor_info = []; %Not sure what I want to put here ....
@@ -27,6 +28,8 @@ predictor_info = []; %Not sure what I want to put here ....
 %NEURON.xstim.single_AP_sim.applied_stimulus_manager.reducePointsToSolveByMatchingStimuli
 obj.stimulus_manager.reducePointsToSolveByMatchingStimuli();
 
+%All our new points may be redundant, if so, then we have the previously
+%solved values and we're done
 if obj.new_data.all_done
    return 
 end
@@ -35,9 +38,15 @@ end
 %This will display a summary of how many data points remain to be solved.
 obj.new_data.summarize();
 
-%NEURON.xstim.single_AP_sim.grouper
+
+%Group remaining unique points for testing
+%--------------------------------------------------------------------------
 %
-%   The grouper is responsible for 
+%   The grouper is responsible for establishing a set of points (cell
+%   locations) that will be computed between prediction steps. The grouper
+%   attemps to 
+%
+%NEURON.xstim.single_AP_sim.grouper
 g = obj.grouper;
 t_group = tic;
 indices = g.getNextGroup();
@@ -52,6 +61,9 @@ cur_sim_index = 0;
 %This would involve a call to NEURON.simulation.props (or something like
 %that, I don't remember for sure)
 
+
+%Solve for new points
+%--------------------------------------------------------------------------
 all_threshold_results = [];
 
 while ~isempty(indices)

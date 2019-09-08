@@ -1,31 +1,28 @@
 classdef  solution < NEURON.sl.obj.handle_light
     %
     %   Class:
-    %   NEURON.xstim.single_AP_sim.solution
-    %
-    %   IMPROVEMENTS
-    %   ------------
-    %   1) DONE Create from previous structure
-    %   2) Allow copying of a subset based on indices ...
-    %           see method: getPartialObject
-    %   3) Allow optimization - some function that goes through and
-    %      sorts the data then saves it again
+    %   NEURON.xstim.single_sim.solution
     %
     %   See Also
     %   --------
-    %   NEURON.xstim.single_AP_sim.request_handler
-    %   NEURON.xstim.single_AP_sim.logged_data
+    %   NEURON.simulation.extracellular_stim.results.single_sim
+    %   NEURON.xstim.single_sim.request_handler
+    %   NEURON.xstim.single_sim.logged_data
     
     properties (Constant)
         VERSION = 1
     end
     
     properties
-        cell_locations   %[n x 3]
-        thresholds       %[1 x n]
-        solve_dates      %[1 x n]
-        predictor_types  %[1 x n]
-        ranges           %[n x 2]
+        cell_locations  %[n x 3]
+        tested_scales   %[1 x n]
+        success  	%[1 x n]
+        tissue_fried    %[1 x n]
+        initial_stim_time   %[1 x n]
+        final_stim_time     %[1 x n]
+        membrane_potential  %{1 x n}
+        ap_propagated   %[1 x n]
+        solve_dates 	%[1 x n]
     end
     
     properties
@@ -42,7 +39,7 @@ classdef  solution < NEURON.sl.obj.handle_light
             %   logged_data class is reloading it from disk.
             %
             %   See Also
-            %   NEURON.xstim.single_AP_sim.logged_data
+            %   NEURON.xstim.single_sim.logged_data
             
             if isempty(previous_struct)
                 return
@@ -65,22 +62,26 @@ classdef  solution < NEURON.sl.obj.handle_light
             
             new_obj = NEURON.xstim.single_AP_sim.solution([]);
             
-            new_obj.cell_locations   = obj.cell_locations(I,:);
-            new_obj.thresholds       = obj.thresholds(I);
-            new_obj.solve_dates      = obj.solve_dates(I);
-            new_obj.predictor_types  = obj.predictor_types(I);
-            new_obj.ranges           = obj.ranges(I,:);
-            new_obj.hash             = now;  
+            new_obj.cell_locations = obj.cell_locations(I,:);
+            new_obj.tested_scales = obj.cell_locations(I,:);
+            new_obj.success = obj.cell_locations(I,:);
+            new_obj.tissue_fried = obj.cell_locations(I,:);
+            new_obj.initial_stim_time = obj.cell_locations(I,:);
+            new_obj.final_stim_time = obj.cell_locations(I,:);
+            new_obj.membrane_potential = obj.cell_locations(I,:);
+            new_obj.ap_propagated  = obj.cell_locations(I,:);
+            new_obj.solve_dates = obj.cell_locations(I,:);
+            new_obj.hash = now;
         end
         function appplied_stim_obj = getAppliedStimulusObject(obj,xstim_obj)
-           %
-           %
-           %    appplied_stim_obj = getAppliedStimulusObject(obj,xstim_obj)
-           %    
-           %    Outputs
-           %    -------
-           %    appplied_stim_obj : NEURON.xstim.single_AP_sim.applied_stimuli
-           appplied_stim_obj = NEURON.xstim.single_AP_sim.applied_stimuli(xstim_obj,obj.cell_locations); 
+            %
+            %
+            %    appplied_stim_obj = getAppliedStimulusObject(obj,xstim_obj)
+            %
+            %    Outputs
+            %    -------
+            %    appplied_stim_obj : NEURON.xstim.single_AP_sim.applied_stimuli
+            appplied_stim_obj = NEURON.xstim.single_AP_sim.applied_stimuli(xstim_obj,obj.cell_locations);
         end
         function s = getStruct(obj)
             s = NEURON.sl.obj.toStruct(obj);
@@ -98,6 +99,8 @@ classdef  solution < NEURON.sl.obj.handle_light
             %   See Also:
             %   NEURON.xstim.single_AP_sim.solution.addToEntry
             
+            keyboard
+            
             obj.solve_dates     = [obj.solve_dates      solve_dates];
             obj.cell_locations  = [obj.cell_locations;  new_locations];
             obj.thresholds      = [obj.thresholds       new_thresholds];
@@ -105,48 +108,57 @@ classdef  solution < NEURON.sl.obj.handle_light
             obj.ranges          = [obj.ranges;          ranges];
             obj.hash = now;
         end
-        function match_result = findLocationMatches(obj,new_cell_locations)
+        function match_result = findMatches(obj,cell_locations,scales)
             %findLocationMatches
             %
-            %   match_result = findLocationMatches(obj,new_cell_locations)
+            %   match_result = findMatches(obj,new_cell_locations)
             %
             %   Outputs
             %   -------
-            %   match_result: NEURON.xstim.single_AP_sim.solution.match_result
+            %   match_result : NEURON.xstim.single_sim.solution.match_result
             %
             %   Inputs
             %   ------
-            %   new_cell_locations : 
+            %   cell_locations :
+            %   scales : 
             %
-            %   See Also:
-            %   NEURON.xstim.single_AP_sim.solution.match_result
+            %   See Also
+            %   --------
+            %   NEURON.xstim.single_sim.solution.match_result
             
             if ~isempty(obj.cell_locations)
-                [mask,loc] = ismember(new_cell_locations,obj.cell_locations,'rows');
+                keyboard
+                [mask,loc] = ismember(cell_locations,obj.cell_locations,'rows');
             else
-                n_rows = size(new_cell_locations,1);
+                n_rows = size(cell_locations,1);
                 mask = false(n_rows,1);
                 loc  = zeros(n_rows,1);
             end
-            match_result = NEURON.xstim.single_AP_sim.solution.match_result(obj,mask,loc,new_cell_locations(~mask,:));
+            %Inputs
+            match_result = NEURON.xstim.single_sim.solution.match_result(...
+                obj,...
+                mask,...
+                loc,...
+                cell_locations(~mask,:),...
+                scales(~mask));
         end
         function flag = issorted(obj)
-           flag = issorted(obj.cell_locations,'rows'); 
+            flag = issorted(obj.cell_locations,'rows');
         end
     end
     
     methods
         function sorted_obj = getSortedObject(obj)
-           %getSortedObject
-           %    
-           %    sorted_obj = getSortedObject(obj)
-           %
-           %    NOTE: This should be used with caution because it
-           %    creates a new object. This was written for a static
-           %    method in logged_data
-           
-           [~,I] = sortrows(obj.cell_locations);
-           sorted_obj = obj.getPartialObject(I);
+            %getSortedObject
+            %
+            %    sorted_obj = getSortedObject(obj)
+            %
+            %    NOTE: This should be used with caution because it
+            %    creates a new object. This was written for a static
+            %    method in logged_data
+            
+            [~,I] = sortrows(obj.cell_locations);
+            sorted_obj = obj.getPartialObject(I);
         end
     end
     

@@ -1,7 +1,7 @@
 classdef sim_logger < NEURON.sl.obj.handle_light
     %
     %   Class:
-    %       NEURON.simulation.extracellular_stim.sim_logger
+    %   NEURON.simulation.extracellular_stim.sim_logger
     %
     %   This class was written primarily to facilitate the logging of
     %   stimulus threshold data for different simulations.
@@ -15,9 +15,9 @@ classdef sim_logger < NEURON.sl.obj.handle_light
     %   4) Matcher subclass is not logging all components
     %   5) Move comparisons for matcher to class.
     %
-    %   LONG TERM
-    %   ===================================================================
-    %   We could eventually log other types of simualations as well. This
+    %   Long Term
+    %   ---------
+    %   We could eventually log other types of simulations as well. This
     %   class would need to move up the package hierarchery ...
     %
     %   See Also:
@@ -37,7 +37,7 @@ classdef sim_logger < NEURON.sl.obj.handle_light
        %matches for simulations that match the current simulation setup.
        
        %.findMatch
-       simulation_data_obj  %Class: NEURON.simulation.extracellular_stim.sim_logger.data
+       simulation_data_obj  %NEURON.simulation.extracellular_stim.sim_logger.data
     end
     
     properties

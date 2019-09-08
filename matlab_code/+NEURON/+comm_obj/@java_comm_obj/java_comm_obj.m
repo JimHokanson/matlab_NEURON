@@ -10,7 +10,7 @@ classdef java_comm_obj < NEURON.comm_obj
     %   NEURON_reader.
     %
     %   The Java implementation is the preferred communication object as it
-    %   seems to run a bit faster, should work on all os systems, and 
+    %   seems to run a bit faster, should work on all os systems, and
     %   seems less susceptible to random Matlab crashes.
     %
     %   Improvements
@@ -68,12 +68,9 @@ classdef java_comm_obj < NEURON.comm_obj
         % http://www.neuron.yale.edu/phpBB/viewtopic.php?f=4&t=2732
         %cmd_options_pc   = {'-nogui' '-nobanner' '-isatty'}
         %cmd_options_unix = {'-nogui' '-nobanner' '-notatty'}
-        cmd_options_unix = {'-nogui' '-notatty' '-nobanner'}
         
-        %cmd_options_unix = {'-nogui' '-nobanner' '-notatty' '-nopython'}
-        
-        %This is experimental ...
-        cmd_options_unix_banner =  {'-notatty' '-nobanner'}
+        %This also is what is run on Windows for newer versions of NEURON
+        cmd_options_unix = {'-nogui' '-nobanner' '-notatty' '-nopython'}
         
         %Hines intention:
         %-isatty unbuffered stdout, print prompt when waiting for stdin
@@ -83,42 +80,24 @@ classdef java_comm_obj < NEURON.comm_obj
     end
     
     methods (Hidden)
-        function obj = java_comm_obj(varargin)
+        function obj = java_comm_obj()
             %java_comm_obj
             %
             %   obj = NEURON.comm_obj.java_comm_obj()
             
-            in.show_banner = false;
-            in = NEURON.sl.in.processVarargin(in,varargin);
-            
             paths_obj = NEURON.paths.getInstance;
-
+            
+            %In later versions of NEURON the bash executable is missing
+            %so this only runs on Windows for older NEURON versions
             if ispc && exist(paths_obj.win_bash_exe_path,'file')
-                %In later versions of NEURON the bash executable is missing
-                %...
-                %
-                %NOTE: The concatenation passes nobanner to the NEURON
-                %executable instead of being processed by Bash separately
-                %
-                %It is equivalent to putting quotes around the executable
-                %and its arguments
-                
-                
                 %In NEURON 7.3 I'm getting a warning about DOS paths
                 %when running chdir(). I'm not sure where that is coming
                 %from since I'm using cygwin pathing
-                if in.show_banner
-                    cmd_array = {paths_obj.win_bash_exe_path '-c' NEURON.sl.dir.getCygwinPath(paths_obj.exe_path)};  
-                else
-                    cmd_array = {paths_obj.win_bash_exe_path '-c' [NEURON.sl.dir.getCygwinPath(paths_obj.exe_path) ' -nobanner']};
-                end
-                %cmd_array = {paths_obj.win_bash_exe_path '-c' [NEURON.sl.dir.getCygwinPath(paths_obj.exe_path) ' -nobanner']};
-            else % here i'm assuming mac and unix behave the same, if there's an issue with unix, fix this
-                if in.show_banner
-                    cmd_array = [paths_obj.exe_path obj.cmd_options_unix_banner];
-                else
-                    cmd_array = [paths_obj.exe_path obj.cmd_options_unix];
-                end
+                
+                cmd_array = {paths_obj.win_bash_exe_path '-c' [NEURON.sl.dir.getCygwinPath(paths_obj.exe_path) ' -nobanner']};
+            else
+                % Here i'm assuming mac and unix behave the same ...
+                cmd_array = [paths_obj.exe_path obj.cmd_options_unix];
             end
             
             %java.lang.ProcessBuilder
@@ -127,7 +106,7 @@ classdef java_comm_obj < NEURON.comm_obj
             %On my mac for NEURON 7.7 I was getting an error about not
             %being able to find a bash script that is in the same location
             %as the nrniv executable. To fix this we add the folder
-            %containing the executable to the PATH variable of the 
+            %containing the executable to the PATH variable of the
             %NEURON process.
             %
             %Note that using setenv() in Matlab does not work (this was
@@ -135,26 +114,9 @@ classdef java_comm_obj < NEURON.comm_obj
             %of the system path, not NEURON's.
             %
             %https://stackoverflow.com/questions/41263358/java-process-builder-add-path-to-environment-not-working
-%             pb.environment().put('PATH',[...
-%                      'C:\Users\RNEL\Anaconda3' ...
-%                      char(java.io.File.pathSeparator) ...
-%                      fileparts(paths_obj.exe_path) ...
-%                      char(java.io.File.pathSeparator) getenv('PATH')]);
-                 
-            %Only what I think is necessary ...
-% % %         	pb.environment().put('PATH',[...
-% % %                      'C:\Users\RNEL\Anaconda3' ...
-% % %                      char(java.io.File.pathSeparator) ...
-% % %                      fileparts(paths_obj.exe_path) ...
-% % %                      char(java.io.File.pathSeparator) ...
-% % %                      'C:\nrn\mingw\usr\bin']);
-             
-%             %Trying to fix: The system cannot find the path specified.
-%             if ispc
-%                 %TODO: This needs to be made more generic ...
-%                 pb.directory(java.io.File('C:/nrn/bin/'));
-%             end
-
+            pb.environment().put('PATH',[ ...
+                fileparts(paths_obj.exe_path) ...
+                char(java.io.File.pathSeparator) getenv('PATH')]);
             %save for debugging
             obj.cmd_array = cmd_array;
             
@@ -183,24 +145,24 @@ classdef java_comm_obj < NEURON.comm_obj
                 %   - java.lang.UNIXProcess$ProcessPipeInputStream
                 %   - java.lang.UNIXProcess$ProcessPipeOutputStream
                 obj.j_reader = NEURON_reader(obj.j_input_stream,...
-                                    obj.j_error_stream,obj.j_process);
+                    obj.j_error_stream,obj.j_process);
             catch ME
-               fprintf(2,['Failed to instantiate NEURON_reader class\n' ...
-                   'this most often happens when failing to call\n' ... 
-                   'NEURON.s.init_system() on system startup\n' ...
-                   '--------------------------------------------------\n']);
-               %Call initialize_matlab_NEURON() on startup
-               %
-               %    I generally prefer to place this in a startup file:
-               %        root_path = 'D:\repos\matlab_git\matlab_NEURON\matlab_code';
-               %        addpath(root_path)
-               %        initialize_matlab_NEURON()
-               %    
-               ME.rethrow();
+                fprintf(2,['Failed to instantiate NEURON_reader class\n' ...
+                    'this most often happens when failing to call\n' ...
+                    'NEURON.s.init_system() on system startup\n' ...
+                    '--------------------------------------------------\n']);
+                %Call initialize_matlab_NEURON() on startup
+                %
+                %    I generally prefer to place this in a startup file:
+                %        root_path = 'D:\repos\matlab_git\matlab_NEURON\matlab_code';
+                %        addpath(root_path)
+                %        initialize_matlab_NEURON()
+                %
+                ME.rethrow();
             end
             
             %Some debugging of a CYGWIN path error
-            %[success,results] = obj.write('1');            
+            %[success,results] = obj.write('1');
         end
         
         function delete(obj)
@@ -227,7 +189,7 @@ classdef java_comm_obj < NEURON.comm_obj
             java_target = fullfile(code_root,'src','NEURON_reader.java');
             NEURON.utils.java.compile(java_target)
             
-        	current_breakpoints = dbstatus('-completenames');
+            current_breakpoints = dbstatus('-completenames');
             evalin('base', 'clear java');
             pause(0.1)
             dbstop(current_breakpoints);
@@ -238,10 +200,10 @@ classdef java_comm_obj < NEURON.comm_obj
             movefile(src,dest)
         end
         function editJavaCode()
-          	%
+            %
             %   NEURON.comm_obj.java_comm_obj.editJavaCode()
-            %   
-         	bin_path = NEURON.comm_obj.java_comm_obj.getJavaBinPath();
+            %
+            bin_path = NEURON.comm_obj.java_comm_obj.getJavaBinPath();
             code_root = fileparts(bin_path);
             java_target = fullfile(code_root,'src','NEURON_reader.java');
             edit(java_target)
@@ -262,36 +224,36 @@ classdef java_comm_obj < NEURON.comm_obj
             NEURON.comm_obj.java_comm_obj.init_system_setup
         end
         function [flag,reason] = validate_installation
-           %validate_installation
-           %
-           %    [flag,reason] = NEURON.comm_obj.java_comm_obj.validate_installation
-           %
-           %    The goal of this method is to verify that things are
-           %    properly installed.
-           
-           java_paths = javaclasspath(); %Current java paths defined in Matlab
-           
-           %Desired path to be defined
-           java_bin_path = NEURON.comm_obj.java_comm_obj.getJavaBinPath; 
-           
-           %??? - does this work for unix and mac?
-           flag = any(cellfun(@(x) strcmp(x,java_bin_path),java_paths));
-           
-           if flag
-               reason =  '';
-               try
-                   %Static method call to class to test installation
-                   NEURON_reader.test_install;
-               catch ME %#ok<NASGU>
-                  flag = false; 
-                  %Should also do: usejava('awt')
-                  reason = ['Sources is on path but calling class failed'...
-                      ', perhaps Java versions differ???'];
-               end
-           else
-               reason = 'NEURON_reader not found in java class path';
-           end
-           
+            %validate_installation
+            %
+            %    [flag,reason] = NEURON.comm_obj.java_comm_obj.validate_installation
+            %
+            %    The goal of this method is to verify that things are
+            %    properly installed.
+            
+            java_paths = javaclasspath(); %Current java paths defined in Matlab
+            
+            %Desired path to be defined
+            java_bin_path = NEURON.comm_obj.java_comm_obj.getJavaBinPath;
+            
+            %??? - does this work for unix and mac?
+            flag = any(cellfun(@(x) strcmp(x,java_bin_path),java_paths));
+            
+            if flag
+                reason =  '';
+                try
+                    %Static method call to class to test installation
+                    NEURON_reader.test_install;
+                catch ME %#ok<NASGU>
+                    flag = false;
+                    %Should also do: usejava('awt')
+                    reason = ['Sources is on path but calling class failed'...
+                        ', perhaps Java versions differ???'];
+                end
+            else
+                reason = 'NEURON_reader not found in java class path';
+            end
+            
         end
         function java_bin_path = getJavaBinPath()
             %
@@ -326,7 +288,7 @@ classdef java_comm_obj < NEURON.comm_obj
         end
     end
     
-    %MAIN COMMUNICATION METHOD   
+    %MAIN COMMUNICATION METHOD
     %----------------------------------------------------------------------
     methods
         function [success,results] = write(obj,command_str,option_structure)
@@ -336,7 +298,7 @@ classdef java_comm_obj < NEURON.comm_obj
             %
             %   This is the main function which is responsible for sending
             %   a message to NEURON and waiting for a response.
-            %   
+            %
             %
             %    Inputs
             %    ------
@@ -346,12 +308,12 @@ classdef java_comm_obj < NEURON.comm_obj
             %        .max_wait    - (default 10), -1 indicates waiting
             %               forever, wait time in seconds before read
             %               timeout occurs
-            %        .debug       - (default true) whether to print 
+            %        .debug       - (default true) whether to print
             %                        messages or not ...
             %
             %   See Also
             %   --------
-            %   NEURON.cmd.write    
+            %   NEURON.cmd.write
             %   NEURON.comm_obj.java_comm_obj.writeLine
             %
             %   Full Path:
@@ -372,55 +334,30 @@ classdef java_comm_obj < NEURON.comm_obj
             end
             
             debug = option_structure.debug;
-              
             
-            %TODO: Merge these things into the Java class
-            %---------------------------------------------------
+            
+            %TODO: Ideally some of this would be done in the Java class
+            %since the Java class needs to know about the terminator anyway
             
             %TODO: Consider merging these two lines to have a single flush
             %and improve performance ...
             obj.writeLine(command_str);
             
-            %Forcing a newline
-            %--------------------------------------------------------------
-            %In general Neuron doesn't always do a line return with an <oc>
-            %prompt. It is possible to search the end of a return string to
-            %find an <oc>, but this seemed messy. Instead we explicitly
-            %look for a seperate transmission of <oc>. 
-            %
-            %NOTE: This is a magic string which we could change if
-            %necessary.
-            %obj.writeLine('{fprint("\n<oc>\n")}');
-            %obj.writeLine('{printf("\n<oc>\n")}');
-            %obj.writeLine(['{' char(10) '<oc>' char(10) '}']); %#ok<CHARTEN>
-            %obj.writeLine([ char(10) '"<oc>"' char(10) ]); %#ok<CHARTEN>
-            %obj.writeLine([ char(10) '"' char(10) '<oc>' char(10) '"' char(10) ]);
-            %obj.writeLine('{fprint("\n\r<oc>\n\r")}');
-            %'G:/repos/matlab_git/?????<oc>???'
-            
-            %obj.writeLine('{fprint("\n<oc>\n")}');
-            %'G:/repos/matlab_git/????<oc>??'
-            
-            %obj.writeLine('{fprint("\n<oc>\r\n")}');
-            %'G:/repos/matlab_git/????<oc>???'
-            
-            %I think the lesson learned here is that for some reason
-            %newline is forcing a CR\NL combo and that I shouldn't
-            %rely on faithful transmission of this combo
-            %
-            %Instead let's just make our magic string slightly more
-            %complicated,although <oc> on it's own is unlikely
-            
+            %We need to transmit something to NEURON that gets echoed back
+            %to us to let us know that the above command has finished. I 
+            %originally had something with newlines, but somewhere carriage
+            %returns were getting added ...
             obj.writeLine('{fprint("<xxocxx>")}');
             
             max_wait = option_structure.max_wait;
             
-            [success,results] = readResult(obj,max_wait,debug);
+            [success,results] = obj.readResult(max_wait,debug);
         end
     end
     
     methods (Hidden)
         function s = getJavaReaderInfo(obj)
+            %TODO: I don't think this is everything in the class ...
             r = obj.j_reader;
             s = struct;
             s.success_flag = r.success_flag;
@@ -428,66 +365,10 @@ classdef java_comm_obj < NEURON.comm_obj
             s.detected_end_statement = r.detected_end_statement;
             s.input_string = char(r.getCurrentInputString);
             s.error_string = char(r.getCurrentErrorString);
-            keyboard
         end
     end
     
-% % %     methods
-% % %         function banner_string = readBanner(obj,debug)
-% % %             
-% % %             %This only gets sent once we send something to NEURON
-% % %             %It also seems to rely on what we send it, can't just
-% % %             %be a print statement
-% % %             obj.writeLine('{nrnversion()}')
-% % %             
-% % %             r = obj.j_reader;
-% % %             
-% % %             r.init_read(-1,debug);
-% % %             
-% % %             %TODO: This all seems like a race condition ...
-% % %             s1 = char(r.getCurrentErrorString());
-% % %             s2 = char(r.getCurrentInputString());
-% % %             
-% % %             if ~isempty(s1)
-% % %                 banner_string = s1;
-% % %             else
-% % %                 banner_string = s2;
-% % %             end
-% % %             s1
-% % %             s2
-% % %             
-% % % %             done = false;
-% % % %             %NOTE: I decided to do the pausing here so that you can
-% % % %             %intterupt the read in Matlab as opposed to trying to intterupt
-% % % %             %the Java process which I found to be much more difficult.
-% % % %             t = tic;
-% % % %             while ~done
-% % % %                 done = r.read_result;
-% % % %                 %NOTE: One can always set debug to true to see why this is
-% % % %                 %not working ...
-% % % %                 %Other methods:
-% % % %                 %   r.getCurrentInputString
-% % % %                 %   r.getCurrentErrorString
-% % % %                 if ~done
-% % % %                     pause(0.001)
-% % % %                 end
-% % % %                 if toc(t) > 2
-% % % %                    keyboard 
-% % % %                 end
-% % % %             end
-% % % %             
-% % % %             %debugging: s = obj.getJavaReaderInfo();
-% % % %             
-% % % %             error_flag = r.error_flag;
-% % % %             success    = r.success_flag;
-% % % %             
-% % % %             %Success processing
-% % % %             %--------------------------------------------------
-% % % %             results = char(r.result_str);
-% % %         end 
-% % %     end
-    
-    %COMMUNICATION HELPER METHODS 
+    %COMMUNICATION HELPER METHODS
     %----------------------------------------------------------------------
     methods (Access = private)
         function writeLine(obj,str_to_write)
@@ -515,7 +396,7 @@ classdef java_comm_obj < NEURON.comm_obj
                 out.flush;
             catch ME
                 %On my mac this failed on startup because of a setup
-                %error. 
+                %error.
                 %
                 % error identifier: 'MATLAB:Java:GenericException'
                 %
@@ -527,7 +408,7 @@ classdef java_comm_obj < NEURON.comm_obj
                 %   Basically the output stream was closed, so the flush
                 %   fails. Normally I think this section is avoided because
                 %   errors come our messages sent to NEURON (i.e. after
-                %   flushing), whereas this error came simply from starting 
+                %   flushing), whereas this error came simply from starting
                 %   NEURON, thus our first write fails.
                 
                 %This is the Matlab way of reading from the stream, rather
@@ -537,11 +418,11 @@ classdef java_comm_obj < NEURON.comm_obj
                 output = zeros(1,n_available);
                 for i = 1:n_available
                     %Other read methods require passing a pointer
-                    %to a byte array. With this approach we get one 
+                    %to a byte array. With this approach we get one
                     %byte at a time which for some reason is returned
                     %as a double (we could cast at reading, but I just
                     %cast before printing)
-                   output(i) = err.read();
+                    output(i) = err.read();
                 end
                 fprintf(2,'------------   error from NEURON ... --------------\n');
                 fprintf(2,char(output));
@@ -550,7 +431,7 @@ classdef java_comm_obj < NEURON.comm_obj
                 error('See error message above')
             end
         end
-
+        
         function [success,results] = readResult(obj,wait_time,debug)
             %readResult
             %
@@ -564,7 +445,7 @@ classdef java_comm_obj < NEURON.comm_obj
             %       -1 is a special value, meaning that the code will wait
             %       indefinitely.
             %   debug : boolean
-            %       If true ... 
+            %       If true ...
             %
             %   NOTE: In general it is expected that this method is called
             %   from the write() method.
@@ -593,9 +474,11 @@ classdef java_comm_obj < NEURON.comm_obj
                 if ~done
                     pause(0.001)
                 end
-%                 if toc(t) > 2
-%                    keyboard 
-%                 end
+                %   %In case of problems with timing out ...
+                %
+                %                 if toc(t) > 2
+                %                    keyboard
+                %                 end
             end
             
             %debugging: s = obj.getJavaReaderInfo();
@@ -638,6 +521,6 @@ classdef java_comm_obj < NEURON.comm_obj
             
         end
     end
-
+    
 end
 

@@ -1,13 +1,13 @@
 classdef NEURON_objects < NEURON.sl.obj.handle_light
     %
     %   Class:
-    %       NEURON.simulation.extracellular_stim.NEURON_objects
+    %   NEURON.simulation.extracellular_stim.NEURON_objects
     %
     %   This class is meant to document the objects that are used for
     %   extracellular stimulation in NEURON.
     
     properties (Hidden)
-        cmd_obj  %Class: NEURON.cmd
+        cmd  %Class: NEURON.cmd
     end
     
     properties
@@ -16,10 +16,11 @@ classdef NEURON_objects < NEURON.sl.obj.handle_light
     end
     
     methods
-        function obj = NEURON_objects(cmd_obj)
-           obj.cmd_obj = cmd_obj; 
+        function obj = NEURON_objects(cmd)
+           obj.cmd = cmd; 
            
            %TODO: In the middle of finishing this function
+           error('Not yet implemented')
            
         end
     end

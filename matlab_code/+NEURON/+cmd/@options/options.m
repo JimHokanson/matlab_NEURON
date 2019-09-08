@@ -5,8 +5,7 @@ classdef options
     
     %Startup Properties     %==============================================
     properties
-       d0 = '-------- startup properties ------'
-       show_banner = false
+%        d0 = '-------- startup properties ------'
     end
     
     %Peristent Properties   %==============================================

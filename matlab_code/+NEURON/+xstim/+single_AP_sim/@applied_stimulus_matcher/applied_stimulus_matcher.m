@@ -10,18 +10,19 @@ classdef applied_stimulus_matcher < NEURON.sl.obj.handle_light
     %   This class should mainly be interfaced through:
     %       NEURON.xstim.single_AP_sim.applied_stimulus_manager
     %
-    %   IMPROVEMENTS
-    %   ===================================================================
+    %   Improvements
+    %   ------------
     %   1) We could eventually allow loose matching of stimuli based 
     %   on some distance metric ...
     %   2) We might want to more clearly expose what interface this class 
     %   has that is used by the applied_stimulus_manager
     %
-    %   See Also:
+    %   See Also
+    %   --------
     %   NEURON.xstim.single_AP_sim.applied_stimulus_manager
     %
-    %   MAIN METHODS 
-    %   ===================================================================
+    %   Main Methods 
+    %   ------------
     %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.getStimulusMatches
     
     %Options ==============================================================

@@ -23,6 +23,7 @@ classdef ID_logger < NEURON.logger
     %CONSTRUCTOR   %=======================================================
     methods
         function obj = ID_logger(parent)
+            %Call the super's constructor
             obj@NEURON.logger(parent);
             
             save_base_path = obj.getClassPath;

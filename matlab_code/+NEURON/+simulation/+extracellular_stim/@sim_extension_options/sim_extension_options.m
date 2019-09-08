@@ -1,7 +1,7 @@
 classdef sim_extension_options < NEURON.sl.obj.handle_light
     %
     %   Class:
-    %       NEURON.simulaton.extracellular_stim.sim_extension_options   
+    %   NEURON.simulaton.extracellular_stim.sim_extension_options   
     %
     %   This class holds options related to expanding the time for running 
     %   the simulation based on the membrane potential observed thus far.
@@ -11,7 +11,7 @@ classdef sim_extension_options < NEURON.sl.obj.handle_light
     %   membrane potential is increasing.
     %
     %   See Also:
-    %       NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
+    %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
     %
     %   IMPROVEMENTS
     %   ===================================================================

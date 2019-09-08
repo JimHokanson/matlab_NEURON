@@ -8,15 +8,6 @@ classdef request_handler
     %
     %
     %   Improvements:
-    %
-    %
-    %   See Also:
-    %   NEURON.xstim.single_AP_sim.solver
-    %   NEURON.xstim.single_AP_sim.logged_data
-    %   NEURON.xstim.single_AP_sim.solution
-    %   NEURON.xstim.single_AP_sim.applied_stimuli
-    %   NEURON.xstim.single_AP_sim.solver
-    %   NEURON.xstim.single_AP_sim.solution.match_result
     
     properties
         xstim % NEURON.xstim
@@ -24,7 +15,6 @@ classdef request_handler
     end
     
     properties
-        default_stim_sign
     end
     
     %OUTPUT ===============================================================
@@ -38,7 +28,7 @@ classdef request_handler
     end
     
     methods
-        function obj = request_handler(xstim,default_stim_sign,varargin)
+        function obj = request_handler(xstim,varargin)
             %request_handler
             %
             %   obj = NEURON.xstim.single_sim.request_handler(...
@@ -56,18 +46,7 @@ classdef request_handler
             %sure of the class) to change to a valid time
             %We also will force auto-changing ...
             
-            in.solver = 'default'; %Name of the predictor to use
-            %Options include:
-            %   - 'default'
-            %
-            %   - 'from_old_solver' This one is a bit tricky to use
-            %   and should probably be avoided ...
-            in.testing = false; %Not yet fully implemented. If testing
-            %
-            in = NEURON.sl.in.processVarargin(in,varargin);
-            
             obj.xstim = xstim;
-            obj.default_stim_sign = default_stim_sign;
             
             %Retrieval of instance id
             %--------------------------------------------------------------
@@ -78,6 +57,7 @@ classdef request_handler
             
             xstim.props.changeProps('tstop',DEFAULT_TIME)
             
+            %********************
             %TODO: We may no longer want this to be true for a single stim
             
             %TODO: Check this value before setting, throw warning
@@ -92,14 +72,9 @@ classdef request_handler
             
             %Make a nicer display function
             fprintf(2,'Save string: %s\n',obj.xstim_ID.getSaveString);
-            
-            %Initialization of the solver ...
-            %--------------------------------------------------------------
-            obj.solver = NEURON.xstim.single_AP_sim.solver.create(in.solver,xstim);
-            
-            
+                       
         end
-        function [solution,predictor_info] = getSolution(obj,cell_locations,varargin)
+        function [solution] = getSolution(obj,cell_locations,scales,varargin)
             %getSolution
             %
             %    [solution,predictor_info] = getSolution(obj)
@@ -129,14 +104,9 @@ classdef request_handler
             %logged_data
             
             in.reshape_output = true; %If true, and the cell
-            in.stim_sign      = obj.default_stim_sign; %We use the default
             %that is specified as an input to the constructor ...
             in = NEURON.sl.in.processVarargin(in,varargin);
-            
-            stim_sign = in.stim_sign;
-            
-            predictor_info = [];
-            
+                                    
             cell_locations_input = cell_locations;
             
             %XYZ Handling ...
@@ -148,11 +118,20 @@ classdef request_handler
                 xyz = cell_locations;
             end
             
-            logged_data = NEURON.xstim.single_AP_sim.logged_data(in.stim_sign,obj.xstim_ID,false);
-                     
+            if length(scales) ~= size(xyz,1)
+                if length(scales) == 1
+                    scales = repmat(scales,1,size(xyz,1));
+                else
+                    error('mismatch in size between locations and scales')
+                end
+            end
+            
+            IS_SYSTEM_TESTING = false;
+            logged_data = NEURON.xstim.single_sim.logged_data(obj.xstim_ID,IS_SYSTEM_TESTING);
+            
             %This line checks to see if the requested locations were
             %previously request and solved ...
-            match_result = logged_data.checkIfSolved(xyz);
+            match_result = logged_data.checkIfSolved(xyz,scales);
             %NEURON.xstim.single_AP_sim.solution.match_result
 
             if match_result.is_complete_match
@@ -166,9 +145,17 @@ classdef request_handler
             %   NOTE: We only do object construction here. We later will
             %   make a call to solve the objects.
             
+            keyboard
+            %NEURON.xstim.single_sim.solution.match_result
             new_cell_locations = match_result.getUnmatchedLocations();
             
+            
+            
+            
             new_data = NEURON.xstim.single_AP_sim.new_solution(stim_sign,obj.xstim_ID,new_cell_locations);
+            
+            
+            
             
             %NEURON.xstim.single_AP_sim.solver.initializeSuperProps
             s = obj.solver;
@@ -194,9 +181,13 @@ classdef request_handler
         end
         function predictor_info = runTester(obj,tester_object,varargin)
             %
-            %   INPUTS
-            %   ==========================================
+            %   TODO: What is this ??????
+            %
+            %   Inputs
+            %   ------
             %   tester_object : NEURON.xstim.single_AP_sim.system_tester
+            %
+                
             
             in.stim_sign      = obj.default_stim_sign; %We use the default
             %that is specified as an input to the constructor ...

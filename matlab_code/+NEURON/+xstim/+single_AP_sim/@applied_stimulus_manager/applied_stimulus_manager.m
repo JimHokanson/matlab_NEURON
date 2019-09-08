@@ -10,7 +10,8 @@ classdef applied_stimulus_manager < NEURON.sl.obj.handle_light
     %   
     %   
     %
-    %   See Also:
+    %   See Also
+    %   --------
     %   NEURON.xstim.single_AP_sim.solver
     %   NEURON.xstim.single_AP_sim.applied_stimuli
     %   NEURON.xstim.single_AP_sim.dim_reduction_options
@@ -32,8 +33,8 @@ classdef applied_stimulus_manager < NEURON.sl.obj.handle_light
         %   Needed for calling:
         %   .setSameAsOld()
         %
-        new_data
-        old_data
+        old_data %NEURON.xstim.single_AP_sim.solution
+        new_data %NEURON.xstim.single_AP_sim.solution
     end
 
     properties (SetAccess = private)

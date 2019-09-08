@@ -26,8 +26,8 @@ classdef extracellular_stim < NEURON.simulation
     %
     %
     %
-    %   DOCUMENTATION
-    %   ===================================================================
+    %   Documentation
+    %   -------------
     %   Additional documentation can be found in the documentation folder
     %   of this class.
     %
@@ -36,11 +36,16 @@ classdef extracellular_stim < NEURON.simulation
     %   1) Write display method
     %   2) Refactor stimulus data to allow better superposition and
     %   computing of stimuli in NEURON
+    %
+    %   See Also
+    %   --------
+    %   NEURON.simulation
     
     %OPTIONS =============================================================
     properties
-        threshold_options_obj   %Class: NEURON.simulation.extracellular_stim.threshold_options
-        sim_ext_options_obj     %Class: NEURON.simulaton.extracellular_stim.sim_extension_options
+        d1 = '-------- xstim properties ----------'
+        threshold_options_obj   %NEURON.simulation.extracellular_stim.threshold_options
+        sim_ext_options_obj     %NEURON.simulaton.extracellular_stim.sim_extension_options
     end
     
     properties (Hidden)
@@ -108,8 +113,8 @@ classdef extracellular_stim < NEURON.simulation
             obj.threshold_options_obj  = threshold_options;
             obj.sim_ext_options_obj    = sim_extension_options;
             obj.data_transfer_obj      = data_transfer(obj.sim_hash,...
-                obj.binary_data_transfer_path,obj.cmd_obj);
-            obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd_obj);
+                obj.binary_data_transfer_path,obj.cmd);
+            obj.threshold_analysis_obj = threshold_analysis(obj,obj.cmd);
             
         end
     end
@@ -136,7 +141,7 @@ classdef extracellular_stim < NEURON.simulation
             
             %Base definition:
             %NEURON.cell.extracellular_stim_capable.createExtracellularStimCell
-            obj.cell_obj.createExtracellularStimCell(obj.cmd_obj,...
+            obj.cell_obj.createExtracellularStimCell(obj.cmd,...
                 obj.options.display_NEURON_steps);
             
             obj.init__create_stim_info();
@@ -192,6 +197,9 @@ classdef extracellular_stim < NEURON.simulation
             
             %NEURON.simulation.extracellular_stim.sim_logger.initializeLogging
             sim_logger.initializeLogging(obj);
+        end
+        function r = sim__getSingleStimSolver(obj,varargin)
+        	r = NEURON.xstim.single_sim.request_handler(obj);
         end
         function r = sim__getSingleAPSolver(obj,varargin)
             %
@@ -253,7 +261,7 @@ classdef extracellular_stim < NEURON.simulation
     %Info Retrieval   %====================================================
     methods
         function nobj = getNEURONobjects(obj)
-            nobj = NEURON.simulation.extracellular_stim.NEURON_objects(obj.cmd_obj);
+            nobj = NEURON.simulation.extracellular_stim.NEURON_objects(obj.cmd);
         end
     end
     
@@ -266,12 +274,9 @@ classdef extracellular_stim < NEURON.simulation
     methods
         function logger = getLogger(obj)
             %Note: There isn't exactly a reason for the xstim logger to be
-            %a singleton.. only mims. which is why this call is different
-            %from the rest
+            %a singleton.. only mims (multi-id managers). which is why 
+            %this call is different from the rest
             logger = NEURON.simulation.extracellular_stim.logger.getInstance(obj);
-        end
-        function single_stim_logger = getSingleStimLogger(obj)
-            
         end
     end
 end

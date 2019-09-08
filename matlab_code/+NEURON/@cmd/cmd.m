@@ -3,18 +3,27 @@ classdef cmd < NEURON.sl.obj.handle_light
     %   Class: 
     %   NEURON.cmd
     %
-    %   Class to house NEURON commands with better wrappers.
-    %   Most commands should go through here.
-    %
-    %   This class holds onto a communication object which is able to 
-    %   communicate with the NEURON process.
+    %   This class is the gateway for sending commands to NEURON. It also
+    %   holds methods that represent calls to NEURON commands.
     %
     %   Example Usage
     %   -------------
     %   options = NEURON.cmd.options;
     %   options.debug = true;
+    %   options.log_commands = true;
     %   cmd = NEURON.cmd(options);
     %   version_str = cmd.version(1)
+    %   cmd.run_command('a = 1 + 1')
+    %   cmd.run_command('print a')
+    %   cmd.log.command_history
+    %
+    %   See Also
+    %   --------
+    %   NEURON.simulation
+    
+    
+    %   Old documentation:
+    %   https://neuron.yale.edu/neuron/static/docs/help/
     
     properties (Hidden)
         comm_obj %Class: Implementation of NEURON.comm_obj
@@ -23,8 +32,6 @@ classdef cmd < NEURON.sl.obj.handle_light
         %   I then settled on a Java implementation.
         %
         %       NEURON.comm_obj.java_comm_obj
-        
-        log %NEURON.command_log
     end
     
     properties
@@ -34,6 +41,9 @@ classdef cmd < NEURON.sl.obj.handle_light
     properties
         last_command_str %Set during write in case there is an error,
         %the user can see what the last error was.
+        
+        log %NEURON.cmd.log
+        launch_duration
     end
     
     %Constructor  ----------------------------------------------
@@ -59,11 +69,14 @@ classdef cmd < NEURON.sl.obj.handle_light
             
             opt = obj.options;
             
-            obj.log = NEURON.cmd.log;
+            if opt.log_commands
+                obj.log = NEURON.cmd.log;
+            end
             
             %Load communication object
-            obj.comm_obj = NEURON.comm_obj.java_comm_obj('show_banner',opt.show_banner);
-            
+            h_tic = tic;
+            obj.comm_obj = NEURON.comm_obj.java_comm_obj();
+            obj.launch_duration = toc(h_tic);
         end
     end
     
@@ -78,7 +91,19 @@ classdef cmd < NEURON.sl.obj.handle_light
             %   NEURON. This method calls the communication object to send
             %   a message to NEURON and then waits for the response.
             %
-            %   User should call run_command() instead
+            %   User should call run_command() instead. Basically
+            %   run_command just sounds nicer but calls this.
+            %
+            %   Outputs
+            %   -------
+            %   success : logical
+            %       This only indicates that something didn't go horribly
+            %       wrong. It is still possible that the command didn't
+            %       work.
+            %   results : string
+            %       This is the reply message sent to NEURON. It may
+            %       contain additional information that is needed to
+            %       determine if the command actually ran as desired.
             %
             %   Further documentation of inputs and outputs is given in the
             %   public facing method:
@@ -97,16 +122,21 @@ classdef cmd < NEURON.sl.obj.handle_light
             obj.last_command_str = command_str;
             
             if in.debug
-                fprintf('COMMAND: %s\n',command_str);
-                fprintf('---------------  RESPONSE -----------------\n');
+                fprintf('   COMMAND: %s\n',command_str);
+                fprintf('  RESPONSE:\n'); 
+            end
+            
+          	if opt.log_commands
+                obj.log.initCommand(command_str);
             end
             
             %NEURON.comm_obj.java_comm_obj.write
-            %NEURON.comm_obj.windows_comm_obj.write
-            [success,result_str] = write(obj.comm_obj,command_str,in);
+            %TODO: I don't like that the comm obj is printing
+            %- that should be done here ...
+            [success,result_str] = obj.comm_obj.write(command_str,in);
             
             if opt.log_commands
-                obj.log.addCommand(command_str,result_str,success);
+                obj.log.terminateCommand(result_str,success);
             end
             
             %Error Handling and Interactive Display Handling
@@ -118,7 +148,7 @@ classdef cmd < NEURON.sl.obj.handle_light
                %
                %Alternative Approach:
                %http://auxmem.com/2010/03/17/how-to-squelch-the-cygwin-dos-path-warning/
-                   fprintf(2,'CYGWIN WARNING DETECTED\n-----------------------\n%s\n\n',result_str);
+               fprintf(2,'CYGWIN WARNING DETECTED\n-----------------------\n%s\n\n',result_str);
                success = 1;
             end
             
@@ -131,7 +161,7 @@ classdef cmd < NEURON.sl.obj.handle_light
                     %window
                     fprintf(2,'%s\n',result_str);
                 else
-                    %This could be throw as caller but that is pretty
+                    %This could be thrown as caller but that is pretty
                     %much a useless Matlab function anyway
                     %http://blogs.mathworks.com/loren/2007/04/30/a-little-bit-on-message-handling/
                     %See comments 9 & 10
@@ -147,8 +177,7 @@ classdef cmd < NEURON.sl.obj.handle_light
                     %       difficult and is based on the model being run.
                     %       For example, I often get "axnode" is not a
                     %       MECHANISM for the MRG model. 
-                    %       TODO: allow specification of the cell model
-                    %       and compiling based on that ...
+                    %       see: NEURON.s.compile
                     %       -- I also found out that my code had an error
                     %       and was trying to load i386 instead of the
                     %       x86_64 bit, hopefully this is fixed now ...
@@ -176,7 +205,10 @@ classdef cmd < NEURON.sl.obj.handle_light
             %
             %    [flag,results] = run_command(obj,str,varargin)
             %
-            %    Generic method to run command in NEURON.
+            %    Generic method to run a command in NEURON. In general
+            %    I'm trying to get away from this because it requires the
+            %    user to handle the results. Instead I'm building the
+            %    NEURON commands as methods in this class.
             %
             %    Inputs
             %    ------
@@ -184,12 +216,14 @@ classdef cmd < NEURON.sl.obj.handle_light
             %       Command to run
             %
             %    Outputs
-            %    ------
-            %    flag    : Indicates success (true) or not (false). Success
+            %    -------
+            %    flag : logical
+            %       Indicates success (true) or not (false). Success
             %        is based upon whether or not NEURON throws an error.
             %        Some commands will fail, as indicated by their
             %        response, but will not throw an error.
-            %    results : String of response from NEURON program.
+            %    results : string
+            %       String of response from NEURON program.
             %
             %    Optional Inputs
             %    ---------------
@@ -199,8 +233,9 @@ classdef cmd < NEURON.sl.obj.handle_light
             %    - max_wait
             %    - throw_error
             %
-            %   TODO: Find an example of using this ...
-            %
+            %   Example
+            %   -------
+            %   
             
             %This doesn't work ...
             %varargout = obj.write(str,varargin{:});
@@ -244,6 +279,37 @@ classdef cmd < NEURON.sl.obj.handle_light
     
     %Path/File Related =============================================
     methods
+        function success = xopen(obj,path_string)
+            %
+            %
+            %   success = xopen(obj,path_string)
+            %
+            %   Example
+            %   -------
+            %   cmd.xopen('$(NEURONHOME)/lib/hoc/noload.hoc');
+
+            %
+            %   https://www.neuron.yale.edu/neuron/static/py_doc/programming/io/file.html#xopen
+            %   https://www.neuron.yale.edu/neuron/static/py_doc/programming/io/ropen.html#xopen
+            
+            %cmd.run_command('xopen("$(NEURONHOME)/lib/hoc/noload.hoc")')
+            
+            xopen_cmd = sprintf('xopen("%s")',path_string);
+            [~,results] = obj.write(xopen_cmd);
+            
+            %   Returns
+            %   -------
+            %   '' => failure
+            %   1  => success
+            %   1) 
+            
+            
+            success = ~isempty(any(results == '1'));
+            if ~success
+                error('Call to xopen failed')
+            end
+            
+        end
         function [success,results] = load_file(obj,file_path,reload_file)
             %load_file
             %
@@ -251,23 +317,25 @@ classdef cmd < NEURON.sl.obj.handle_light
             %
             %   Inputs
             %   ------
-            %   file_path : Relative paths are fine and are referenced to
-            %   the current directory first, followed by different
-            %   environment variables. When not in the current directory it
-            %   is recommended to use full paths. For windows cygwin paths
-            %   types are needed.
+            %   file_path : 
+            %       Relative paths are fine and are referenced to the
+            %       current directory first, followed by different
+            %       environment variables. When not in the current
+            %       directory it is recommended to use full paths. For
+            %       windows cygwin paths types are needed.
             %
-            %   OPTIONAL INPUTS
-            %   ===========================================================
-            %   reload_file : (default true), if true the file is reloaded.
-            %   This is useful when changing variables in a script. In
-            %   general false should never be used as it implies not
-            %   knowing whether or not we've already called the function,
-            %   which we should know. When false, if the file has
-            %   previously been loaded, it won't be loaded again.
+            %   Optional Inputs
+            %   ---------------
+            %   reload_file : (default true)
+            %       If true the file is reloaded. This is useful when
+            %       changing variables in a script. In general false should
+            %       never be used as it implies not knowing whether or not
+            %       we've already called the function, which we should
+            %       know. When false, if the file has previously been
+            %       loaded, it won't be loaded again.
             %
-            %   NEURON COMMAND - load_file
-            %   ===========================================================
+            %   NEURON COMMAND: load_file()
+            %   ---------------------------
             %   http://www.neuron.yale.edu/neuron/static/docs/help/neuron/general/function/ocfunc.html#load_file
             %
             
