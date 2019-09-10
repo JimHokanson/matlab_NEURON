@@ -1,11 +1,14 @@
 classdef neural_cell < handle
-    %neural_cell
+    %
+    %   Class:
+    %   NEURON.neural_cell
     %
     %   Generic class for inheriting cells from ...
     %
-    %   KNOWN CELL CLASSES
-    %   =================================================
-    %   NEURON.cell.axon.MRG
+    %   See Also
+    %   --------
+    %   NEURON.cell.axon
+    %
     
     properties
        path_obj   %Class: NEURON.paths
@@ -13,11 +16,22 @@ classdef neural_cell < handle
     end
     
     properties (Abstract,Hidden,Constant)
-       HOC_CODE_DIRECTORY %Location of the cell
+       HOC_CODE_DIRECTORY %Location of code for the cell
     end
     
     properties (Dependent,Access = private)
        model_directory 
+    end
+    
+    methods 
+        function value = get.model_directory(obj)
+           value = fullfile(...
+               obj.path_obj.hoc_code_model_root,...
+               obj.HOC_CODE_DIRECTORY);
+        end
+        function root_path = getModelRootDirectory(obj)
+           root_path = obj.model_directory; 
+        end
     end
         
     %MAIN CONSTRUCTOR METHOD   %===========================================
@@ -52,16 +66,6 @@ classdef neural_cell < handle
            
            obj.path_obj = sim_obj.paths;
            obj.cmd_obj  = sim_obj.cmd;
-        end
-    end
-    
-    methods 
-        function value = get.model_directory(obj)
-           value = fullfile(obj.path_obj.hoc_code_model_root,obj.HOC_CODE_DIRECTORY);
-        end
-        
-        function root_path = getModelRootDirectory(obj)
-           root_path = obj.model_directory; 
         end
     end
     

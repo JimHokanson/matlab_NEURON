@@ -6,22 +6,23 @@ function varargout = computeStimulus(obj,varargin)
 %   Calling Forms
 %   -------------
 %   1) User gets the computed variables
-%   [t_vec,v_all,cell_xyz_all] = computeStimulus(obj,varargin)
+%   [t_vec,v_all,cell_xyz_all] = computeStimulus(obj,'xyz_use',xyz)
 %
 %   2) Computed variables are stored internally
-%   computeStimulus(obj,varargin)
-%
-%   
+%   obj.computeStimulus(varargin)
 %
 %   Infinite Stimulation Fix
 %   ------------------------
-%   The user may request stimuli that are too close   
+%   The user may request stimuli from electrodes that are too close to the
+%   cell. Currently the electrode is moved 1 micron away from the cell.
+%   This code is not very general though, and could fail if not applied to
+%   axons where part of the axon is exactly at the electrode location.
 %
 %
 %   Outputs
 %   -------
-%   t_vec
-%   v_all
+%   t_vec : [n_times]
+%   v_all : [n_times x n_locations]
 %   
 %
 %   Populates (when no outputs are requested)
@@ -35,8 +36,8 @@ function varargout = computeStimulus(obj,varargin)
 %           - 0, remove nothing
 %           - 1, remove start & end zeros
 %           - 2, remove all zero stim times
-%       I'm not entirely sure why this was added :/. It may have been
-%       for plotting ...
+%       I think this was added for comparison of stimuli when determining
+%       what
 %   xyz_use : (default []) [n x 3]
 %           This should be used to pass in multiple xyz_locations. The
 %           default behavior is to request xyz based on the location
@@ -52,16 +53,15 @@ function varargout = computeStimulus(obj,varargin)
 %   3) spatial relation between electrodes and cell
 %   4) stimulus pattern for each electrode
 %
-%   Improvements
-%   ------------
-%   1) Document infinite stimulation fix ...
-%
-%
-%   NOTE: In general this function should be called only by:
-%      NEURON.simulation.extracellular_stim.init__create_stim_info
-%
+%   Known Callers
+%   -------------
+%   NEURON.simulation.extracellular_stim.init__create_stim_info
+%   TODO: Add references to request handlers
+%   
+%   Stimulus Amplitude
+%   ------------------
 %   NOTE: There is no stimulus amplitude applied here, only the scales and
-%   superposition ...
+%   superposition ... (base amps are in each electrode)
 %
 %   See Also
 %   --------
@@ -70,7 +70,6 @@ function varargout = computeStimulus(obj,varargin)
 
 INF_MOVE_CELL = sqrt(1/3); %Distance between this (for x,y,and z) and 0 is 1
 MAX_MV_STIM   = 1e4; %10 V max
-
 
 in.remove_zero_stim_option = 0;
 in.xyz_use = [];
@@ -95,7 +94,8 @@ end
 %Change stim times to match across all electrodes.
 %This causes redundant information but makes vector addition possible.
 [t_vec,all_stim] = getMergedStimTimes(obj.elec_objs);
-%all_stim: columns are electrodes, rows are times
+%all_stim : [n_times x n_electrodes] 
+%   => values - amplitudes ...
 
 switch in.remove_zero_stim_option
     case 0

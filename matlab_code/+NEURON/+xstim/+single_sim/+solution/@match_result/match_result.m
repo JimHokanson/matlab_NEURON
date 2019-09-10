@@ -55,6 +55,8 @@ classdef match_result < NEURON.sl.obj.handle_light
         %   -------
         %   new_solution : Class: NEURON.xstim.single_AP_sim.solution
             
+            keyboard
+        
             if ~obj.is_complete_match
                error('Operation not allowed for partial matches') 
             end
@@ -66,8 +68,9 @@ classdef match_result < NEURON.sl.obj.handle_light
             indices_retrieve = obj.loc;
             new_solution     = obj.solution.getPartialObject(indices_retrieve);
         end
-        function unmatched_locations = getUnmatchedLocations(obj)
-           unmatched_locations = obj.unmatched_locations; 
+        function [locs,scales] = getUnmatchedEntries(obj)
+           locs = obj.unmatched_locations; 
+           scales = obj.unmatched_scales;
         end
     end
     

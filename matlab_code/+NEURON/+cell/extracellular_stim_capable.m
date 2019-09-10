@@ -1,30 +1,30 @@
 classdef extracellular_stim_capable < handle
     %
     %   Class:
-    %       NEURON.cell.extracellular_stim_capable
+    %   NEURON.cell.extracellular_stim_capable
     %
     %   Place this class in cells to ensure that the cell is capable of
     %   being involved in an extracellular stimulation sim.
     %
     %
     %   REQUIRED LOCAL NEURON METHODS
-    %   ===================================================================
+    %   -----------------------------
     %
     %
     %   OPTIONAL NEURON METHODS
-    %   ===================================================================
+    %   -----------------------
     %   create_stim_sectionlist.hoc
     %   create_node_sectionlist.hoc
     %
-    %   IMPROVEMENTS:
-    %   ===================================================================
+    %   Improvements
+    %   ------------
     %   1) Figure out how to ensure this class has the cmd_obj instead
     %   of passing it in to every method
     %
-    %   See Also:
-    %       NEURON.simulation.extracellular_stim
+    %   See Also
+    %   --------
+    %   NEURON.simulation.extracellular_stim
     %
-    %   Class: NEURON.cell.extracellular_stim_capable
     
     properties (Abstract,SetAccess = private)
         xyz_all %NOTE: This is a [n x 3] vector which specifies the centers
@@ -34,17 +34,17 @@ classdef extracellular_stim_capable < handle
         %   For more informaton on how this relates to the stimulus and the
         %   spatial layout of the cell see:
         %       Spatial Layout Stimulus - NEURON correspondance
-        %   in the private folder under the extracellular_stim class
+        %       in the private folder under the extracellular_stim class
     end
     
     %.create_stim_sectionlist() -------------------------------------------
     properties (Hidden)
-        opt__use_local_stim_sectionlist_code = false; %If true code should
+        opt__use_local_stim_sectionlist_code = false %If true code should
         %implement create_stim_sectionlist.hoc. If false the default method
         %will be used. The default is usually sufficient for cases with no
         %cell branching (e.g. axons).
         
-        opt__first_section_access_string = 'access node[0]'; %This is the
+        opt__first_section_access_string = 'access node[0]' %This is the
         %access statement used when using the default creation method
         %of the section list. This in general should be a pointer to the
         %first section. The generic code then transverses the connectivity
@@ -53,7 +53,7 @@ classdef extracellular_stim_capable < handle
     
     %.create_node_sectionlist() -------------------------------------------
     properties (Hidden)
-        opt__use_local_node_sectionlist_code = false;
+        opt__use_local_node_sectionlist_code = false
     end
     
     methods (Abstract)
@@ -195,36 +195,38 @@ classdef extracellular_stim_capable < handle
             %   Currently this method returns locations ONLY FOR NODE
             %   LOCATIONS.
             %
-            %   INPUTS
-            %   ===========================================================
+            %   Inputs
+            %   ------
             %   cell_centers : (cell or samples x xyz), if in cell format,
             %       the cell should be of length 3, with the entries
             %       containing the x,y, & z spatial variations to use, such
             %       as {-10:10 -10:10 -50:50}
             %
-            %   OPTIONAL INPUTS
-            %   ===========================================================
-            %   nodes_only : (defaul true), False case not yet implemented
+            %   Optional Inputs
+            %   ---------------
+            %   nodes_only : (default true)
+            %       False case not yet implemented
             %
             %
             %   OUTPUTS
-            %   ===========================================================
-            %   xyz_out: (cell_centers x space x xyz) space corresponds
-            %   to each node location, given the cell centers
+            %   -------
+            %   xyz_out : (cell_centers x space x xyz)
+            %       Space corresponds to each node location, given the cell centers
             %
-            %   IMPORTANT NOTES
-            %   ===========================================================
+            %   Important Notes
+            %   ---------------
             %   1) This method currently moves the cell back to zero.
             %
-            %   IMPROVEMENTS
-            %   ===========================================================
+            %   Improvements
+            %   ------------
             %   1) We should allow getting the center position and then
             %   moving the cell back to its original position.
             %   2) Allow for returning the complete set of spatial stimuli,
             %   rather than just at the nodes.
             %
-            %   See Also:
-            %       NEURON.cell.axon.MRG.getXYZnodes
+            %   See Also
+            %   --------
+            %   NEURON.cell.axon.MRG.getXYZnodes
             
             if iscell(cell_centers)
                 if length(cell_centers) ~= 3

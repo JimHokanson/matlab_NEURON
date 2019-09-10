@@ -1,40 +1,39 @@
 classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     %MRG
     %
-    %   INHERITANCE NOTES
-    %   ===================================================================
+    %   Inheritance Notes
+    %   -----------------
     %   axon < NEURON.neural_cell
     %
     %   NEURON.cell.extracellular_stim_capable
     %   Ensures that the methods and properties needed for extracellular
     %   stimulation are in place ...
     %
-    %   IMPROVEMENTS
-    %   ===================================================================
+    %   Improvements
+    %   ------------
     %
-    %   METHODS IN OTHER FILES
-    %   ===================================================================
+    %   Methods in Other Files
+    %   ----------------------
     %   NEURON.cell.axon.MRG.createCellInNEURON   (main NEURON interface method)
     %   NEURON.cell.axon.MRG.populateSpatialInfo
     %   NEURON.cell.axon.MRG.getOtherScale
     %   NEURON.cell.axon.MRG.populate_xyz
     %
-    %   NOTES:
-    %   ===================================================================
+    %   Notes
+    %   -----
     %   1) createCellInNEURON is the primary NEURON access method
     %
-    %   MODEL CITATION
-    %   ===================================================================
+    %   Model Citation
+    %   --------------
     %   McIntyre CC, Richardson AG, Grill WM (2002) Modeling the
     %   excitability of mammalian nerve fibers: influence of
     %   afterpotentials on the recovery cycle. Journal of neurophysiology
     %   87:995–1006.
     %
-    %   See Also:
-    %   ===================================================================
+    %   See Also
+    %   --------
     %   NEURON.cell.axon.MRG.props
     
-    %directory
     properties (Hidden,Constant)
         HOC_CODE_DIRECTORY = 'MRG_Axon' %This gets used by a superclass
         %to cd to this directory, as well as to manage files written
@@ -48,9 +47,9 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
         %http://www.mathworks.com/help/matlab/matlab_oop/properties-containing-objects.html
         
         %.MRG()
-        props_obj           %Class: NEURON.cell.axon.MRG.props
-        threshold_info_obj  %Class: NEURON.cell.threshold_info
-        spatial_info_obj    %Class: NEURON.cell.axon.MRG.spatial_info
+        props_obj           %NEURON.cell.axon.MRG.props
+        threshold_info_obj  %NEURON.cell.threshold_info
+        spatial_info_obj    %NEURON.cell.axon.MRG.spatial_info
     end
     
     properties (SetAccess = private)
@@ -70,8 +69,8 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     properties (SetAccess = private,Hidden)
         %NEURON.cell.axon.MRG.createCellInNEURON
         cell_initialized_in_neuron_at_least_once = false; %This currently
-        %is used to limit the amount of code we run when we need to recreate
-        %the cell in NEURON.
+        %is used to limit the amount of code we run when we need to 
+        %recreate the cell in NEURON.
         
         %Other sub properties:
         %    props_obj.props_up_to_date_in_NEURON
@@ -84,11 +83,12 @@ classdef MRG < NEURON.cell.axon & NEURON.cell.extracellular_stim_capable
     methods
         function obj = MRG(xyz_center)
             %
-            %   MRG_Axon(xyz_center)
+            %   NEURON.cell.axon.MRG(xyz_center)
             %
-            %   INPUTS
-            %   ========================================================
-            %   xyz_center - center in xyz, relative to electrodes ...
+            %   Inputs
+            %   ------
+            %   xyz_center : [3], units (um)
+            %       Center in xyz, relative to electrodes ...
             
             obj = obj@NEURON.cell.axon;
             

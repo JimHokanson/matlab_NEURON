@@ -145,14 +145,35 @@ classdef request_handler
             %   NOTE: We only do object construction here. We later will
             %   make a call to solve the objects.
             
-            keyboard
             %NEURON.xstim.single_sim.solution.match_result
-            new_cell_locations = match_result.getUnmatchedLocations();
+            [new_cell_locations,new_scales] = match_result.getUnmatchedEntries();
+            %Note, these values are paired ...
+            
+            new_data = NEURON.xstim.single_sim.new_solution(obj.xstim_ID,new_cell_locations,new_scales);
+            
+            %For action potentials, we called a separate solver class
+            %- since this is pretty straightforward, 
+            
+            %Outline
+            %--------------------------------------------------------------
+            %0) compute stimuli
+            %1) Find redundant solutions - set those aside
+            %       - same as old
+            %       - same as new
+            %2) Start solving new values - saving periodically
+            %3) At the end, merge any redundant solutions ...
+                        
+            old_s = logged_data.solution;
+            new_s = new_data;
+            v_old = h__getAppliedStimuli(obj,old_s.cell_locations,old_s.tested_scales);
+            v_new = h__getAppliedStimuli(obj,new_s.cell_locations,new_s.tested_scales);
+            
+            %new_like_old
+            %new_like_new
+            
+            keyboard
             
             
-            
-            
-            new_data = NEURON.xstim.single_AP_sim.new_solution(stim_sign,obj.xstim_ID,new_cell_locations);
             
             
             
@@ -224,6 +245,59 @@ classdef request_handler
            logged_data_object = NEURON.xstim.single_AP_sim.logged_data(in.stim_sign,obj.xstim_ID,true);
         end
     end
+end
+
+function output = h__getAppliedStimuli(obj,cell_locations,scales)
+%
+%   Inputs
+%   ------
+%   cell_locations : [n x 3]
+%
+%   Outputs
+%   -------
+%   output : [n_cells x n_points*n_stim_times]
+
+if isempty(cell_locations)
+    output = [];
+    return;
+end
+
+%The input here is the "canonical location" of the cell.
+
+%The output of this method should be the xyz values of each point in the
+%cell for each of these locations
+
+%NEURON.cell.extracellular_stim_capable.getCellXYZMultipleLocations
+xyz_out = obj.xstim.cell_obj.getCellXYZMultipleLocations(cell_locations);
+%xyz_out : [n_cells x n_points_cell x 3]
+
+%Note, it would be nice if this were a method in xstim
+%
+%   xstim.computeAppliedStimuliMultipleLocations
+%   
+%   - get locations
+%   - compute stimulus
+%   - handle reshaping
+
+sz = size(xyz_out);
+
+n_cells = sz(1);
+n_points = sz(2);
+
+REMOVE_START_AND_END_ZEROS = 1;
+%NEURON.simulation.extracellular_stim.computeStimulus
+[~,v_all] = obj.xstim.computeStimulus(...
+    'remove_zero_stim_option',REMOVE_START_AND_END_ZEROS,...
+    'xyz_use',reshape(xyz_out,[n_cells*n_points sz(3)]));
+
+v_all2 = v_all';
+
+%v_all2 : [n_points*n_cells n_times];
+
+n_times = size(v_all2,2);
+
+output = reshape(v_all2,[n_cells n_points*n_times]);
+
 end
 
 function solution = helper__reshapeOutput(solution,reshape_output,cell_locations_input)

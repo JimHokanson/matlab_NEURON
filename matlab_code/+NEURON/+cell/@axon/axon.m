@@ -1,7 +1,7 @@
 classdef axon < NEURON.neural_cell
     %
     %   Class:
-    %       NEURON.cell.axon
+    %   NEURON.cell.axon
     %
     %
     %
@@ -20,22 +20,22 @@ classdef axon < NEURON.neural_cell
         function obj = axon()
 			obj = obj@NEURON.neural_cell; 
         end
-        
         function adjustPropagationIndex(obj,center_offset)
             %adjustPropagationIndex
             %
             %   adjustPropagationIndex(obj,centerOffset)
             %
-            %   INPUTS
-            %   ===========================================================
-            % center_offset (um): +/- distance off of center to set the
-            % propagation index. This method will calculate the appropriate
-            % index from this distance and set the propagation index
-            % accordingly.
+            %   Inputs
+            %   ------
+            %   center_offset : units (um)
+            %       +/- distance off of center to set the propagation
+            %       index. This method will calculate the appropriate index
+            %       from this distance and set the propagation index
+            %       accordingly.
             
            Z = obj.xyz_all(:,3);
            
-           centerZ      = mean([Z(1),Z(end)]); % the center of the axon
+           centerZ = mean([Z(1),Z(end)]); % the center of the axon
            propagationZ = centerZ + center_offset;
            
            [~,propagationIndex] = min(abs(Z-propagationZ));
@@ -43,8 +43,6 @@ classdef axon < NEURON.neural_cell
            
            obj.threshold_info_obj.v_ap_propagation_index = propagationIndex;
         end
-
     end
- 
 end
 

@@ -189,10 +189,16 @@ classdef new_solution < NEURON.sl.obj.handle_light
             %
             %
             %   
+            
+            keyboard
+            
            obj.will_solve_later(indices) = true;
            obj.will_solve_later_fh = [obj.will_solve_later_fh {fh}];
         end
         function applyWillSolveLaterMethods(obj)
+            
+            
+            keyboard
             
             %NOTE: We could also check if everything is done ...
             %This isn't critical but in general will need to be true ...
@@ -223,6 +229,8 @@ classdef new_solution < NEURON.sl.obj.handle_light
             %   See Also:
             %   NEURON.xstim.single_AP_sim.applied_stimulus_matcher.applyStimulusMatches
             
+            keyboard
+            
             if ~all(obj.solved(source_indices))
                 error('Not all source indices have been solved')
             end
@@ -245,6 +253,8 @@ classdef new_solution < NEURON.sl.obj.handle_light
             %    FULL PATH:
             %    NEURON.xstim.single_AP_sim.new_solution.updateSolutions
 
+            keyboard
+            
             if any(obj.solved(indices))
                 %This will eventually be allowed by not yet and perhaps
                 %not by this method ...
@@ -289,7 +299,7 @@ classdef new_solution < NEURON.sl.obj.handle_light
             thresholds     = obj.thresholds(obj.solved);
         end
         
-        function save_path = getSavePath(obj,stim_sign,xstim_ID)
+        function save_path = getSavePath(obj,xstim_ID)
             %
             %
             %   save_path = getSavePath(obj,stim_sign,xstim_ID)
@@ -304,12 +314,7 @@ classdef new_solution < NEURON.sl.obj.handle_light
             base_path = NEURON.xstim.results_path_manager.getMyBasePath(obj);
             file_name = xstim_ID.getSaveString;
             
-            if stim_sign > 0
-                sign_folder = 'pos';
-            else
-                sign_folder = 'neg';
-            end
-            save_path = NEURON.sl.dir.createFolderIfNoExist(true,base_path,sign_folder,file_name);
+            save_path = NEURON.sl.dir.createFolderIfNoExist(true,base_path,file_name);
         end
         function mergeResultsWithOld(obj,logged_data_obj)
             %
@@ -332,7 +337,7 @@ classdef new_solution < NEURON.sl.obj.handle_light
     end
     
     methods (Static,Hidden)
-        function loadAndMergeNewData(stim_sign,logged_data_obj,xstim_ID)
+        function loadAndMergeNewData(logged_data_obj,xstim_ID)
             %
             %
             %    loadAndMergeNewData(stim_sign,logged_data_obj,xstim_ID)
@@ -353,7 +358,7 @@ classdef new_solution < NEURON.sl.obj.handle_light
             %    See Also:
             %    NEURON.xstim.single_AP_sim.logged_data.loadData
             
-            [obj,file_exists] = NEURON.xstim.single_AP_sim.new_solution.createFromDisk(xstim_ID);
+            [obj,file_exists] = NEURON.xstim.single_sim.new_solution.createFromDisk(xstim_ID);
             
             if file_exists
                 obj.mergeResultsWithOld(logged_data_obj);
@@ -367,7 +372,7 @@ classdef new_solution < NEURON.sl.obj.handle_light
             %    FULL PATH:
             %    NEURON.xstim.single_AP_sim.new_solution.createFromDisk
             
-            obj = NEURON.xstim.single_AP_sim.new_solution(xstim_ID,[]);
+            obj = NEURON.xstim.single_sim.new_solution(xstim_ID,[]);
             
             file_exists = exist(obj.file_save_path,'file');
             

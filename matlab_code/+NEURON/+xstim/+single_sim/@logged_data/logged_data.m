@@ -17,7 +17,7 @@ classdef logged_data < NEURON.sl.obj.handle_light
     %Old values
     %----------------------------------------------
     properties
-        solution %NEURON.xstim.single_AP_sim.solution
+        solution %NEURON.xstim.single_sim.solution
     end
     
     methods
@@ -85,7 +85,8 @@ classdef logged_data < NEURON.sl.obj.handle_light
             end
             
             %Solution object creation ...
-            obj.solution = NEURON.xstim.single_AP_sim.solution(sol_s);
+            %-----------------------------------------------------
+            obj.solution = NEURON.xstim.single_sim.solution(sol_s);
         end
         function saveData(obj)
             %
@@ -147,7 +148,7 @@ classdef logged_data < NEURON.sl.obj.handle_light
             %how the data was saved and requiring the xstim_id as an input 
             %but alas I forget and don't want to look at it right now ...
             
-            base_path = NEURON.xstim.single_AP_sim.logged_data.getBasePath(sign);
+            base_path = NEURON.xstim.single_sim.logged_data.getBasePath(sign);
             file_paths = NEURON.sl.dir.getList(base_path,'extension','.mat','output_type','paths');
             for iFile = 1:length(file_paths)
                 cur_file_path = file_paths{iFile};
