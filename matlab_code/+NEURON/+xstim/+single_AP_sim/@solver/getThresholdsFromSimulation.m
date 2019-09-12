@@ -3,6 +3,7 @@ function threshold_simulation_results = getThresholdsFromSimulation(obj,new_indi
 %   
 %   threshold_simulation_results = getThresholdsFromSimulation(obj,new_indices,predicted_thresholds)
 %
+%   NEURON.xstim.single_AP_sim.solver.getThresholdsFromSimulation
 %
 %   This method runs the actual NEURON simulations to compute thresholds.
 %

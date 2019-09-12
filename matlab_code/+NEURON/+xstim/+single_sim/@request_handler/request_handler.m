@@ -170,14 +170,73 @@ classdef request_handler
             
             %new_like_old
             %new_like_new
+                        
+            n_new = size(v_new,1);
+            n_old = size(v_old,1);
+
+            v_merged = vertcat(v_old,v_new);
+            ids = [zeros(1,n_old),ones(1,n_new)];
+            
+            [v_sorted,I] = sortrows(v_merged);
+            
+            is_unique = false(1,length(I));
+            
+            %First must always be unique by our definition
+            source_I = zeros(1,length(I));
+            is_unique(1) = true;
+            source_I(1) = I(1);
+            last_source = I(1);
+            for i = 2:length(I)
+                is_unique(i) = any(v_sorted(i-1,:) ~= v_sorted(i,:));
+                if is_unique(i)
+                    source_I(i) = I(i);
+                    last_source = I(i);
+                else
+                    source_I(i) = last_source;
+                end
+            end
+                        
+%             unique_id = zeros(1,length(I));
+%             unique_id(is_unique) = 1;
+%             unique_id = cumsum(unique_id);
+%             
+%             unique_id_sorted(I) = unique_id;
+            
+            is_unique_sorted(I) = is_unique;
+            source_I_sorted(I) = source_I;
+            %For each new data point
+            %-------------------------------------
+            %- is it unique
+            %- if not unique - what is its source
+            %       - source_I
+            %       - is_source_old
+            
+            if n_old ~= 0
+                new__is_unique = is_unique_sorted(n_old+1:end);
+                new__source_I  = source_I_sorted(n_old+1:end);
+                is_old_source = new__source_I <= n_old;
+                is_new_source = ~is_old_source;
+                new__source_I(is_new_source) = new__source_I(is_new_source)-n_old;
+            else
+                new__is_unique = is_unique_sorted;
+                new__source_I = source_I_sorted;
+                is_old_source = false(1,n_new);
+            end
             
             keyboard
             
+            %??? Does the old code store non-unique points?
+            %I think so ...
+            
+            %Next steps
+            %1) Find some unique values to test
+            %2) run them
+            %3) save them
             
             
-            
-            
-            
+            %Old Code
+            %--------------------------------------------------------------
+            %{
             %NEURON.xstim.single_AP_sim.solver.initializeSuperProps
             s = obj.solver;
             s.initializeSuperProps(logged_data,new_data,stim_sign);
@@ -199,6 +258,7 @@ classdef request_handler
             else
                 error('The predictor failed to populate all solutions')
             end
+            %}
         end
         function predictor_info = runTester(obj,tester_object,varargin)
             %
@@ -297,6 +357,8 @@ v_all2 = v_all';
 n_times = size(v_all2,2);
 
 output = reshape(v_all2,[n_cells n_points*n_times]);
+
+output = bsxfun(@times,output,scales(:));
 
 end
 

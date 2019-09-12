@@ -103,6 +103,10 @@ classdef solver < NEURON.sl.obj.handle_light
             %This method should be called by request handler to initialize
             %the properties that this class holds ...
             %
+            %   JAH NOTE: I think the general idea here is that I wanted to
+            %   init props that are common to all solvers and that the
+            %   methods in this root class will use
+            %
             %    NOTE: We might add a hook to allow initialization of the
             %    subclasses after this. Currently the request handler
             %   makes that call ...
