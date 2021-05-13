@@ -25,7 +25,7 @@ classdef electrode < NEURON.loggable
     %   NEURON.simulation.extracellular_stim.electrode.plot
     %
     %   IMPROVEMENTS
-    %   ===================================================================
+    %   ------------
     %   1) Finish plot method
     %   2) Provide retrieval method for describing stimulus on a fixed time
     %   scale. In other words, given a dt and a scale multipler, return a

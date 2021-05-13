@@ -13,7 +13,9 @@ classdef logger < NEURON.logger.auto_logger
     properties(Constant)
         IS_SINGULAR_OBJECT = true;
         PROCESSING_INFO = {...
-            'resistivity'       'vectorFP'      ''}
+            'resistivity'       'vectorFP'      ''; ...
+            'scale_type'        'simple_numeric'        ''}
+        
         %made the retrieval method empty
         %see NEURON.logger.auto_logger.getNewValue
         %    (line: 93 and 100) perhaps?

@@ -118,13 +118,16 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
             %   scale : 
             %       Multiplier of loaded data.
             %   auto_expand : logical
-            %       If true, we 
+            %       If true, the simulation may run longer if the membrane
+            %       voltage on the cell is still rising at the end of the
+            %       stimulation
             %
             %   Outputs
             %   -------
             %   result_obj : NEURON.simulation.extracellular_stim.results.single_sim
             %
-            %   See Also:
+            %   See Also
+            %   --------
             %   NEURON.simulation.extracellular_stim.sim__single_stim
             %   NEURON.simulation.extracellular_stim.results.single_sim
             %
@@ -145,12 +148,14 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
                             obj.parent,scale,t_info,initial_tstop);
             result_obj.tested_scale = scale;
             result_obj.xstim_obj = obj.parent;
+            result_obj.final_simulation_time = initial_tstop;
             
             %Running the simulation
             %--------------------------------------------------------------
             obj.cmd_obj.run_command('{symbols()}')
             str = sprintf('xstim__run_stimulation2(%0g)',scale);
-            [result_obj.success,result_str] = obj.cmd_obj.run_command(str,'throw_error',false);
+            [result_obj.success,result_str] = ...
+                obj.cmd_obj.run_command(str,'throw_error',false);
             
             %Determining if we used too large of a scale ...
             %--------------------------------------------------------------
@@ -235,8 +240,6 @@ classdef threshold_analysis < NEURON.sl.obj.handle_light
                   end
                   result_obj.final_simulation_time = current_t_stop; 
                end
-            else
-                result_obj.final_simulation_time = initial_tstop;
             end
             
             result_obj.membrane_potential = vm;

@@ -3,8 +3,31 @@ function output_indices = compare(obj, new, old, type, input_indices)
 %
 %   output_indices = compare(obj, new, old, type, input_indices)
 %
-%depending on the type find the appropriate comparison method
-%return indices of the same prop...
+%   Returns indices where the 'new' value matches 'old' values. Only 
+%   a subset of indices are tested based on 'input_indices'
+%
+%   Inputs
+%   ------
+%   obj :
+%   new :
+%       New value
+%   old :
+%       Old values
+%   type :
+%       Type of the data. This is used to select the comparison method.
+%       - 'simple_numeric'
+%       - 'cellFP'   - 
+%       - 'matrixFP' - matrix, floating point
+%       - 'vectorFP' - vector, floating point
+%   input_indices :
+%       Indices of the old to compare the new value to
+%
+%   
+%
+%   Outputs
+%   -------
+%   output_indices : array
+%       Indices where the new 
 %
 %   See Also:
 %   
@@ -73,6 +96,7 @@ switch type
         error('Type %s not recognized',type)
 end
 
+%Translate to original indices
 output_indices = input_indices(temp_indices);
 
 %method = getCompar

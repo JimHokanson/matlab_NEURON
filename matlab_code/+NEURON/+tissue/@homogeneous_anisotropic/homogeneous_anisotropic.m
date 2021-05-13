@@ -1,6 +1,12 @@
 classdef homogeneous_anisotropic < NEURON.tissue
     %
-    %   CLASS: NEURON.tissue.homogeneous_anisotropic
+    %   Class: 
+    %   NEURON.tissue.homogeneous_anisotropic
+    %
+    %   See Also
+    %   --------
+    %   NEURON.tissue.homogeneous_anisotropic.logger
+    %   NEURON.tissue.homogeneous_isotropic
     %
     
     %NOTE: Could allow conductivity and then set to resistivity
@@ -8,6 +14,11 @@ classdef homogeneous_anisotropic < NEURON.tissue
     
     properties
         resistivity  %Ensure on setting that it is a 3 element row vector
+        %Units : ohm-cm
+        
+        scale_type = 0
+        %0 - full sphere
+        %1 - half sphere
     end
 
     methods
@@ -21,12 +32,12 @@ classdef homogeneous_anisotropic < NEURON.tissue
             %computeAppliedVoltageToCellFromElectrode  Computes voltage in anisotropic field
             %
             %
-            %   OUTPUTS
-            %   ====================================================================
+            %   Outputs
+            %   -------
             %   v_ext : (   , units - mV)
             %
-            %   INPUTS
-            %   ====================================================================
+            %   Inputs
+            %   ------
             %   cell_xyz_all : [n x 3]
             %   elec_xyz     : [1 x 3]
             %
@@ -41,14 +52,16 @@ classdef homogeneous_anisotropic < NEURON.tissue
             %  =      ------------
             %            4*pi
             
-            %TODO: Document the 10 ...
+            %10 => see NEURON.tissue.homogeneous_isotropic
             
-            scale_factor = 10*sqrt(prod(obj.resistivity))/(4*pi);
+            if obj.scale_type == 0
+                scale_factor = 10*sqrt(prod(obj.resistivity))/(4*pi);
+            elseif obj.scale_type == 1
+                scale_factor = 10*sqrt(prod(obj.resistivity))/(2*pi);
+            else
+                error('unexpected scale type')  
+            end
             
-            %TODO: Above would be better as:
-            %=> 10 * sqrt(prod(obj.resistivity)
-            
-            %scale_factor = 10*obj.resistivity/(4*pi);
             
             %COMPUTING THE DISTANCE
             %-----------------------------------------------------------------------

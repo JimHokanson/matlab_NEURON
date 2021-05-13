@@ -18,13 +18,13 @@ function result_obj = sim__single_stim(obj,scale,auto_expand)
 %       If true the simulation will be expanded until the recorded membrane
 %       potential is no longer rising. Specific rules for expansion are
 %       handled in:
-%           NEURON.simulation.extracellular_stim.threshold_analysis
+%       NEURON.simulation.extracellular_stim.threshold_analysis
 %       
 %       
 %
 %   Outputs
 %   -------
-%   result_obj: NEURON.simulation.extracellular_stim.results.single_sim
+%   result_obj : NEURON.simulation.extracellular_stim.results.single_sim
 %
 %   See Also
 %   --------

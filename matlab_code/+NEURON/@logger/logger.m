@@ -12,8 +12,8 @@ classdef logger < NEURON.sl.obj.handle_light
     %   -------------------------------------------------------------------
     %   NEURON.simulation.extracellular_stim.electrode.elec_logger
     %
-    %   IMPROVEMENTS:
-    %   ===================================================================
+    %   Improvements
+    %   ------------
     %   1) Needs significant documentation updates
     %   2) Remove long names ...
     %   3) Change name of find to be more appropriate
@@ -166,15 +166,20 @@ classdef logger < NEURON.sl.obj.handle_light
             %
             %    ID = getID(obj)
             %
-            %    INPUTS
-            %    ===========================================================
+            %    Inputs
+            %    ------
             %    match_index : (default []), typically the row of the
             %                matching entry,
             %
             %                [] => NULL ID (i.e. match not found)
             %
-            %   See Also:
-            %   #OBJ.updateIDandSave
+            %   Outputs
+            %   -------
+            %   ID : NEURON.logger.ID
+            %
+            %   See Also
+            %   --------
+            %   updateIDandSave
             %
             %    FULL PATH:
             %    NEURON.logger.getID

@@ -223,7 +223,56 @@ classdef request_handler
                 is_old_source = false(1,n_new);
             end
             
-            keyboard
+            if any(new__is_unique)
+                s = NEURON.xstim.single_sim.solver(...
+                    logged_data,...
+                    new_s,...
+                    obj.xstim,...
+                    new__is_unique,...
+                    new__source_I,...
+                    is_old_source);
+                s.getSolutions();
+            end
+            
+            %This is ugly but it works for now ...
+            s2 = new_s;
+            for i = 1:length(new__is_unique)
+                if ~new__is_unique(i)
+                    I2 = new__source_I(i);
+                    if is_old_source(i)
+                        s1 = old_s;
+                    else
+                        s1 = new_s;
+                    end
+                    s2.solved(i) = true;
+                    %These are whatever they are ....
+                    %s2.cell_locations(i,:) = s2.cell_locations(i,:);
+                    %s2.tested_scales(i) = 
+                    %Copy the results
+                    s2.success(i) = s1.success(I2);
+                    s2.tissue_fried(i) = s1.tissue_fried(I2);
+                    s2.initial_stim_time(i) = s1.initial_stim_time(I2);
+                    s2.final_stim_time(i) = s1.final_stim_time(I2);
+                    s2.membrane_potential(i) = s1.membrane_potential(I2);
+                    s2.ap_propagated(i) = s1.ap_propagated(I2);
+                    s2.solve_dates(i) = s1.solve_dates(I2);
+                end
+            end
+            
+            logged_data.addEntries(new_s);
+            
+            
+            match_result = logged_data.checkIfSolved(xyz,scales);
+            %NEURON.xstim.single_AP_sim.solution.match_result
+
+            if match_result.is_complete_match
+                solution = match_result.getFullSolution();
+                solution = helper__reshapeOutput(solution,in.reshape_output,cell_locations_input);
+            else
+                keyboard
+                error('Code error')
+            end
+            
             
             %??? Does the old code store non-unique points?
             %I think so ...
@@ -372,18 +421,18 @@ function solution = helper__reshapeOutput(solution,reshape_output,cell_locations
 %   cell array of 3 vectors specifying the x,y, & z values to traverse.
 %
 %   OUTPUTS
-%   =======================================================================
+%   -------
 %   solution : NEURON.xstim.single_AP_sim.solution
 %
 %   INPUTS
-%   =======================================================================
+%   ------
 %   solution       : NEURON.xstim.single_AP_sim.solution
 %   reshape_output : This is a flag by the user as to whether or not to
 %       reshape the threshold values.
 %   cell_locations_input :
 
 if reshape_output && iscell(cell_locations_input)
-    solution.thresholds = NEURON.sl.xyz.vectorToMatrixByCell(solution.thresholds,cell_locations_input);
+    solution.ap_propagated = NEURON.sl.xyz.vectorToMatrixByCell(solution.ap_propagated,cell_locations_input);
 end
 
 end

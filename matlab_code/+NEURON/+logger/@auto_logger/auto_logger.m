@@ -11,6 +11,12 @@ classdef auto_logger < NEURON.logger
     %   2) How to log them
     %   3) How to compare them to previous values
     %
+    %
+    %   The find() method is the main method that finds a match between the
+    %   current loggable object and previous logged objects. To do this it
+    %   relies on getNewValue() to retrieve current property values as well
+    %   as compare() to know if values are the same or different.
+    %
     %   Known implementations
     %   ---------------------
     %   NEURON.simulation.extracellular_stim.electrode.logger
@@ -31,10 +37,26 @@ classdef auto_logger < NEURON.logger
         IS_SINGULAR_OBJECT  %Specify whether or not this class is singular,
         %or whether or not it will ever have multiple instances.
         
-        PROCESSING_INFO %Idea is to eventually pass this into the processor ...
-        %See the processor for format instructions ...
+        PROCESSING_INFO %Format
+        %cell array with 3 columns
+        %Column 1 - name of the property
+        %Column 2 - type of the property for comparision, see compare()
+        %Column 3 - function handle that is needed for retrieving the
+        %   property. This can be empty. This is needed for "properties"
+        %   that are only accessible via methods. When empty simple
+        %   property access is used => obj.(prop_name)
         %
-        %   The get methods also provide sufficient detail ...
+        %   The function handle will be called as:
+        %   feval(retrieval_method,obj,parent,prop_name);
+        %   retrieval_method -> function handle or function string
+        %   obj -> instance of the logger
+        %   parent -> instance of the loggable class
+        %   prop_name -> name of the property to retrieve
+        %
+        %   ???? Find an example of this being used. I would expect the
+        %   parent object to be first so that it could call a method of the
+        %   parent ....
+        
     end
     
     properties
@@ -83,9 +105,10 @@ classdef auto_logger < NEURON.logger
             %    Retrieves the current property value of an object and
             %    convert it to a form suitable for logging.
             %
-            %    INPUTS
-            %    ===========================================================
-            %    prop_name : (char) name of the property to retrieve from
+            %    Inputs
+            %    ------
+            %    prop_name : (char) 
+            %       Name of the property to retrieve from
             %            the parent
             %    retrieval_method : One of 3 types
             %            See definition of PROCESSING_INFO
@@ -93,16 +116,18 @@ classdef auto_logger < NEURON.logger
             %    See Also:
             %    
             %
-            %    IMPROVEMENTS:
-            %    ==========================================================
+            %    Improvements
+            %    ------------
             %    1) On loading the processing info we could resolve all
             %    of the instructions to function handles
             %
-            %    FULL PATH
-            %    ==========================================================
+            %    Full Path
+            %    ---------
             %    NEURON.logger.auto_logger.getNewValue
             
-            parent      = obj.parent;
+            %Note, 'parent' indicates a loggable class. It is the object
+            %we wish to log
+            parent = obj.parent;
             is_singular = obj.IS_SINGULAR_OBJECT;
             
             if isempty(retrieval_method)

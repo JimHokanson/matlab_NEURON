@@ -54,9 +54,7 @@ classdef match_result < NEURON.sl.obj.handle_light
         %   Outputs
         %   -------
         %   new_solution : Class: NEURON.xstim.single_AP_sim.solution
-            
-            keyboard
-        
+                    
             if ~obj.is_complete_match
                error('Operation not allowed for partial matches') 
             end

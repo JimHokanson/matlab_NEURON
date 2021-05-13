@@ -7,20 +7,21 @@ classdef single_sim < NEURON.sl.obj.handle_light
     %   extracellular stimulation simulation. This class is created by:
     %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
     %
-    %   See Also:
-    %       NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
+    %   See Also
+    %   --------
+    %   NEURON.simulation.extracellular_stim.threshold_analysis.run_stimulation
     %
-    %   IMPROVEMENTS:
-    %   ===================================================================
+    %   Improvements
+    %   ------------
     %   1) Get accurate labels of space & time for plotting method
     
     properties (Hidden)
         xstim_obj %NEURON.simulation.extracellular_stim
         
-        cell_obj           %Class: Subclass of NEURON.neural_cell &
+        cell_obj %Subclass of NEURON.neural_cell &
         %NEURON.cell.extracellular_stim_capable
         
-        threshold_info_obj %Class: NEURON.cell.threshold_info
+        threshold_info_obj %NEURON.cell.threshold_info
     end
     
     properties
@@ -52,7 +53,8 @@ classdef single_sim < NEURON.sl.obj.handle_light
     end
     
     methods
-        function obj = single_sim(xstim_obj,tested_scale,threshold_info_obj,initial_tstop)
+        function obj = single_sim(xstim_obj,tested_scale,threshold_info_obj,...
+                initial_tstop)
            %
            %
            %    obj = single_sim(xstim_obj,tested_scale,threshold_info_obj,initial_tstop)

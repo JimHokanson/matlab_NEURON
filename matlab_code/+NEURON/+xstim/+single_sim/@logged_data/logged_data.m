@@ -116,7 +116,7 @@ classdef logged_data < NEURON.sl.obj.handle_light
             
             match_result = obj.solution.findMatches(new_cell_locations,scales);
         end
-        function addEntries(obj,solve_dates,new_locations,new_thresholds,predictor_types,ranges)
+        function addEntries(obj,new_data)
             %
             %
             %   addEntries(obj,solve_dates,new_locations,new_thresholds,predictor_types,ranges)
@@ -125,7 +125,7 @@ classdef logged_data < NEURON.sl.obj.handle_light
             
             if ~obj.system_testing
                 %NEURON.xstim.single_AP_sim.solution
-                obj.solution.addToEntry(solve_dates,new_locations,new_thresholds,predictor_types,ranges);
+                obj.solution.addToEntry(new_data);
                 obj.saveData();
             end
         end

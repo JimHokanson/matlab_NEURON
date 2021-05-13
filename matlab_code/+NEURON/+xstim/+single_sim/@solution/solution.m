@@ -60,17 +60,17 @@ classdef  solution < NEURON.sl.obj.handle_light
             %   ------
             %
             
-            new_obj = NEURON.xstim.single_AP_sim.solution([]);
+            new_obj = NEURON.xstim.single_sim.solution([]);
             
             new_obj.cell_locations = obj.cell_locations(I,:);
-            new_obj.tested_scales = obj.cell_locations(I,:);
-            new_obj.success = obj.cell_locations(I,:);
-            new_obj.tissue_fried = obj.cell_locations(I,:);
-            new_obj.initial_stim_time = obj.cell_locations(I,:);
-            new_obj.final_stim_time = obj.cell_locations(I,:);
-            new_obj.membrane_potential = obj.cell_locations(I,:);
-            new_obj.ap_propagated  = obj.cell_locations(I,:);
-            new_obj.solve_dates = obj.cell_locations(I,:);
+            new_obj.tested_scales = obj.tested_scales(I);
+            new_obj.success = obj.success(I);
+            new_obj.tissue_fried = obj.tissue_fried(I);
+            new_obj.initial_stim_time = obj.initial_stim_time(I);
+            new_obj.final_stim_time = obj.final_stim_time(I);
+            new_obj.membrane_potential = obj.membrane_potential(I);
+            new_obj.ap_propagated  = obj.ap_propagated(I);
+            new_obj.solve_dates = obj.solve_dates(I);
             new_obj.hash = now;
         end
         function appplied_stim_obj = getAppliedStimulusObject(obj,xstim_obj)
@@ -86,7 +86,7 @@ classdef  solution < NEURON.sl.obj.handle_light
         function s = getStruct(obj)
             s = NEURON.sl.obj.toStruct(obj);
         end
-        function addToEntry(obj,solve_dates,new_locations,new_thresholds,predictor_types,ranges)
+        function addToEntry(obj,new_data)
             %
             %
             %   addToEntry(obj,solve_dates,new_locations,new_thresholds,predictor_types,ranges)
@@ -98,14 +98,22 @@ classdef  solution < NEURON.sl.obj.handle_light
             %
             %   See Also:
             %   NEURON.xstim.single_AP_sim.solution.addToEntry
+                        
+            nd = new_data;
             
-            keyboard
+            m = nd.solved;
             
-            obj.solve_dates     = [obj.solve_dates      solve_dates];
-            obj.cell_locations  = [obj.cell_locations;  new_locations];
-            obj.thresholds      = [obj.thresholds       new_thresholds];
-            obj.predictor_types = [obj.predictor_types  predictor_types];
-            obj.ranges          = [obj.ranges;          ranges];
+            obj.solve_dates     = [obj.solve_dates      nd.solve_dates(m)];
+            obj.cell_locations  = [obj.cell_locations;  nd.cell_locations(m,:)];
+            obj.tested_scales = [obj.tested_scales nd.tested_scales(m)];
+            obj.success = [obj.success nd.success(m)];
+            obj.tissue_fried = [obj.tissue_fried nd.tissue_fried(m)];
+            obj.initial_stim_time = [obj.initial_stim_time nd.initial_stim_time(m)];
+            obj.final_stim_time = [obj.final_stim_time nd.final_stim_time(m)];
+            obj.membrane_potential = [obj.membrane_potential nd.membrane_potential(m)];
+            obj.ap_propagated = [obj.ap_propagated nd.ap_propagated(m)];
+            obj.solve_dates = [obj.solve_dates nd.solve_dates(m)];
+            
             obj.hash = now;
         end
         function match_result = findMatches(obj,cell_locations,scales)
@@ -126,9 +134,11 @@ classdef  solution < NEURON.sl.obj.handle_light
             %   --------
             %   NEURON.xstim.single_sim.solution.match_result
             
+            m_old = [cell_locations scales(:)];
+            m_new = [obj.cell_locations obj.tested_scales(:)];
+            
             if ~isempty(obj.cell_locations)
-                keyboard
-                [mask,loc] = ismember(cell_locations,obj.cell_locations,'rows');
+                [mask,loc] = ismember(m_old,m_new,'rows');
             else
                 n_rows = size(cell_locations,1);
                 mask = false(n_rows,1);

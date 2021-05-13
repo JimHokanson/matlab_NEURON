@@ -1,19 +1,24 @@
 classdef logger < NEURON.logger.auto_logger
     %
-    %
     %   Class:
     %   NEURON.tissue.homogeneous_anisotropic.logger
+    %
+    %   See Also
+    %   --------
+    %   NEURON.logger.auto_logger
     
     properties(Constant)
-        VERSION    = 1
+        VERSION = 1
         CLASS_NAME = 'NEURON.tissue.homogeneous_anisotropic'
-        TYPE       = 2
+        TYPE = 2 %Used to distinguish between different subclasses
     end
     
     properties (Constant)
-        IS_SINGULAR_OBJECT = true;
+        IS_SINGULAR_OBJECT = true; %i.e. we will never have multiples
+        %of this class
         PROCESSING_INFO = {...
-            'resistivity'       'vectorFP'      ''}
+            'resistivity'       'vectorFP'      ''; ...
+            'scale_type'          'simple_numeric'        ''}
     end
     
     methods(Access = private)

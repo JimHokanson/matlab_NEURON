@@ -46,39 +46,13 @@ classdef new_solution < NEURON.sl.obj.handle_light
         file_save_path
     end
     
-    %??? Make some of these access private?????
-    properties (SetAccess = {?NEURON.sl.struct.toObject})
-        d1 = '---- Do not access these properties, for debugging only ----'
+    properties
         solved %[1 x n], This should be set if values are learned or
         %predicted. In this case threshold values should be available.
         
-        solved_and_unique %(logical, [1 x n]), I needed to start keeping
-        %track of indices that had been solved, not because they were
-        %similar to old solutions, but because they were solved directly
-        %
-        %Not using this was causing problems with prediction algorithms
-        %that didn't like not having unique values ...
-
-        will_solve_later %(logical, [1 x n]) 
-        %The idea with these properties is to allow handling
-        %of thresholds that will be dependent on other thresholds.
-        %
-        %These should be set by stimulus matchers or other classes which
-        %will know the solution once other values have been solved. In
-        %general we will not worry too much about updating these values
-        %during the prediction phase as they should contribute little to
-        %helping with the prediction step. The predictor will call a method
-        %to finalize these values.
-        will_solve_later_fh = {}
-        %   Hold callback functions, nothing will be passed, the redundant
-        %   data will be held by the object implementing the callback ...
-        %
-        %   Known interfacing classes:
-        %   -----------------------------------------------
-        %    1) NEURON.xstim.single_AP_sim.applied_stimulus_matcher
     end
     
-    properties (SetAccess = {?NEURON.sl.struct.toObject})
+    properties
         d2 = '----  Fine to access directly for now ----'
        	cell_locations  %[n x 3]
         tested_scales   %[1 x n]
@@ -89,36 +63,9 @@ classdef new_solution < NEURON.sl.obj.handle_light
         membrane_potential  %{1 x n}
         ap_propagated   %[1 x n]
         solve_dates 	%[1 x n]
+
+    end
         
-%         cell_locations   %(numeric, [n x 3])
-%         thresholds       %(numeric, [1 x n]), default NaN
-%         solved_dates     %(numeric, [1 x n]), Matlab time
-%         prediction_types %(numeric, [1 x n])
-%         ranges           %(numeric, [n x 2])
-    end
-    
-    %Public Properties ====================================================
-    properties (Dependent)
-        solution_available  %(logical, [1 x n]), a combination of whether 
-        %or not points have solutions directly solved for or inferred based
-        %on other points (i.e. same applied stimulus)
-        all_done %Whether or not we have soluations for all points
-    end
-    
-    methods
-        function summarize(obj)
-           %NEURON.xstim.single_AP_sim.new_solution.summarize
-           fprintf('%d total, %d like old stimuli, %d like new stimuli, %d remaining\n',...
-               length(obj.thresholds),sum(obj.solved),sum(obj.will_solve_later),sum(~obj.solution_available))
-        end
-        function value = get.all_done(obj)
-            value = all(obj.solution_available);
-        end
-        function value = get.solution_available(obj)
-           value = obj.solved | obj.will_solve_later; 
-        end
-    end
-    
     methods
         function obj = new_solution(xstim_ID,cell_locations,scales)
             %
@@ -149,8 +96,6 @@ classdef new_solution < NEURON.sl.obj.handle_light
                 obj.solve_dates = NaN(1,n_elements);
                 
                 obj.solved = false(1,n_elements);
-                obj.solved_and_unique = false(1,n_elements);
-                obj.will_solve_later = false(1,n_elements);
             end
         end
     end
@@ -281,7 +226,7 @@ classdef new_solution < NEURON.sl.obj.handle_light
                return 
             end
             
-            s = NEURON.sl.obj.toStruct(obj,'fields_to_remove',{'will_solve_later' 'will_solve_later_fh'});  %#ok<NASGU>
+            s = NEURON.sl.obj.toStruct(obj);  %#ok<NASGU>
             %NOTE: We will only reload from disk for merging with old data.
             
             save(obj.file_save_path,'s');
@@ -320,17 +265,12 @@ classdef new_solution < NEURON.sl.obj.handle_light
             %
             %
             %
-            %
             
             if obj.system_testing
                return 
             end
             
-            mask = obj.solved;  %Only pass in solved entries ...
-
-            keyboard
-            logged_data_obj.addEntries(obj.solved_dates(mask),obj.cell_locations(mask,:),...
-                    obj.thresholds(mask),obj.prediction_types(mask),obj.ranges(mask,:))
+            logged_data_obj.addEntries(obj)
             
             delete(obj.file_save_path);
         end
